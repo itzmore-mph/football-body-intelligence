@@ -1,0 +1,53 @@
+#!/bin/bash
+# project_start.sh.template — copy to project_start.sh and fill in your values.
+# project_start.sh is gitignored and must never be committed.
+#
+# SOURCE this script (not bash) so exports stay in the current shell:
+#   source project_start.sh   or   . project_start.sh
+# Running with `bash project_start.sh` creates a subshell and exports are lost.
+
+# ── Fill in your values ───────────────────────────────────────────────────────
+PROFILE="${AWS_PROFILE:-your-sso-profile-name}"
+REGION="${AWS_DEFAULT_REGION:-eu-central-1}"
+S3_BUCKET="${HACKATHON_BUCKET:-your-s3-bucket-name}"
+CHALLENGE_PREFIX="${CHALLENGE_PREFIX:-Challenge 2 – Unlock the Power of 3D Football Data/Match_Data}"
+SM_ROLE_ARN="${SM_ROLE_ARN:-arn:aws:iam::YOUR_ACCOUNT_ID:role/SageMakerExecutionRole}"
+SM_IMAGE_URI="${SM_IMAGE_URI:-YOUR_ACCOUNT_ID.dkr.ecr.eu-central-1.amazonaws.com/football-bi-processing:latest}"
+# ─────────────────────────────────────────────────────────────────────────────
+
+echo "==> Activating virtual environment..."
+source .venv/bin/activate
+
+echo "==> Loading .env..."
+set -a; source .env; set +a
+
+echo "==> Logging in to AWS SSO (opens browser)..."
+aws sso login --profile "$PROFILE"
+
+echo "==> Verifying S3 connection..."
+python -c "
+from dotenv import load_dotenv
+load_dotenv()
+from src.eda_helpers import create_session
+session, client, s3fs = create_session()
+status = client.list_buckets()['ResponseMetadata']['HTTPStatusCode']
+print(f'S3 connection: {\"OK\" if status == 200 else \"FAILED (status \" + str(status) + \")\"}')"
+
+echo "==> Setting SageMaker environment variables..."
+export AWS_PROFILE="$PROFILE"
+export AWS_DEFAULT_REGION="$REGION"
+export S3_BUCKET="$S3_BUCKET"
+export CHALLENGE_PREFIX="$CHALLENGE_PREFIX"
+export SM_ROLE_ARN="$SM_ROLE_ARN"
+export SM_IMAGE_URI="$SM_IMAGE_URI"
+export BEDROCK_REGION="${BEDROCK_REGION:-eu-central-1}"
+
+echo ""
+echo "==> Ready. SSO token valid for ~60 minutes."
+echo "    Re-run this script when the token expires."
+echo ""
+echo "    Env vars set:"
+echo "      S3_BUCKET        = $S3_BUCKET"
+echo "      SM_ROLE_ARN      = $SM_ROLE_ARN"
+echo "      SM_IMAGE_URI     = $SM_IMAGE_URI"
+echo "      BEDROCK_REGION   = $BEDROCK_REGION"

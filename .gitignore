@@ -1,0 +1,63 @@
+# ── IDE and OS ────────────────────────────────────────────────────────────────
+.DS_Store
+.vscode/
+.idea/
+
+# ── Kiro / Claude agent files ─────────────────────────────────────────────────
+.claude/
+.kiro/
+CLAUDE.md
+KIRO_PROMPT.md
+
+# ── Virtual environment ────────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+
+# ── Secrets and local-only scripts ────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+project_start.sh
+!project_start.sh.template
+
+# ── Python cache ──────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.hypothesis/
+*.egg-info/
+dist/
+build/
+*.egg
+
+# ── Jupyter ───────────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+
+# ── Hackathon data — do not upload (challenge rules) ──────────────────────────
+*.parquet
+
+# ── Pipeline results (derived from S3 data, large) ────────────────────────────
+# Ignore the directory but commit the key output CSVs and figures
+results/*
+!results/awi_full.csv
+!results/pqi_full.csv
+!results/combined_full.csv
+!results/narratives.csv
+
+# ── Generated figures ─────────────────────────────────────────────────────────
+figures/*
+!figures/fig1_awi_vs_pqi_scatter.png
+!figures/fig2_position_heatmap.png
+!figures/fig3_half_comparison.png
+!figures/fig4_pqi_decomposition.png
+
+# ── DFL proprietary documentation — do not redistribute ───────────────────────
+docs/
+
+# ── Submission package (generated locally) ────────────────────────────────────
+submission/*.pdf
+submission/*.mp4
+submission/*.zip
