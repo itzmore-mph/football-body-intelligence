@@ -18,9 +18,18 @@ st.markdown(
         /* tighten sidebar padding */
         section[data-testid="stSidebar"] { padding-top: 1rem; }
         /* remove top whitespace on main area */
-        .block-container { padding-top: 1.5rem; }
-        /* push tab content below the sticky tab bar */
-        div[data-testid="stTabContent"] { padding-top: 1.2rem; }
+        .block-container { padding-top: 1rem; }
+        /* sticky tab bar so it never scrolls away */
+        div[data-testid="stTabs"] > div:first-child {
+            position: sticky;
+            top: 0;
+            z-index: 999;
+            background-color: #0e1117;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        /* breathing room below tab bar */
+        div[data-testid="stTabContent"] { padding-top: 1.4rem; }
         /* subtle card-like chart containers */
         div[data-testid="stPlotlyChart"] {
             border-radius: 8px;
@@ -219,16 +228,38 @@ with tab1:
         scatter_col = st.container()
 
     with scatter_col:
+        scatter_data = filtered_df_valid.copy()
+        scatter_data["tooltip"] = scatter_data.apply(
+            lambda r: (
+                f"<b>{r['name']}</b> (#{int(r['jersey'])})<br>"
+                f"Position: {r['position']}<br>"
+                f"Match: {r['match_id']} · {r['phase_label']}<br>"
+                f"AWI: {r['awi_per_minute']:.2f} scans/min<br>"
+                f"PQI: {r['mean_pqi']:.1f}"
+            ), axis=1
+        )
         fig_scatter = px.scatter(
-            filtered_df_valid,
+            scatter_data,
             x="awi_per_minute", y="mean_pqi",
             color="position",
-            hover_data=["name", "jersey", "match_id", "phase_label"],
+            custom_data=["tooltip"],
             title="AWI vs PQI — selected player highlighted",
             opacity=0.55,
             template=CHART_THEME,
         )
-        highlight = filtered_df_valid[mask]
+        fig_scatter.update_traces(
+            hovertemplate="%{customdata[0]}<extra></extra>",
+        )
+        highlight = filtered_df_valid[mask].copy()
+        highlight["tooltip"] = highlight.apply(
+            lambda r: (
+                f"<b>{r['name']}</b> (#{int(r['jersey'])})<br>"
+                f"Position: {r['position']}<br>"
+                f"Match: {r['match_id']} · {r['phase_label']}<br>"
+                f"AWI: {r['awi_per_minute']:.2f} scans/min<br>"
+                f"PQI: {r['mean_pqi']:.1f}"
+            ), axis=1
+        )
         fig_scatter.add_trace(go.Scatter(
             x=highlight["awi_per_minute"],
             y=highlight["mean_pqi"],
@@ -236,11 +267,15 @@ with tab1:
             marker=dict(size=18, color=GOLD, symbol="star",
                         line=dict(color="white", width=1)),
             name=selected_name,
+            customdata=highlight[["tooltip"]].values,
+            hovertemplate="%{customdata[0]}<extra></extra>",
             showlegend=True,
         ))
         fig_scatter.update_layout(
             height=380, margin=dict(t=50, b=40, l=40, r=20),
             legend=dict(orientation="v", x=1.01, y=1),
+            xaxis_title="AWI (scans/min)",
+            yaxis_title="Mean PQI",
         )
         st.plotly_chart(fig_scatter, width="stretch")
 
@@ -318,19 +353,34 @@ with tab2:
     st.divider()
 
     # AWI vs PQI scatter – all players
+    scatter_all = filtered_df_valid.copy()
+    scatter_all["tooltip"] = scatter_all.apply(
+        lambda r: (
+            f"<b>{r['name']}</b> (#{int(r['jersey'])})<br>"
+            f"Position: {r['position']}<br>"
+            f"Match: {r['match_id']} · {r['phase_label']}<br>"
+            f"AWI: {r['awi_per_minute']:.2f} scans/min<br>"
+            f"PQI: {r['mean_pqi']:.1f}"
+        ), axis=1
+    )
     fig_match_scatter = px.scatter(
-        filtered_df_valid,
+        scatter_all,
         x="awi_per_minute", y="mean_pqi",
         color="position",
-        hover_data=["name", "jersey", "match_id", "phase_label"],
+        custom_data=["tooltip"],
         title="AWI vs PQI — All Players",
         opacity=0.7,
         template=CHART_THEME,
         color_discrete_sequence=px.colors.qualitative.Pastel,
     )
+    fig_match_scatter.update_traces(
+        hovertemplate="%{customdata[0]}<extra></extra>",
+    )
     fig_match_scatter.update_layout(
         height=420, margin=dict(t=50, b=40, l=40, r=20),
         legend=dict(orientation="h", y=-0.15),
+        xaxis_title="AWI (scans/min)",
+        yaxis_title="Mean PQI",
     )
     st.plotly_chart(fig_match_scatter, width="stretch")
 
