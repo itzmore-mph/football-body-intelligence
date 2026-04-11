@@ -21,20 +21,34 @@ Results are surfaced through a Streamlit dashboard and AI-generated scouting nar
 
 ## Key Results (5 matches, 400 player-phase rows)
 
-**AWI range:** 3.28 – 26.90 scans/min, median 12.59
+### AWI — Awareness Index
 
-| Position | Avg AWI |
-|----------|---------|
-| Defensive Midfield (DM) | 19.2 |
-| Central Midfield (CM) | 14.8 |
-| Wide Midfield (WM) | 13.1 |
-| Striker (FW) | 5.9 |
+**Range:** 3.28 – 26.90 scans/min · **Median:** 12.59
 
-Cross-half Pearson R = 0.854 (p < 0.001): AWI is a stable player trait, not match noise.
+| Position | Avg AWI | Role |
+|----------|---------|------|
+| DMZ — Defensive Mid Centre | 15.6 | Highest: face the most opponents |
+| IVL/IVR — Centre-back | 10.6 / 5.2 | Wide role-dependent range |
+| STZ — Striker Centre | 6.2 | Lowest outfield |
+| TW — Goalkeeper | 3.5 | Primarily ball-tracking |
 
-**Kimmich validation anchor:** 21.77 (1st half) vs 21.15 (2nd half) — consistent with his documented scanning reputation.
+**Stability:** Cross-half Pearson R = 0.854 (p < 0.001, n = 69 active phases) — AWI is a stable player trait, not match noise.
 
-Pre-pass AWI is +57% above full-phase AWI, confirming the metric captures pre-decision cognitive load.
+**Kimmich validation anchor:** 21.77 → 21.15 (FCB-HSV, halves 1 & 2) — consistent with his documented scanning reputation. Second-match second-half drop to 11.29 (−52%) flags fatigue or tactical instruction — a signal no GPS or positional metric captures.
+
+**Pre-pass context:** AWI is +57% above full-phase baseline in the 5 s before a pass, confirming the metric measures pre-decision cognitive load rather than general movement.
+
+### PQI — Pressure Quality Index
+
+**Range:** 0 – 100 composite · **Outfield leaders:** DMZ (62.9), DMR (62.1)
+
+Goalkeepers (TW) post the highest mean PQI (66.6) driven by exceptional proximity sub-scores (92+) — structurally expected given their role; position-specific benchmarking recommended for outfield comparisons.
+
+### The Central Finding: AWI and PQI Are Independent
+
+Pearson r = **−0.11** (p = 0.12, n = 198 matched observations). Scanning awareness and pressing mechanics are statistically orthogonal — both dimensions are required to characterise a player fully.
+
+**Elite quadrant** (top 25% on both): **10 unique players** across 400 observations, including Oscar Winther Höjlund (DMZ, 26.90 AWI / PQI 63.9), Joshua Kimmich (DMR, 21.77 AWI / PQI 64.7), and Luka Vušković (IVZ, 18.33 AWI / PQI 63.7) — a centre-back whose scanning profile matches a defensive midfielder.
 
 ---
 
