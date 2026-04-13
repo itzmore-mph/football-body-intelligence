@@ -32,23 +32,23 @@ Results are surfaced through a Streamlit dashboard and AI-generated scouting nar
 | STZ — Striker Centre | 6.2 | Lowest outfield |
 | TW — Goalkeeper | 3.5 | Primarily ball-tracking |
 
-**Stability:** Cross-half Pearson R = 0.854 (p < 0.001, n = 69 active phases) — AWI is a stable player trait, not match noise.
+**Stability:** Cross-half Pearson R = 0.854 (p < 0.001, n = 69 active phases) - AWI is a stable player trait, not match noise.
 
-**Kimmich validation anchor:** 21.77 → 21.15 (FCB-HSV, halves 1 & 2) — consistent with his documented scanning reputation. Second-match second-half drop to 11.29 (−52%) flags fatigue or tactical instruction — a signal no GPS or positional metric captures.
+**Kimmich validation anchor:** 21.77 → 21.15 (FCB-HSV, halves 1 & 2) - consistent with his documented scanning reputation. Second-match second-half drop to 11.29 (−52%) flags fatigue or tactical instruction - a signal no GPS or positional metric captures.
 
-**Pre-pass context:** AWI is +57% above full-phase baseline in the 5 s before a pass, confirming the metric measures pre-decision cognitive load rather than general movement.
+**Pre-pass context:** AWI is +57% above full-phase baseline in the 5s before a pass, confirming the metric measures pre-decision cognitive load rather than general movement.
 
-### PQI — Pressure Quality Index
+### PQI - Pressure Quality Index
 
-**Range:** 0 – 100 composite · **Outfield leaders:** DMZ (62.9), DMR (62.1)
+**Range:** 0 - 100 composite · **Outfield leaders:** DMZ (62.9), DMR (62.1)
 
-Goalkeepers (TW) post the highest mean PQI (66.6) driven by exceptional proximity sub-scores (92+) — structurally expected given their role; position-specific benchmarking recommended for outfield comparisons.
+Goalkeepers (TW) post the highest mean PQI (66.6), driven by exceptional proximity sub-scores (92+), which is structurally expected given their role; position-specific benchmarking is recommended for outfield comparisons.
 
 ### The Central Finding: AWI and PQI Are Independent
 
-Pearson r = **−0.11** (p = 0.12, n = 198 matched observations). Scanning awareness and pressing mechanics are statistically orthogonal — both dimensions are required to characterise a player fully.
+Pearson r = **−0.11** (p = 0.12, n = 198 matched observations). Scanning awareness and pressing mechanics are statistically orthogonal - both dimensions are required to characterize a player fully.
 
-**Elite quadrant** (top 25% on both): **10 unique players** across 400 observations, including Oscar Winther Höjlund (DMZ, 26.90 AWI / PQI 63.9), Joshua Kimmich (DMR, 21.77 AWI / PQI 64.7), and Luka Vušković (IVZ, 18.33 AWI / PQI 63.7) — a centre-back whose scanning profile matches a defensive midfielder.
+**Elite quadrant** (top 25% on both): **10 unique players** across 400 observations, including Oscar Winther Höjlund (DMZ, 26.90 AWI / PQI 63.9), Joshua Kimmich (DMR, 21.77 AWI / PQI 64.7), and Luka Vušković (IVZ, 18.33 AWI / PQI 63.7) - a center-back whose scanning profile matches a defensive midfielder.
 
 ---
 
@@ -199,7 +199,7 @@ pytest tests/ -v
 
 ## Running the Platform
 
-### Option A — SageMaker Pipeline (recommended, ~15-20 min)
+### Option A - SageMaker Pipeline (recommended, ~15-20 min)
 
 **One-time container build** (only needed after changes to `src/` or `scripts/`):
 
@@ -224,7 +224,7 @@ python pipelines/sagemaker_pipeline.py --action status --run-id <run-id>
 
 ---
 
-### Option B — Local notebooks (fallback, ~90-120 min)
+### Option B - Local notebooks (fallback, ~90-120 min)
 
 The SSO token expires after 60 minutes. If it does, re-run `source project_start.sh` and re-execute from the last checkpoint — completed phases are skipped automatically.
 
