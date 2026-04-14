@@ -76,7 +76,7 @@ TF15 Parquet (S3, ~4 GB/match)
 | DMZ — Defensive Mid Centre | 15.6 | Highest — face the most opponents |
 | IVL/IVR — Centre-back | 10.6 / 5.2 | Wide role-dependent range |
 | STZ — Striker Centre | 6.2 | Lowest outfield |
-| TW — Goalkeeper | 3.5 | Primarily ball-tracking |
+| TW — Goalkeeper | 3.5 | Ball-tracking dominant |
 
 **Stability:** Cross-half Pearson R = **0.854** (p < 0.001, n = 69 active player-phases): AWI is a stable player trait across the match. Kimmich: 21.77 (FCB-HSV 1st) → 21.15 (FCB-HSV 2nd) — a 0.6-scan variance across 47 minutes of football.
 

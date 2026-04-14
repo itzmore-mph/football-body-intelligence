@@ -4,64 +4,71 @@
 
 **Team:** _itzmore_ · [GitHub](https://github.com/itzmore-mph/football-body-intelligence)
 
-## Overview
+---
 
-Transforms raw TRACAB TF15 3D skeleton data from 5 Bundesliga matches into two complementary player intelligence metrics:
+## What We Built
 
-| Metric | What it measures | Output |
-|--------|-----------------|--------|
-| **AWI** — Awareness Index | Cognitive scanning: discrete head-rotation events per minute | `results/awi_full.csv` |
-| **PQI** — Pressure Quality Index | Physical pressing mechanics: body orientation, stance, and proximity during press actions | `results/pqi_full.csv` |
+Two matchday-grade player intelligence metrics derived entirely from TRACAB TF15 3D skeleton data — impossible with 2D tracking:
 
-A player can scan well but press poorly (high AWI, low PQI), or press with perfect mechanics but without pre-scanning (low AWI, high PQI). Elite players score high on both.
+| Metric | What it measures | Range |
+|--------|-----------------|-------|
+| **AWI** — Awareness Index | Cognitive scanning: discrete head-rotation events per minute, from 3D nose/neck/ear keypoints | 3.3 – 26.9 scans/min |
+| **PQI** — Pressure Quality Index | Pressing mechanics: body orientation, knee-flexion stance, and proximity during genuine press actions | 0 – 100 |
 
-Results are surfaced through a Streamlit dashboard and AI-generated scouting narratives via AWS Bedrock.
+A player can scan brilliantly but press with poor mechanics (high AWI, low PQI), or press perfectly without pre-scanning (low AWI, high PQI). **Elite players score high on both — and the data shows exactly who they are.**
 
 ---
 
-## Key Results (5 matches, 400 player-phase rows)
+## Key Results
 
 ### AWI — Awareness Index
 
-**Range:** 3.28 – 26.90 scans/min · **Median:** 12.59
+**5 matches · 400 player-phase rows · Median: 12.59 scans/min**
 
-| Position | Avg AWI | Role |
-|----------|---------|------|
-| DMZ — Defensive Mid Centre | 15.6 | Highest: face the most opponents |
-| IVL/IVR — Centre-back | 10.6 / 5.2 | Wide role-dependent range |
-| STZ — Striker Centre | 6.2 | Lowest outfield |
-| TW — Goalkeeper | 3.5 | Primarily ball-tracking |
+| Position | Avg AWI | Interpretation |
+|----------|---------|----------------|
+| DMZ — Defensive Mid Centre | 15.6 | Highest: face the most opponents, must scan constantly |
+| IVL — Centre-back (left) | 10.6 | Elevated: wide role demands spatial awareness |
+| STZ — Striker Centre | 6.2 | Lowest outfield: forward-facing role, fewer opponents to track |
+| TW — Goalkeeper | 3.5 | Ball-tracking dominant, not opponent-scanning |
 
-**Stability:** Cross-half Pearson R = 0.854 (p < 0.001, n = 69 active phases) - AWI is a stable player trait, not match noise.
+**Stability:** Cross-half Pearson R = **0.854** (p < 0.001, n = 69 active phases) — AWI is a stable player trait, not match noise.
 
-**Kimmich validation anchor:** 21.77 → 21.15 (FCB-HSV, halves 1 & 2) - consistent with his documented scanning reputation. Second-match second-half drop to 11.29 (−52%) flags fatigue or tactical instruction - a signal no GPS or positional metric captures.
+**Validation:** Kimmich (FCB-HSV): 21.77 → 21.15 across halves — consistent with his documented scanning reputation. His FCU-FCB 2nd-half drop to 11.29 (−52%) is a fatigue signal no GPS or positional metric captures.
 
-**Pre-pass context:** AWI is +57% above full-phase baseline in the 5s before a pass, confirming the metric measures pre-decision cognitive load rather than general movement.
+**Pre-pass signal:** AWI is **+57% above full-phase baseline** in the 5 seconds before a pass — confirming the metric measures pre-decision cognitive load, not incidental movement.
 
-### PQI - Pressure Quality Index
+### PQI — Pressure Quality Index
 
-**Range:** 0 - 100 composite · **Outfield leaders:** DMZ (62.9), DMR (62.1)
+```
+PQI = 0.40 × orientation_score + 0.30 × stance_score + 0.30 × proximity_score
+```
 
-Goalkeepers (TW) post the highest mean PQI (66.6), driven by exceptional proximity sub-scores (92+), which is structurally expected given their role; position-specific benchmarking is recommended for outfield comparisons.
+**Outfield leaders:** DMZ (62.9), DMR (62.1), IVL (62.0)
+
+Goalkeepers (TW) post the highest mean PQI (66.6), driven primarily by their **orientation sub-score** (70.4 vs 54.7 outfield average) — when closing down in their penalty area, goalkeepers face the ball carrier directly and square-on by necessity, which maximises the orientation component. This is a structural role effect; position-specific benchmarking is recommended for outfield comparisons.
 
 ### The Central Finding: AWI and PQI Are Independent
 
-Pearson r = **−0.11** (p = 0.12, n = 198 matched observations). Scanning awareness and pressing mechanics are statistically orthogonal - both dimensions are required to characterize a player fully.
+**Pearson r = −0.11** (p = 0.12, n = 198 matched observations)
 
-**Elite quadrant** (top 25% on both): **10 unique players** across 400 observations, including Oscar Winther Höjlund (DMZ, 26.90 AWI / PQI 63.9), Joshua Kimmich (DMR, 21.77 AWI / PQI 64.7), and Luka Vušković (IVZ, 18.33 AWI / PQI 63.7) - a center-back whose scanning profile matches a defensive midfielder.
+Scanning awareness and pressing mechanics are statistically orthogonal. Both dimensions are required to characterise a player fully.
+
+**Elite quadrant** (top 25% on both metrics): **10 unique players** across 400 observations
+
+| Player | Position | AWI | PQI |
+|--------|----------|-----|-----|
+| Oscar Winther Höjlund | DMZ | 26.90 | 63.9 |
+| Joshua Kimmich | DMR | 21.77 | 64.7 |
+| Luka Vušković | IVZ | 18.33 | 63.7 |
+
+Vušković is a centre-back whose scanning profile matches a defensive midfielder — the data flags his tactical versatility before any scout would.
 
 ---
 
 ## Project Structure
 
 ```
-Dockerfile                     Container image for SageMaker Processing jobs (Python 3.11-slim)
-requirements.txt               Full local dependencies (dev, notebooks, dashboard, tests)
-requirements-processing.txt   Stripped-down dependencies for the Processing container
-pyproject.toml                 Pytest + Ruff configuration
-.env.example                   Environment variable template — copy to .env and fill in values
-project_start.sh.template      Startup script template — copy to project_start.sh and fill in values
-
 src/
   awi_calculator.py          Scan detection and AWI aggregation
   batch_pipeline.py          Multi-player, multi-phase, multi-match AWI orchestration
@@ -83,7 +90,7 @@ pipelines/
   sagemaker_pipeline.py      Submits all 10 match jobs in parallel via boto3, then aggregates
   build_and_push.sh          Builds Docker image and pushes to ECR
 
-tests/                         176 unit tests, no S3 access required
+tests/                       176 unit tests — no S3 access required
 
 notebooks/
   eda_exploration.ipynb            EDA + AWI smoke test (requires S3)
@@ -95,11 +102,10 @@ notebooks/
 
 dashboard/
   app.py                     Streamlit dashboard (Player Profile, Match Overview, Leaderboard)
-  run_dashboard.sh           Launch script (port 8501)
+  run_dashboard.sh           Launch script → http://localhost:8501
 
-results/                       Generated by pipeline (gitignored); committed: sample_awi.csv
-figures/                       Generated by analysis notebooks (gitignored)
-submission/                    HTML slides, PRFAQ, build script
+results/                     Generated by pipeline (gitignored)
+submission/                  HTML slides, PRFAQ, build script
 ```
 
 ---
@@ -107,20 +113,20 @@ submission/                    HTML slides, PRFAQ, build script
 ## AWI Pipeline
 
 ```
-S3 Parquet (TF15)
-  └─ pyarrow row-group pushdown (no full download)
+S3 Parquet (TF15, ~4 GB/match)
+  └─ pyarrow row-group pushdown       # stream, never full download
        │
        ▼
-batch_pipeline.py → _extract_angles_vectorized()
+_extract_angles_vectorized()
   • head yaw: nose/neck primary, ear fallback
   • body yaw: shoulder primary, hip fallback
        │
        ▼
-awi_calculator.py → detect_scans()
-  • 11-frame circular rolling mean   (handles ±180° wrap)
-  • 25-frame delta                   0.5s lookback window
-  • 45° threshold                    flag large head turns
-  • leading-edge count               1 rotation = 1 event
+detect_scans()
+  • 11-frame circular rolling mean    # handles ±180° wrap via sin/cos decomposition
+  • 25-frame delta (0.5 s window)
+  • ≥45° threshold                   # XY-projection corrected; tuned on Kimmich
+  • leading-edge count               # 1 sustained rotation = 1 event, not N frames
        │
        ▼
 compute_awi() → scan_count / phase_minutes
@@ -137,17 +143,13 @@ compute_awi() → scan_count / phase_minutes
 
 ## PQI Pipeline
 
-PQI measures pressing quality during frames where a player's pelvis is within 5 m of the ball carrier for ≥10 consecutive frames (0.2 s at 50 fps).
-
-```
-PQI = 0.40 × orientation_score + 0.30 × stance_score + 0.30 × proximity_score
-```
+Press frames: player's pelvis within 5 m of ball carrier for ≥10 consecutive frames (0.2 s at 50 fps).
 
 | Sub-score | Formula | Peak |
 |-----------|---------|------|
-| Orientation | `max(0, 100 − (angle_to_carrier / 90) × 100)` | 100 when facing carrier directly |
-| Stance | `100 × exp(−0.5 × ((knee_flex − 130) / 25)²)` | 100 at 130° knee flexion |
-| Proximity | `max(0, 100 × (1 − distance_m / 5.0))` | 100 at 0 m, 0 at ≥5 m |
+| Orientation (40%) | `max(0, 100 − (angle_to_carrier / 90) × 100)` | 100 when facing carrier directly |
+| Stance (30%) | `100 × exp(−0.5 × ((knee_flex − 130) / 25)²)` | 100 at 130° knee flexion |
+| Proximity (30%) | `max(0, 100 × (1 − distance_m / 5.0))` | 100 at 0 m, 0 at ≥5 m |
 
 ---
 
@@ -156,8 +158,8 @@ PQI = 0.40 × orientation_score + 0.30 × stance_score + 0.30 × proximity_score
 ### Prerequisites
 
 - Python 3.11+
-- AWS CLI with SSO configured for your sandbox account
-- Docker Desktop (only needed to rebuild the SageMaker Processing container)
+- AWS CLI with SSO configured (`aws configure sso`)
+- Docker Desktop (only needed to rebuild the SageMaker container)
 
 ### Install
 
@@ -167,25 +169,21 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Configure environment
+### Configure
 
 ```bash
 cp .env.example .env
-# Edit .env — set AWS_PROFILE, HACKATHON_BUCKET, and optionally BEDROCK_MODEL_ID
-```
+# Set AWS_PROFILE, HACKATHON_BUCKET, BEDROCK_MODEL_ID
 
-```bash
 cp project_start.sh.template project_start.sh
-# Edit project_start.sh — set your account-specific values (SM_ROLE_ARN, SM_IMAGE_URI, etc.)
+# Set SM_ROLE_ARN, SM_IMAGE_URI, and other account-specific values
 ```
-
-Then source the startup script once per terminal session:
 
 ```bash
-source project_start.sh
+source project_start.sh   # activates venv, SSO login, exports env vars
 ```
 
-Use `source` (not `bash`) so the exported variables persist in your shell. The script activates the venv, logs in via SSO, verifies S3 access, and exports all SageMaker environment variables.
+Use `source` (not `bash`) — the script exports env vars that must persist in your shell.
 
 ### Run tests
 
@@ -199,52 +197,37 @@ pytest tests/ -v
 
 ## Running the Platform
 
-### Option A - SageMaker Pipeline (recommended, ~15-20 min)
-
-**One-time container build** (only needed after changes to `src/` or `scripts/`):
+### Option A — SageMaker Pipeline (recommended, ~15–20 min)
 
 ```bash
+# One-time container build (only after changes to src/ or scripts/)
 ./pipelines/build_and_push.sh
-```
 
-**Run all 10 jobs in parallel:**
-
-```bash
+# Run all 10 jobs in parallel
 source project_start.sh
 python pipelines/sagemaker_pipeline.py --action run
 ```
 
-When complete, `results/awi_full.csv` and `results/pqi_full.csv` are written locally automatically.
+Outputs: `results/awi_full.csv` and `results/pqi_full.csv`
 
-**Check status of a previous run:**
+### Option B — Local notebooks (~90–120 min)
 
-```bash
-python pipelines/sagemaker_pipeline.py --action status --run-id <run-id>
-```
-
----
-
-### Option B - Local notebooks (fallback, ~90-120 min)
-
-The SSO token expires after 60 minutes. If it does, re-run `source project_start.sh` and re-execute from the last checkpoint — completed phases are skipped automatically.
-
-1. **AWI** (requires S3): `notebooks/run_awi_pipeline.ipynb` → `results/awi_full.csv`
-2. **PQI** (requires S3): `notebooks/run_pqi_pipeline.ipynb` → `results/pqi_full.csv`
-3. **Analysis** (CSV only): `notebooks/analysis_awi_pqi_combined.ipynb` → `figures/`
-4. **Dashboard**: `bash dashboard/run_dashboard.sh` → http://localhost:8501
-5. **AI narratives** (requires Bedrock): `notebooks/bedrock_reports.ipynb` → `results/narratives.csv`
+1. `notebooks/run_awi_pipeline.ipynb` → `results/awi_full.csv`
+2. `notebooks/run_pqi_pipeline.ipynb` → `results/pqi_full.csv`
+3. `notebooks/analysis_awi_pqi_combined.ipynb` → `figures/`
+4. `bash dashboard/run_dashboard.sh` → http://localhost:8501
+5. `notebooks/bedrock_reports.ipynb` → `results/narratives.csv`
 
 ---
 
-## Bedrock Narrative Generation
+## AWS Services
 
-The `bedrock_reports.ipynb` notebook generates scouting narratives via AWS Bedrock. The model is configured via `BEDROCK_MODEL_ID` in `.env`.
-
-**Default:** `eu.amazon.nova-lite-v1:0` (works in `eu-central-1` without SCP restrictions)
-
-**To use Claude instead:** set `BEDROCK_MODEL_ID=eu.anthropic.claude-sonnet-4-6` in `.env` — requires your account's SCP to allow `bedrock:InvokeModel` across all EU regions that the inference profile may route to.
-
-> Note: bare model IDs like `anthropic.claude-sonnet-4-6` are not supported for on-demand invocation. Always use an inference profile ID (prefixed with `eu.`, `us.`, or `global.`).
+| Service | Purpose |
+|---------|---------|
+| S3 | TF15 Parquet match data (read-only) + pipeline output |
+| SageMaker Processing | Parallel AWI + PQI compute (10 jobs, `ml.m5.xlarge`, ~15–20 min) |
+| ECR | Docker image registry for the Processing container |
+| Bedrock | Player narrative generation (`eu.amazon.nova-lite-v1:0`) |
 
 ---
 
@@ -259,14 +242,3 @@ Five Bundesliga matches provided by DFL via the hackathon S3 bucket. No match da
 | Eintracht Frankfurt vs FC Bayern | SGE-FCB.parquet | ~3.7 GB |
 | Eintracht Frankfurt vs Union Berlin | SGE-FCU.parquet | ~4.2 GB |
 | Union Berlin vs FC Bayern | FCU-FCB.parquet | ~3.6 GB |
-
----
-
-## AWS Services Used
-
-| Service | Purpose |
-|---------|---------|
-| S3 | TF15 Parquet match data (read-only) + pipeline output storage |
-| SageMaker Processing | Parallel AWI + PQI compute (10 jobs, `ml.m5.xlarge`, ~15-20 min) |
-| ECR | Docker image registry for the Processing container |
-| Bedrock | Player narrative generation (`eu.amazon.nova-lite-v1:0` default) |
