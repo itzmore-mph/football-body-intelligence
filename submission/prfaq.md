@@ -31,9 +31,11 @@ The interactive Streamlit dashboard (`dashboard/app.py`) loads the merged AWI + 
 
 The dashboard provides three views:
 
-- **Player Profile** — AWI gauge, PQI gauge, scatter with the selected player highlighted, and PQI sub-score breakdown
-- **Match Overview** — top-10 AWI and PQI bar charts, full-match scatter by position, and 1st-half vs 2nd-half delta comparison
-- **League Leaderboard** — sortable table across all five matches, position-average heatmap, and distribution charts by position
+- **Player Profile** — AWI/PQI gauges vs selection median, 5-metric KPI row with percentile ranks and inline tooltips, scatter in context (colored by role group), PQI radar vs role average, PQI component breakdown (Orientation/Stance/Proximity with explanations), per-phase trend cards
+- **Match Overview** — summary KPIs, quadrant scatter with 4-quadrant classification and elite player labels, role lollipop chart, PQI decomposition stacked bar by role, half-time fatigue bar + 1st vs 2nd half AWI scatter, team AWI comparison (color per club)
+- **Leaderboard** — sortable table with DFL position codes, role averages heatmap, AWI bar chart (mean ± std per role), PQI box distribution by role
+
+Sidebar: Match, Phase, Position (DFL codes), Min Coverage % (default 50%). Collapsible **Metric Definitions** expander explains AWI, PQI, and all three sub-scores. **Position Code Reference** expander maps all DFL codes to English names.
 
 To launch: `bash dashboard/run_dashboard.sh` (runs on port 8501).
 

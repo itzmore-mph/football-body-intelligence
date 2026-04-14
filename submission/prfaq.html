@@ -42,10 +42,11 @@ Team: itzmore</p>
 <p><em>Figure 1: AWI vs PQI scatter plot for all player-phases across 5 Bundesliga matches, coloured by position. The near-zero correlation (r = −0.11) confirms that scanning awareness and pressing quality are independent skills — both metrics are needed to characterise a player fully. The elite quadrant (top-right) contains 10 unique players across 15 player-phases.</em></p>
 <p>The dashboard provides three views:</p>
 <ul>
-<li><strong>Player Profile</strong> — AWI gauge, PQI gauge, scatter with the selected player highlighted, and PQI sub-score breakdown</li>
-<li><strong>Match Overview</strong> — top-10 AWI and PQI bar charts, full-match scatter by position, and 1st-half vs 2nd-half delta comparison</li>
-<li><strong>League Leaderboard</strong> — sortable table across all five matches, position-average heatmap, and distribution charts by position</li>
+<li><strong>Player Profile</strong> — AWI/PQI gauges vs selection median, 5-metric KPI row with percentile ranks and inline tooltips, scatter in context (colored by role group), PQI radar vs role average, PQI component breakdown (Orientation/Stance/Proximity with explanations), per-phase trend cards</li>
+<li><strong>Match Overview</strong> — summary KPIs, quadrant scatter with 4-quadrant classification and elite player labels, role lollipop chart, PQI decomposition stacked bar by role, half-time fatigue bar + 1st vs 2nd half AWI scatter, team AWI comparison (color per club)</li>
+<li><strong>Leaderboard</strong> — sortable table with DFL position codes, role averages heatmap, AWI bar chart (mean ± std per role), PQI box distribution by role</li>
 </ul>
+<p>Sidebar: Match, Phase, Position (DFL codes), Min Coverage % (default 50%). Collapsible <strong>Metric Definitions</strong> expander explains AWI, PQI, and all three sub-scores. <strong>Position Code Reference</strong> expander maps all DFL codes to English names.</p>
 <p>To launch: <code>bash dashboard/run_dashboard.sh</code> (runs on port 8501).</p>
 <hr />
 <h2>Frequently Asked Questions</h2>

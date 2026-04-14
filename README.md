@@ -133,7 +133,7 @@ Vušković is a centre-back whose scanning profile matches a defensive midfielde
 │   └── bedrock_reports.ipynb          AI narrative generation via Bedrock
 │
 ├── dashboard/
-│   ├── app.py                   Streamlit dashboard (3 tabs)
+│   ├── app.py                   Streamlit dashboard (Player Profile, Match Overview, Leaderboard)
 │   └── run_dashboard.sh         Launch script → http://localhost:8501
 │
 ├── tests/                       177 unit tests — no S3 access required
@@ -276,11 +276,11 @@ bash dashboard/run_dashboard.sh
 Opens at **http://localhost:8501**
 
 Three tabs:
-- **Player Profile** — AWI/PQI gauges with median delta, percentile rank, scatter in context, PQI component breakdown
-- **Match Overview** — top-10 bar charts, full scatter with median crosshairs, half-time delta comparison
-- **Leaderboard** — sortable table, position heatmap, AWI/PQI distribution by position
+- **Player Profile** — player selector with DFL position code + full name, AWI/PQI gauges vs selection median, 5-metric KPI row with percentile ranks and tooltips, scatter in context (colored by role), PQI radar vs role average, PQI component breakdown (Orientation/Stance/Proximity), per-phase trend cards
+- **Match Overview** — summary KPIs, quadrant scatter with 4-quadrant classification and elite player labels, role lollipop chart, PQI decomposition stacked bar, half-time fatigue bar + 1st vs 2nd half scatter, team AWI comparison (color per club)
+- **Leaderboard** — sortable table with DFL position codes, role averages heatmap, AWI bar chart (mean ± std), PQI box distribution
 
-Sidebar filters: Match, Phase (1st/2nd half), Position (multi-select), Min Coverage %.
+Sidebar: Match, Phase, Position (DFL codes), Min Coverage % (default 50%). Collapsible **Metric Definitions** and **Position Code Reference** expanders explain all metrics and DFL codes inline.
 
 ---
 
