@@ -136,7 +136,7 @@ Vušković is a centre-back whose scanning profile matches a defensive midfielde
 │   ├── app.py                   Streamlit dashboard (3 tabs)
 │   └── run_dashboard.sh         Launch script → http://localhost:8501
 │
-├── tests/                       176 unit tests — no S3 access required
+├── tests/                       177 unit tests — no S3 access required
 ├── results/                     Pipeline outputs (gitignored)
 ├── figures/                     Analysis figures (gitignored)
 ├── submission/                  HTML slides, PRFAQ, build script
@@ -205,7 +205,7 @@ source project_start.sh
 pytest tests/ -v
 ```
 
-176 tests, all passing. No S3 access required.
+177 tests, all passing. No S3 access required.
 
 ---
 
