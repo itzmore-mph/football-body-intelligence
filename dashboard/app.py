@@ -15,19 +15,36 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+# ── Theme detection ───────────────────────────────────────────────────────────
+_theme_base = st.get_option("theme.base") or "dark"
+IS_DARK = _theme_base != "light"
+
 # ── Palette ───────────────────────────────────────────────────────────────────
-C_AWI      = "#38BDF8"
-C_PQI      = "#FB923C"
-C_GOLD     = "#FBBF24"
-C_GREEN    = "#34D399"
-C_RED      = "#F87171"
-C_PURPLE   = "#A78BFA"
-C_BG       = "#0A0E1A"
-C_SURFACE  = "#111827"
-C_BORDER   = "#1F2937"
-C_MUTED    = "#6B7280"
-C_TEXT     = "#F9FAFB"
-THEME      = "plotly_dark"
+C_AWI    = "#38BDF8"
+C_PQI    = "#FB923C"
+C_GOLD   = "#FBBF24"
+C_GREEN  = "#34D399"
+C_RED    = "#F87171"
+C_PURPLE = "#A78BFA"
+
+if IS_DARK:
+    C_BG            = "#0A0E1A"
+    C_SURFACE       = "#111827"
+    C_BORDER        = "#1F2937"
+    C_MUTED         = "#6B7280"
+    C_TEXT          = "#F9FAFB"
+    THEME           = "plotly_dark"
+    LEGEND_BG       = "rgba(17,24,39,0.85)"
+    MARKER_OUTLINE  = "white"
+else:
+    C_BG            = "#F8FAFC"
+    C_SURFACE       = "#FFFFFF"
+    C_BORDER        = "#CBD5E1"
+    C_MUTED         = "#64748B"
+    C_TEXT          = "#0F172A"
+    THEME           = "plotly_white"
+    LEGEND_BG       = "rgba(255,255,255,0.92)"
+    MARKER_OUTLINE  = "#374151"
 
 POS_COLORS: dict[str, str] = {
     "GK": "#94A3B8", "CB": "#38BDF8", "FB": "#818CF8",
@@ -104,11 +121,9 @@ def _inject_css() -> None:
       max-width: 1280px;
       padding: 0 2rem 3rem;
       margin: 0 auto;
-      background-color: {C_BG};
   }}
 
   section[data-testid="stSidebar"] {{
-      background-color: {C_SURFACE};
       border-right: 1px solid {C_BORDER};
   }}
 
@@ -116,7 +131,7 @@ def _inject_css() -> None:
       position: sticky;
       top: 0;
       z-index: 100;
-      background-color: {C_BG};
+      background-color: var(--background-color);
       border-bottom: 1px solid {C_BORDER};
       padding: 0.5rem 0 0;
   }}
@@ -491,12 +506,12 @@ def render_player_profile(fdf: pd.DataFrame) -> None:
     with g1:
         st.plotly_chart(gauge_fig(round(awi_val, 2),
                                   "AWI — Awareness Index (scans/min)",
-                                  C_AWI, awi_max, awi_med), use_container_width=True)
+                                  C_AWI, awi_max, awi_med), width="stretch")
         gauge_cap(awi_val, awi_med, "scans/min")
     with g2:
         st.plotly_chart(gauge_fig(round(pqi_val, 1),
                                   "PQI — Press Quality Index (0–100)",
-                                  C_PQI, 100, pqi_med), use_container_width=True)
+                                  C_PQI, 100, pqi_med), width="stretch")
         gauge_cap(pqi_val, pqi_med, "PQI")
     sp(0.5)
 
@@ -517,7 +532,7 @@ def render_player_profile(fdf: pd.DataFrame) -> None:
         fig_sc.add_trace(go.Scatter(
             x=hl["awi_per_minute"], y=hl["mean_pqi"], mode="markers",
             marker=dict(size=20, color=C_GOLD, symbol="star",
-                        line=dict(color="white", width=1.5)),
+                        line=dict(color=MARKER_OUTLINE, width=1.5)),
             name=sel_name,
             customdata=hl[["_tip"]].values,
             hovertemplate="%{customdata[0]}<extra></extra>",
@@ -538,7 +553,7 @@ def render_player_profile(fdf: pd.DataFrame) -> None:
             xaxis_title="AWI (scans/min)", yaxis_title="Mean PQI",
             legend=dict(title="Role", orientation="v", x=1.01, y=1, font_size=10),
         )
-        st.plotly_chart(fig_sc, use_container_width=True)
+        st.plotly_chart(fig_sc, width="stretch")
 
     with right:
         comp_keys   = ["orientation_mean", "stance_mean", "proximity_mean"]
@@ -577,7 +592,7 @@ def render_player_profile(fdf: pd.DataFrame) -> None:
                 title=dict(text="PQI Sub-scores vs Role Average",
                            font=dict(size=12, color=C_MUTED), x=0.5),
             )
-            st.plotly_chart(fig_rad, use_container_width=True)
+            st.plotly_chart(fig_rad, width="stretch")
         else:
             st.info("PQI sub-score data not available for this player.")
 
@@ -720,13 +735,13 @@ def render_match_overview(fdf: pd.DataFrame) -> None:
             orientation="v",
             x=0.01, y=0.01,
             xanchor="left", yanchor="bottom",
-            bgcolor="rgba(17,24,39,0.85)",
+            bgcolor=LEGEND_BG,
             bordercolor=C_BORDER, borderwidth=1,
             font_size=10, itemsizing="constant",
         ),
         template=THEME,
     )
-    st.plotly_chart(fig_q, use_container_width=True)
+    st.plotly_chart(fig_q, width="stretch")
     sp(0.25)
 
     # ── Position group analysis ───────────────────────────────────────────────
@@ -753,7 +768,7 @@ def render_match_overview(fdf: pd.DataFrame) -> None:
             fig_lol.add_trace(go.Scatter(
                 x=[row["awi_mean"]], y=[row["pos_group"]],
                 mode="markers",
-                marker=dict(size=14, color=c, line=dict(color="white", width=1.5)),
+                marker=dict(size=14, color=c, line=dict(color=MARKER_OUTLINE, width=1.5)),
                 name=row["pos_group"],
                 hovertemplate=f"<b>{row['pos_group']}</b><br>"
                               f"AWI: {row['awi_mean']:.2f} scans/min<br>"
@@ -766,7 +781,7 @@ def render_match_overview(fdf: pd.DataFrame) -> None:
             xaxis_title="AWI (scans/min)",
             yaxis=dict(categoryorder="total ascending"),
         )
-        st.plotly_chart(fig_lol, use_container_width=True)
+        st.plotly_chart(fig_lol, width="stretch")
 
     with pa2:
         sub_data = (fdf.groupby("pos_group")
@@ -803,7 +818,7 @@ def render_match_overview(fdf: pd.DataFrame) -> None:
             yaxis_title="Weighted contribution",
             legend=dict(orientation="h", y=-0.3, font_size=10),
         )
-        st.plotly_chart(fig_stack, use_container_width=True)
+        st.plotly_chart(fig_stack, width="stretch")
 
     st.divider()
 
@@ -842,7 +857,7 @@ def render_match_overview(fdf: pd.DataFrame) -> None:
                 xaxis_tickangle=-35, yaxis_title="AWI Δ (scans/min)",
                 showlegend=False,
             )
-            st.plotly_chart(fig_d, use_container_width=True)
+            st.plotly_chart(fig_d, width="stretch")
 
         with d2:
             fig_hh = px.scatter(
@@ -873,7 +888,7 @@ def render_match_overview(fdf: pd.DataFrame) -> None:
                 yaxis_title="AWI 2nd half (scans/min)",
                 legend=dict(orientation="v", x=1.01, y=1, font_size=9),
             )
-            st.plotly_chart(fig_hh, use_container_width=True)
+            st.plotly_chart(fig_hh, width="stretch")
     else:
         st.info("Select 'All' phases to see the half-time comparison.")
 
@@ -910,7 +925,7 @@ def render_match_overview(fdf: pd.DataFrame) -> None:
         yaxis_title="Avg AWI (scans/min)",
         bargap=0.35,
     )
-    st.plotly_chart(fig_team, use_container_width=True)
+    st.plotly_chart(fig_team, width="stretch")
 
 
 def render_leaderboard(fdf: pd.DataFrame) -> None:
@@ -941,7 +956,7 @@ def render_leaderboard(fdf: pd.DataFrame) -> None:
         tbl["coverage_pct"] = (tbl["coverage_pct"] * 100).round(1)
 
     st.dataframe(
-        tbl, use_container_width=True,
+        tbl, width="stretch",
         height=min(45 + len(tbl) * 35, 480),
         column_config={
             "jersey":           st.column_config.NumberColumn("#",               format="%d"),
@@ -993,7 +1008,7 @@ def render_leaderboard(fdf: pd.DataFrame) -> None:
                            font_size=12, x=0, font_color=C_MUTED),
                 xaxis_tickangle=-20, coloraxis_showscale=False,
             )
-            st.plotly_chart(fig_hm, use_container_width=True)
+            st.plotly_chart(fig_hm, width="stretch")
 
     with hm2:
         role_awi = (fdf.groupby("pos_group")["awi_per_minute"]
@@ -1029,7 +1044,7 @@ def render_leaderboard(fdf: pd.DataFrame) -> None:
             xaxis_title="AWI (scans/min)",
             bargap=0.3,
         )
-        st.plotly_chart(fig_bar, use_container_width=True)
+        st.plotly_chart(fig_bar, width="stretch")
 
     if "mean_pqi" in fdf.columns:
         st.divider()
@@ -1048,7 +1063,7 @@ def render_leaderboard(fdf: pd.DataFrame) -> None:
             hovertemplate="<b>%{x}</b><br>PQI: %{y:.1f}<extra></extra>")
         chart_layout(fig_pq, h=320, t=15, b=50, l=50, r=10)
         fig_pq.update_layout(showlegend=False)
-        st.plotly_chart(fig_pq, use_container_width=True)
+        st.plotly_chart(fig_pq, width="stretch")
 
 
 # ── Tabs ──────────────────────────────────────────────────────────────────────
