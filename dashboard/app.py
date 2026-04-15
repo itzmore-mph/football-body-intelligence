@@ -4,10 +4,8 @@ Bundesliga AWI + PQI Analytics Platform
 """
 import os
 import pandas as pd
-import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots  # noqa: F401 — kept for future use
 import streamlit as st
 
 st.set_page_config(
@@ -17,27 +15,26 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ── Palette — modern dark sports analytics ────────────────────────────────────
-C_AWI      = "#38BDF8"   # sky blue
-C_PQI      = "#FB923C"   # amber-orange
-C_GOLD     = "#FBBF24"   # gold highlight
-C_GREEN    = "#34D399"   # positive delta
-C_RED      = "#F87171"   # negative delta
-C_PURPLE   = "#A78BFA"   # accent
-C_BG       = "#0A0E1A"   # near-black navy
-C_SURFACE  = "#111827"   # card surface
-C_BORDER   = "#1F2937"   # subtle border
-C_MUTED    = "#6B7280"   # muted text
-C_TEXT     = "#F9FAFB"   # primary text
+# ── Palette ───────────────────────────────────────────────────────────────────
+C_AWI      = "#38BDF8"
+C_PQI      = "#FB923C"
+C_GOLD     = "#FBBF24"
+C_GREEN    = "#34D399"
+C_RED      = "#F87171"
+C_PURPLE   = "#A78BFA"
+C_BG       = "#0A0E1A"
+C_SURFACE  = "#111827"
+C_BORDER   = "#1F2937"
+C_MUTED    = "#6B7280"
+C_TEXT     = "#F9FAFB"
 THEME      = "plotly_dark"
 
-# Position group colours for consistent encoding
-POS_COLORS = {
+POS_COLORS: dict[str, str] = {
     "GK": "#94A3B8", "CB": "#38BDF8", "FB": "#818CF8",
     "DM": "#FB923C", "CM": "#FBBF24", "WM": "#34D399", "FW": "#F472B6",
 }
 
-POS_MAP = {
+POS_MAP: dict[str, str] = {
     "TW": "GK",
     "IVL": "CB", "IVR": "CB", "IVZ": "CB",
     "LA": "FB", "RA": "FB", "LV": "FB", "RV": "FB",
@@ -47,7 +44,7 @@ POS_MAP = {
     "STL": "FW", "STR": "FW", "STZ": "FW",
 }
 
-TEAM_NAMES = {
+TEAM_NAMES: dict[tuple, str] = {
     ("BVB-VFB", 1): "BVB", ("BVB-VFB", 0): "VfB",
     ("FCB-HSV", 1): "FCB", ("FCB-HSV", 0): "HSV",
     ("FCU-FCB", 1): "FCB", ("FCU-FCB", 0): "FCU",
@@ -55,8 +52,49 @@ TEAM_NAMES = {
     ("SGE-FCU", 1): "SGE", ("SGE-FCU", 0): "FCU",
 }
 
+POS_FULL_MAP: dict[str, str] = {
+    "TW": "Goalkeeper", "IVL": "Centre-back (L)", "IVR": "Centre-back (R)",
+    "IVZ": "Centre-back (C)", "LA": "Left back", "RA": "Right back",
+    "LV": "Left wing-back", "RV": "Right wing-back",
+    "DML": "Def. Mid (L)", "DMR": "Def. Mid (R)", "DMZ": "Def. Mid (C)",
+    "DLM": "Def. Mid (L)", "DRM": "Def. Mid (R)",
+    "ZO": "Central Mid", "RM": "Attacking Mid",
+    "OHL": "Wide Att. (L)", "OHR": "Wide Att. (R)",
+    "OLM": "Wide Mid (L)", "ORM": "Wide Mid (R)", "HL": "Wide (L)", "HR": "Wide (R)",
+    "STL": "Striker (L)", "STR": "Striker (R)", "STZ": "Striker (C)",
+}
+
+PQI_COMPONENTS: dict[str, tuple[str, str]] = {
+    "orientation_mean": (
+        "Body Orientation",
+        "How directly the player faces the ball carrier. 100 = square-on, 0 = facing 90° away. Weight: 40% of PQI.",
+    ),
+    "stance_mean": (
+        "Stance Quality",
+        "Knee flexion during pressing. Peaks at 130° — the biomechanically optimal pressing position. Weight: 30% of PQI.",
+    ),
+    "proximity_mean": (
+        "Proximity",
+        "Distance to ball carrier. 100 = 0 m, 0 = 5 m or beyond. Weight: 30% of PQI.",
+    ),
+}
+
+POS_REF: dict[str, list[tuple[str, str]]] = {
+    "GK": [("TW", "Goalkeeper")],
+    "CB": [("IVL", "Centre-back L"), ("IVR", "Centre-back R"), ("IVZ", "Centre-back C")],
+    "FB": [("LA", "Left back"), ("RA", "Right back"), ("LV", "Left wing-back"), ("RV", "Right wing-back")],
+    "DM": [("DML", "Def. mid L"), ("DMR", "Def. mid R"), ("DMZ", "Def. mid C"), ("DLM", "Def. mid L"), ("DRM", "Def. mid R")],
+    "CM": [("ZO", "Central mid"), ("RM", "Attacking mid")],
+    "WM": [("OHL", "Wide att. L"), ("OHR", "Wide att. R"), ("OLM", "Wide mid L"), ("ORM", "Wide mid R"), ("HL", "Wide L"), ("HR", "Wide R")],
+    "FW": [("STL", "Striker L"), ("STR", "Striker R"), ("STZ", "Striker C")],
+}
+
+ROLE_ORDER: list[str] = ["GK", "CB", "FB", "DM", "CM", "WM", "FW"]
+
+
 # ── CSS ───────────────────────────────────────────────────────────────────────
-st.markdown(f"""
+def _inject_css() -> None:
+    st.markdown(f"""
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
@@ -74,7 +112,6 @@ st.markdown(f"""
       border-right: 1px solid {C_BORDER};
   }}
 
-  /* Tab bar sticky */
   div[data-testid="stTabs"] > div:first-child {{
       position: sticky;
       top: 0;
@@ -85,10 +122,8 @@ st.markdown(f"""
   }}
   div[data-testid="stTabContent"] {{ padding-top: 1.5rem; }}
 
-  /* Hide plotly toolbar */
   div[data-testid="stPlotlyChart"] .modebar {{ display: none !important; }}
 
-  /* KPI card */
   .kpi {{
       background: {C_SURFACE};
       border: 1px solid {C_BORDER};
@@ -119,7 +154,6 @@ st.markdown(f"""
       color: {C_MUTED};
   }}
 
-  /* Section label */
   .sec {{
       font-size: 0.6rem;
       font-weight: 700;
@@ -131,7 +165,6 @@ st.markdown(f"""
       margin: 1.5rem 0 0.9rem;
   }}
 
-  /* Gauge caption */
   .gcap {{
       text-align: center;
       font-size: 0.72rem;
@@ -141,11 +174,9 @@ st.markdown(f"""
   }}
   .gcap b {{ color: {C_TEXT}; font-weight: 600; }}
 
-  /* Player header */
   .ph-name {{ font-size: 1.65rem; font-weight: 700; color: {C_TEXT}; margin: 0; }}
   .ph-meta {{ font-size: 0.85rem; color: {C_MUTED}; margin-top: 2px; }}
 
-  /* Insight pill */
   .pill {{
       display: inline-block;
       background: {C_BORDER};
@@ -163,8 +194,18 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 
+_inject_css()
+
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
-def kpi(label, value, sub="", color=None, help=None):
+def safe_float(val: object, default: float = 0.0) -> float:
+    try:
+        return float(val or default)
+    except (TypeError, ValueError):
+        return default
+
+
+def kpi(label: str, value: str, sub: str = "", color: str | None = None, help: str | None = None) -> None:
     col = color or C_TEXT
     info = (f' <span title="{help}" style="cursor:help;color:{C_MUTED};font-size:0.65rem">ℹ</span>'
             if help else "")
@@ -175,13 +216,16 @@ def kpi(label, value, sub="", color=None, help=None):
         f'<div class="kpi-sub">{sub}</div>'
         f'</div>', unsafe_allow_html=True)
 
-def sec(title):
+
+def sec(title: str) -> None:
     st.markdown(f'<div class="sec">{title}</div>', unsafe_allow_html=True)
 
-def sp(h=0.5):
+
+def sp(h: float = 0.5) -> None:
     st.markdown(f'<div style="height:{h}rem"></div>', unsafe_allow_html=True)
 
-def tip(r):
+
+def tip(r: pd.Series) -> str:
     pqi = f"{r['mean_pqi']:.1f}" if pd.notna(r.get("mean_pqi")) else "n/a"
     pos = r.get("position", "—") or "—"
     return (
@@ -190,21 +234,25 @@ def tip(r):
         f"AWI <b>{r['awi_per_minute']:.2f}</b> scans/min &nbsp;·&nbsp; PQI <b>{pqi}</b>"
     )
 
-def add_tips(df):
+
+def add_tips(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy()
     out["_tip"] = out.apply(tip, axis=1)
     return out
 
-def guard(df):
+
+def guard(df: pd.DataFrame) -> bool:
     if df.empty:
         st.warning("No data matches the current filters.")
         return True
     return False
 
-def pct_rank(series, val):
+
+def pct_rank(series: pd.Series, val: float) -> int:
     return int((series.dropna() < val).mean() * 100)
 
-def gauge_fig(value, title, color, axis_max, median):
+
+def gauge_fig(value: float, title: str, color: str, axis_max: float, median: float) -> go.Figure:
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
         value=value,
@@ -225,13 +273,13 @@ def gauge_fig(value, title, color, axis_max, median):
                           "thickness": 0.75, "value": median},
         },
     ))
-    # height=240 + t=50 gives the title enough room above the arc
     fig.update_layout(height=240, margin=dict(t=50, b=10, l=20, r=20),
                       template=THEME, paper_bgcolor="rgba(0,0,0,0)",
                       plot_bgcolor="rgba(0,0,0,0)")
     return fig
 
-def gauge_cap(value, median, unit):
+
+def gauge_cap(value: float, median: float, unit: str) -> None:
     diff = value - median
     sign = "+" if diff >= 0 else ""
     col  = C_GREEN if diff >= 0 else C_RED
@@ -241,7 +289,8 @@ def gauge_cap(value, median, unit):
         f'<span style="color:{col}">{sign}{diff:.2f}</span></div>',
         unsafe_allow_html=True)
 
-def chart_layout(fig, h=360, t=20, b=45, l=45, r=15):
+
+def chart_layout(fig: go.Figure, h: int = 360, t: int = 20, b: int = 45, l: int = 45, r: int = 15) -> go.Figure:
     fig.update_layout(
         height=h, margin=dict(t=t, b=b, l=l, r=r),
         template=THEME, paper_bgcolor="rgba(0,0,0,0)",
@@ -253,7 +302,7 @@ def chart_layout(fig, h=360, t=20, b=45, l=45, r=15):
 
 # ── Data ──────────────────────────────────────────────────────────────────────
 @st.cache_data
-def load_data():
+def load_data() -> pd.DataFrame:
     for p in ("results/awi_full.csv", "results/pqi_full.csv"):
         if not os.path.exists(p):
             st.error(f"`{p}` not found — run the pipeline first.")
@@ -266,10 +315,11 @@ def load_data():
                 "orientation_mean", "stance_mean", "proximity_mean"]
     df = awi.merge(pqi[[c for c in pqi_cols if c in pqi.columns]],
                    on=["jersey", "team", "match_id", "phase_label"], how="left")
-    df["pos_group"] = df["position"].map(POS_MAP)  # NaN stays NaN — filtered out below
+    df["pos_group"] = df["position"].map(POS_MAP)
     df["team_name"] = df.apply(
         lambda r: TEAM_NAMES.get((r["match_id"], r["team"]), str(r["team"])), axis=1)
     return df
+
 
 df = load_data()
 
@@ -287,15 +337,12 @@ with st.sidebar:
 
     sel_match = st.selectbox("Match", ["All"] + sorted(df["match_id"].unique()))
     sel_phase = st.selectbox("Phase", ["All", "1st half", "2nd half"])
-    # Filter by raw DFL position codes — what analysts actually use
     all_positions = sorted(df["position"].dropna().unique())
-    sel_pos   = st.multiselect("Position", all_positions,
-                               placeholder="All positions")
+    sel_pos   = st.multiselect("Position", all_positions, placeholder="All positions")
     sel_cov   = st.slider("Min Coverage %", 0, 100, 50,
                           help="Exclude players tracked for less than this % of the phase")
     st.divider()
 
-    # ── Metric Reference ──────────────────────────────────────────────────────
     with st.expander("Metric Definitions", expanded=False):
         st.markdown(f"""
 <div style="font-size:0.72rem;line-height:1.6;color:{C_MUTED}">
@@ -334,18 +381,8 @@ PQI = 0.40 × Orientation + 0.30 × Stance + 0.30 × Proximity
 </div>
 """, unsafe_allow_html=True)
 
-    # ── DFL Position Reference ────────────────────────────────────────────────
     with st.expander("Position Code Reference", expanded=False):
-        pos_ref = {
-            "GK": [("TW", "Goalkeeper")],
-            "CB": [("IVL", "Centre-back L"), ("IVR", "Centre-back R"), ("IVZ", "Centre-back C")],
-            "FB": [("LA", "Left back"), ("RA", "Right back"), ("LV", "Left wing-back"), ("RV", "Right wing-back")],
-            "DM": [("DML", "Def. mid L"), ("DMR", "Def. mid R"), ("DMZ", "Def. mid C"), ("DLM", "Def. mid L"), ("DRM", "Def. mid R")],
-            "CM": [("ZO", "Central mid"), ("RM", "Attacking mid")],
-            "WM": [("OHL", "Wide att. L"), ("OHR", "Wide att. R"), ("OLM", "Wide mid L"), ("ORM", "Wide mid R"), ("HL", "Wide L"), ("HR", "Wide R")],
-            "FW": [("STL", "Striker L"), ("STR", "Striker R"), ("STZ", "Striker C")],
-        }
-        for group, codes in pos_ref.items():
+        for group, codes in POS_REF.items():
             color = POS_COLORS.get(group, C_MUTED)
             st.markdown(
                 f'<div style="margin-bottom:6px">'
@@ -358,31 +395,37 @@ PQI = 0.40 × Orientation + 0.30 × Stance + 0.30 × Proximity
 
     st.caption("AWS World Sports Innovation Cup 2026")
 
+
 # ── Filter ────────────────────────────────────────────────────────────────────
-fdf = df.copy()
-if sel_match != "All":
-    fdf = fdf[fdf["match_id"] == sel_match]
-if sel_phase != "All":
-    fdf = fdf[fdf["phase_label"] == sel_phase]
-if sel_pos:
-    fdf = fdf[fdf["position"].isin(sel_pos)]
-if "coverage_pct" in fdf.columns:
-    fdf = fdf[fdf["coverage_pct"] >= sel_cov / 100]
-fdf = fdf[fdf["awi_per_minute"] > 0].copy()
-fdf = fdf[fdf["pos_group"].notna()].copy()  # drop rows with no position mapping
+def apply_filters(
+    base: pd.DataFrame,
+    match: str,
+    phase: str,
+    positions: list[str],
+    min_cov: int,
+) -> pd.DataFrame:
+    mask = pd.Series(True, index=base.index)
+    if match != "All":
+        mask &= base["match_id"] == match
+    if phase != "All":
+        mask &= base["phase_label"] == phase
+    if positions:
+        mask &= base["position"].isin(positions)
+    if "coverage_pct" in base.columns:
+        mask &= base["coverage_pct"] >= min_cov / 100
+    mask &= base["awi_per_minute"] > 0
+    mask &= base["pos_group"].notna()
+    return base[mask].copy()
 
-# Logical football order for charts: GK → defensive → midfield → attack
-ROLE_ORDER = ["GK", "CB", "FB", "DM", "CM", "WM", "FW"]
 
-# ── Tabs ──────────────────────────────────────────────────────────────────────
-tab1, tab2, tab3 = st.tabs(["Player Profile", "Match Overview", "Leaderboard"])
+fdf = apply_filters(df, sel_match, sel_phase, sel_pos, sel_cov)
+fdf = add_tips(fdf)
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# TAB 1 — Player Profile
-# ═══════════════════════════════════════════════════════════════════════════════
-with tab1:
+
+# ── Tab renderers ─────────────────────────────────────────────────────────────
+def render_player_profile(fdf: pd.DataFrame) -> None:
     if guard(fdf):
-        st.stop()
+        return
 
     player_labels = sorted(
         fdf.apply(lambda r: f"{r['name']}  (#{int(r['jersey'])})", axis=1).unique())
@@ -395,26 +438,13 @@ with tab1:
     rows = fdf[mask]
     if rows.empty:
         st.warning("Player not found.")
-        st.stop()
+        return
     p = rows.iloc[0]
 
-    pos  = p["position"] if pd.notna(p.get("position")) else "—"
-    pg   = p.get("pos_group", "—")
-    pg_c = POS_COLORS.get(pg, C_MUTED)
-    # Full position name for display
-    pos_full_map = {
-        "TW": "Goalkeeper", "IVL": "Centre-back (L)", "IVR": "Centre-back (R)",
-        "IVZ": "Centre-back (C)", "LA": "Left back", "RA": "Right back",
-        "LV": "Left wing-back", "RV": "Right wing-back",
-        "DML": "Def. Mid (L)", "DMR": "Def. Mid (R)", "DMZ": "Def. Mid (C)",
-        "DLM": "Def. Mid (L)", "DRM": "Def. Mid (R)",
-        "ZO": "Central Mid", "RM": "Attacking Mid",
-        "OHL": "Wide Att. (L)", "OHR": "Wide Att. (R)",
-        "OLM": "Wide Mid (L)", "ORM": "Wide Mid (R)", "HL": "Wide (L)", "HR": "Wide (R)",
-        "STL": "Striker (L)", "STR": "Striker (R)", "STZ": "Striker (C)",
-    }
-    pos_name = pos_full_map.get(pos, "")
-
+    pos      = p["position"] if pd.notna(p.get("position")) else "—"
+    pg       = p.get("pos_group", "—")
+    pg_c     = POS_COLORS.get(pg, C_MUTED)
+    pos_name = POS_FULL_MAP.get(pos, "")
     pos_suffix = f" ({pos_name})" if pos_name else ""
     st.markdown(
         f'<div class="ph-name">{p["name"]}</div>'
@@ -427,14 +457,11 @@ with tab1:
 
     # ── KPI row ───────────────────────────────────────────────────────────────
     sec("KEY METRICS")
-    awi_val = float(p.get("awi_per_minute", 0) or 0)
-    pqi_val = float(p.get("mean_pqi", 0) or 0)
-    cov_val = float(p.get("coverage_pct", 0) or 0)
+    awi_val = safe_float(p.get("awi_per_minute"))
+    pqi_val = safe_float(p.get("mean_pqi"))
+    cov_val = safe_float(p.get("coverage_pct"))
     scans   = int(p.get("scan_count", 0) or 0)
-    mins    = float(p.get("total_minutes", 0) or 0)
-    orient  = p.get("orientation_mean")
-    stance  = p.get("stance_mean")
-    prox    = p.get("proximity_mean")
+    mins    = safe_float(p.get("total_minutes"))
 
     awi_pct = pct_rank(fdf["awi_per_minute"], awi_val)
     pqi_pct = pct_rank(fdf["mean_pqi"], pqi_val) if pqi_val > 0 else 0
@@ -449,7 +476,7 @@ with tab1:
     with c4: kpi("Coverage",    f"{cov_val*100:.0f}%", "time on pitch",
                  help="Fraction of the phase where skeleton tracking data was available for this player.")
     with c5: kpi("Press Mins",
-                 f"{float(p.get('press_minutes', 0) or 0):.0f}",
+                 f"{safe_float(p.get('press_minutes')):.0f}",
                  "min in press frames",
                  help="Minutes spent within 5 m of the ball carrier for ≥10 consecutive frames — the PQI measurement window.")
     sp(0.75)
@@ -464,12 +491,12 @@ with tab1:
     with g1:
         st.plotly_chart(gauge_fig(round(awi_val, 2),
                                   "AWI — Awareness Index (scans/min)",
-                                  C_AWI, awi_max, awi_med), width="stretch")
+                                  C_AWI, awi_max, awi_med), use_container_width=True)
         gauge_cap(awi_val, awi_med, "scans/min")
     with g2:
         st.plotly_chart(gauge_fig(round(pqi_val, 1),
                                   "PQI — Press Quality Index (0–100)",
-                                  C_PQI, 100, pqi_med), width="stretch")
+                                  C_PQI, 100, pqi_med), use_container_width=True)
         gauge_cap(pqi_val, pqi_med, "PQI")
     sp(0.5)
 
@@ -478,17 +505,15 @@ with tab1:
     left, right = st.columns([3, 2], gap="medium")
 
     with left:
-        # Scatter: player vs all, coloured by position group
-        sd = add_tips(fdf)
         fig_sc = px.scatter(
-            sd, x="awi_per_minute", y="mean_pqi",
+            fdf, x="awi_per_minute", y="mean_pqi",
             color="pos_group", color_discrete_map=POS_COLORS,
             custom_data=["_tip"], opacity=0.55, template=THEME,
             labels={"pos_group": "Role"},
         )
         fig_sc.update_traces(marker_size=7,
                              hovertemplate="%{customdata[0]}<extra></extra>")
-        hl = add_tips(fdf[mask])
+        hl = fdf[mask]
         fig_sc.add_trace(go.Scatter(
             x=hl["awi_per_minute"], y=hl["mean_pqi"], mode="markers",
             marker=dict(size=20, color=C_GOLD, symbol="star",
@@ -513,16 +538,14 @@ with tab1:
             xaxis_title="AWI (scans/min)", yaxis_title="Mean PQI",
             legend=dict(title="Role", orientation="v", x=1.01, y=1, font_size=10),
         )
-        st.plotly_chart(fig_sc, width="stretch")
+        st.plotly_chart(fig_sc, use_container_width=True)
 
     with right:
-        # PQI radar — player vs position group average
-        comp_keys = ["orientation_mean", "stance_mean", "proximity_mean"]
+        comp_keys   = ["orientation_mean", "stance_mean", "proximity_mean"]
         comp_labels = ["Orientation", "Stance", "Proximity"]
-        player_vals = [float(p.get(k, 0) or 0) for k in comp_keys]
-        # Compare against same role group, not global average
-        role_df = fdf[fdf["pos_group"] == pg] if pg != "—" else fdf
-        group_vals = [role_df[k].mean() for k in comp_keys]
+        player_vals = [safe_float(p.get(k)) for k in comp_keys]
+        role_df     = fdf[fdf["pos_group"] == pg] if pg != "—" else fdf
+        group_vals  = [role_df[k].mean() for k in comp_keys]
 
         if any(v > 0 for v in player_vals):
             fig_rad = go.Figure()
@@ -530,12 +553,12 @@ with tab1:
             fig_rad.add_trace(go.Scatterpolar(
                 r=player_vals + [player_vals[0]], theta=cats,
                 fill="toself", name=sel_name,
-                line_color=C_AWI, fillcolor=f"rgba(56,189,248,0.15)",
+                line_color=C_AWI, fillcolor="rgba(56,189,248,0.15)",
             ))
             fig_rad.add_trace(go.Scatterpolar(
                 r=group_vals + [group_vals[0]], theta=cats,
                 fill="toself", name=f"{pg} avg",
-                line_color=C_PQI, fillcolor=f"rgba(251,146,60,0.1)",
+                line_color=C_PQI, fillcolor="rgba(251,146,60,0.1)",
                 line_dash="dot",
             ))
             fig_rad.update_layout(
@@ -554,26 +577,12 @@ with tab1:
                 title=dict(text="PQI Sub-scores vs Role Average",
                            font=dict(size=12, color=C_MUTED), x=0.5),
             )
-            st.plotly_chart(fig_rad, width="stretch")
+            st.plotly_chart(fig_rad, use_container_width=True)
         else:
             st.info("PQI sub-score data not available for this player.")
 
     # ── PQI component breakdown ───────────────────────────────────────────────
-    pqi_comp = {
-        "orientation_mean": (
-            "Body Orientation",
-            "How directly the player faces the ball carrier. 100 = square-on, 0 = facing 90° away. Weight: 40% of PQI.",
-        ),
-        "stance_mean": (
-            "Stance Quality",
-            "Knee flexion during pressing. Peaks at 130° — the biomechanically optimal pressing position. Weight: 30% of PQI.",
-        ),
-        "proximity_mean": (
-            "Proximity",
-            "Distance to ball carrier. 100 = 0 m, 0 = 5 m or beyond. Weight: 30% of PQI.",
-        ),
-    }
-    avail_comp = {k: v for k, v in pqi_comp.items()
+    avail_comp = {k: v for k, v in PQI_COMPONENTS.items()
                   if k in fdf.columns and pd.notna(p.get(k))}
     if avail_comp:
         sp(0.25)
@@ -587,8 +596,8 @@ with tab1:
                 kpi(label, f"{val:.1f}", f"Median {med:.1f} · Top {100-pct}%",
                     help=tooltip)
 
-    # ── Half-time trend (if both halves exist for this player) ───────────────
-    all_phases = fdf[(fdf["name"] == sel_name)].copy()  # use filtered data
+    # ── Half-time trend ───────────────────────────────────────────────────────
+    all_phases = fdf[fdf["name"] == sel_name].copy()
     if len(all_phases) >= 2:
         sp(0.25)
         sec("HALF-TIME PERFORMANCE TREND")
@@ -603,12 +612,9 @@ with tab1:
                     col)
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# TAB 2 — Match Overview
-# ═══════════════════════════════════════════════════════════════════════════════
-with tab2:
+def render_match_overview(fdf: pd.DataFrame) -> None:
     if guard(fdf):
-        st.stop()
+        return
 
     # ── Summary KPIs ──────────────────────────────────────────────────────────
     sec("MATCH SUMMARY")
@@ -629,7 +635,6 @@ with tab2:
     # ── Quadrant scatter ──────────────────────────────────────────────────────
     sec("AWI vs PQI — PLAYER QUADRANT ANALYSIS")
 
-    # Compact explanation row
     i1, i2, i3, i4 = st.columns(4, gap="small")
     with i1:
         st.markdown(f'<div style="font-size:0.72rem;color:{C_MUTED};padding:0.4rem 0">'
@@ -648,11 +653,12 @@ with tab2:
                     f'<span style="color:{C_GREEN};font-weight:600">Green — Top performers</span><br>'
                     f'High on both AWI & PQI</div>', unsafe_allow_html=True)
     sp(0.25)
+
     awi_q = fdf["awi_per_minute"].quantile(0.75)
     pqi_q = fdf["mean_pqi"].quantile(0.75)
 
-    sd2 = add_tips(fdf).copy()
-    sd2["quadrant"] = sd2.apply(lambda r: (
+    fdf_q = fdf.copy()
+    fdf_q["quadrant"] = fdf_q.apply(lambda r: (
         "Elite"      if r["awi_per_minute"] >= awi_q and r["mean_pqi"] >= pqi_q else
         "Cognitive"  if r["awi_per_minute"] >= awi_q else
         "Mechanical" if r["mean_pqi"] >= pqi_q else
@@ -667,7 +673,7 @@ with tab2:
     }
     fig_q = go.Figure()
     for quad, (color, label, size, opacity) in q_cfg.items():
-        pts = sd2[sd2["quadrant"] == quad]
+        pts = fdf_q[fdf_q["quadrant"] == quad]
         if pts.empty:
             continue
         fig_q.add_trace(go.Scatter(
@@ -679,15 +685,13 @@ with tab2:
             hovertemplate="%{customdata[0]}<extra></extra>",
         ))
 
-    # Only label elite players — deduplicate by name (keep highest AWI per player)
-    elite_pts = (sd2[sd2["quadrant"] == "Elite"]
+    elite_pts = (fdf_q[fdf_q["quadrant"] == "Elite"]
                  .sort_values("awi_per_minute", ascending=False)
                  .drop_duplicates(subset="name")
                  .copy())
-    # Offset labels vertically based on PQI rank to reduce overlap
     elite_pts = elite_pts.sort_values("mean_pqi", ascending=False).reset_index(drop=True)
     pqi_range = fdf["mean_pqi"].max() - fdf["mean_pqi"].min()
-    offset = max(pqi_range * 0.04, 0.5)  # at least 0.5, scales with data range
+    offset = max(pqi_range * 0.04, 0.5)
     y_offsets = [
         elite_pts.loc[i, "mean_pqi"] + (offset if i % 2 == 0 else -offset)
         for i in range(len(elite_pts))
@@ -701,7 +705,6 @@ with tab2:
         textfont=dict(size=9, color=C_GREEN),
         showlegend=False, hoverinfo="skip",
     ))
-
     fig_q.add_hline(y=pqi_q, line_dash="dash", line_color=C_BORDER, line_width=1,
                     annotation_text=f"PQI 75th ({pqi_q:.1f})",
                     annotation_font=dict(color=C_MUTED, size=9),
@@ -723,7 +726,7 @@ with tab2:
         ),
         template=THEME,
     )
-    st.plotly_chart(fig_q, width="stretch")
+    st.plotly_chart(fig_q, use_container_width=True)
     sp(0.25)
 
     # ── Position group analysis ───────────────────────────────────────────────
@@ -739,7 +742,6 @@ with tab2:
                  .sort_values("awi_mean", ascending=False))
 
     with pa1:
-        # Lollipop chart — AWI by position group
         fig_lol = go.Figure()
         for _, row in pos_stats.iterrows():
             c = POS_COLORS.get(row["pos_group"], C_MUTED)
@@ -764,10 +766,9 @@ with tab2:
             xaxis_title="AWI (scans/min)",
             yaxis=dict(categoryorder="total ascending"),
         )
-        st.plotly_chart(fig_lol, width="stretch")
+        st.plotly_chart(fig_lol, use_container_width=True)
 
     with pa2:
-        # PQI sub-score stacked bar by position group
         sub_data = (fdf.groupby("pos_group")
                     [["orientation_mean", "stance_mean", "proximity_mean"]]
                     .mean().reset_index()
@@ -802,7 +803,7 @@ with tab2:
             yaxis_title="Weighted contribution",
             legend=dict(orientation="h", y=-0.3, font_size=10),
         )
-        st.plotly_chart(fig_stack, width="stretch")
+        st.plotly_chart(fig_stack, use_container_width=True)
 
     st.divider()
 
@@ -820,8 +821,7 @@ with tab2:
         halves["awi_delta"]  = halves["awi_h2"] - halves["awi_h1"]
         halves["pqi_delta"]  = halves["pqi_h2"] - halves["pqi_h1"]
         halves["short"]      = halves["name"].apply(lambda n: n.split()[-1])
-        halves["bar_color"]  = halves["awi_delta"].apply(
-            lambda d: C_GREEN if d >= 0 else C_RED)
+        halves["bar_color"]  = halves["awi_delta"].apply(lambda d: C_GREEN if d >= 0 else C_RED)
         top_h = halves.nlargest(16, "awi_h1")
 
         d1, d2 = st.columns([2, 1], gap="medium")
@@ -842,10 +842,9 @@ with tab2:
                 xaxis_tickangle=-35, yaxis_title="AWI Δ (scans/min)",
                 showlegend=False,
             )
-            st.plotly_chart(fig_d, width="stretch")
+            st.plotly_chart(fig_d, use_container_width=True)
 
         with d2:
-            # Scatter: 1st vs 2nd half AWI
             fig_hh = px.scatter(
                 halves, x="awi_h1", y="awi_h2",
                 color="pos_group", color_discrete_map=POS_COLORS,
@@ -854,7 +853,6 @@ with tab2:
                 template=THEME, opacity=0.75,
                 labels={"pos_group": "Role"},
             )
-            # Diagonal reference line
             mx = max(halves["awi_h1"].max(), halves["awi_h2"].max()) * 1.05
             fig_hh.add_trace(go.Scatter(
                 x=[0, mx], y=[0, mx], mode="lines",
@@ -875,7 +873,7 @@ with tab2:
                 yaxis_title="AWI 2nd half (scans/min)",
                 legend=dict(orientation="v", x=1.01, y=1, font_size=9),
             )
-            st.plotly_chart(fig_hh, width="stretch")
+            st.plotly_chart(fig_hh, use_container_width=True)
     else:
         st.info("Select 'All' phases to see the half-time comparison.")
 
@@ -890,8 +888,7 @@ with tab2:
                   .reset_index()
                   .sort_values("awi_mean", ascending=False))
 
-    # Consistent color per club across all matches
-    all_teams = sorted(team_stats["team_name"].unique())
+    all_teams    = sorted(team_stats["team_name"].unique())
     team_palette = [C_AWI, C_PQI, C_GREEN, C_GOLD, C_PURPLE, C_RED, "#A8DADC", "#F472B6"]
     team_colors  = {t: team_palette[i % len(team_palette)] for i, t in enumerate(all_teams)}
 
@@ -913,15 +910,12 @@ with tab2:
         yaxis_title="Avg AWI (scans/min)",
         bargap=0.35,
     )
-    st.plotly_chart(fig_team, width="stretch")
+    st.plotly_chart(fig_team, use_container_width=True)
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# TAB 3 — Leaderboard
-# ═══════════════════════════════════════════════════════════════════════════════
-with tab3:
+def render_leaderboard(fdf: pd.DataFrame) -> None:
     if guard(fdf):
-        st.stop()
+        return
 
     # ── Summary KPIs ──────────────────────────────────────────────────────────
     sec("OVERVIEW")
@@ -947,7 +941,7 @@ with tab3:
         tbl["coverage_pct"] = (tbl["coverage_pct"] * 100).round(1)
 
     st.dataframe(
-        tbl, width="stretch",
+        tbl, use_container_width=True,
         height=min(45 + len(tbl) * 35, 480),
         column_config={
             "jersey":           st.column_config.NumberColumn("#",               format="%d"),
@@ -966,7 +960,7 @@ with tab3:
     sp(0.25)
     st.divider()
 
-    # ── Role analytics (grouped) ──────────────────────────────────────────────
+    # ── Role analytics ────────────────────────────────────────────────────────
     sec("ROLE ANALYTICS")
     hm1, hm2 = st.columns(2, gap="medium")
 
@@ -999,10 +993,9 @@ with tab3:
                            font_size=12, x=0, font_color=C_MUTED),
                 xaxis_tickangle=-20, coloraxis_showscale=False,
             )
-            st.plotly_chart(fig_hm, width="stretch")
+            st.plotly_chart(fig_hm, use_container_width=True)
 
     with hm2:
-        # Horizontal bar — mean AWI ± std per role group
         role_awi = (fdf.groupby("pos_group")["awi_per_minute"]
                     .agg(mean="mean", std="std", count="count")
                     .reset_index())
@@ -1036,9 +1029,8 @@ with tab3:
             xaxis_title="AWI (scans/min)",
             bargap=0.3,
         )
-        st.plotly_chart(fig_bar, width="stretch")
+        st.plotly_chart(fig_bar, use_container_width=True)
 
-    # ── PQI distribution by role ───────────────────────────────────────────────
     if "mean_pqi" in fdf.columns:
         st.divider()
         sec("PQI DISTRIBUTION BY ROLE")
@@ -1056,4 +1048,17 @@ with tab3:
             hovertemplate="<b>%{x}</b><br>PQI: %{y:.1f}<extra></extra>")
         chart_layout(fig_pq, h=320, t=15, b=50, l=50, r=10)
         fig_pq.update_layout(showlegend=False)
-        st.plotly_chart(fig_pq, width="stretch")
+        st.plotly_chart(fig_pq, use_container_width=True)
+
+
+# ── Tabs ──────────────────────────────────────────────────────────────────────
+tab1, tab2, tab3 = st.tabs(["Player Profile", "Match Overview", "Leaderboard"])
+
+with tab1:
+    render_player_profile(fdf)
+
+with tab2:
+    render_match_overview(fdf)
+
+with tab3:
+    render_leaderboard(fdf)
