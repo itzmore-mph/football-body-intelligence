@@ -289,6 +289,16 @@ a { color: #e30613; }
 img { width: 100%; max-width: 100%; height: auto; border: 1px solid #e0e0e0; border-radius: 4px; display: block; margin: 12px auto; }
 @media print {
   body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 20px; }
+  .screen-footer { display: none; }
+}
+@page {
+  margin: 15mm 20mm 20mm 20mm;
+  @bottom-center {
+    content: "Football Body Intelligence Platform  ·  Page " counter(page) " of " counter(pages);
+    font-size: 8pt;
+    color: #777;
+    font-family: 'Segoe UI', Arial, sans-serif;
+  }
 }
 """
 
@@ -317,6 +327,10 @@ img { width: 100%; max-width: 100%; height: auto; border: 1px solid #e0e0e0; bor
     html = f"""<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><title>AWI PRFAQ</title><style>{PRFAQ_CSS}</style></head>
 <body>{body}
+<footer class="screen-footer" style="margin-top:48px; padding:12px 0; border-top:2px solid #e30613;
+  text-align:center; font-size:8.5pt; color:#888; font-family:'Segoe UI',Arial,sans-serif;">
+  Football Body Intelligence Platform &nbsp;&middot;&nbsp; AWS World Sports Innovation Cup 2026 &nbsp;&middot;&nbsp; Team: itzmore
+</footer>
 </body></html>"""
 
     pathlib.Path('submission/prfaq.html').write_text(html, encoding='utf-8')
