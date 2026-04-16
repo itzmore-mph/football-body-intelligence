@@ -8,37 +8,37 @@
 
 ## What We Built
 
-Two matchday-grade player intelligence metrics derived entirely from TRACAB TF15 3D skeleton data — impossible with 2D tracking:
+Two matchday-grade player intelligence metrics derived entirely from TRACAB TF15 3D skeleton data - impossible with 2D tracking:
 
 | Metric | What it measures | Range |
 |--------|-----------------|-------|
-| **AWI** — Awareness Index | Cognitive scanning: discrete head-rotation events per minute, from 3D nose/neck/ear keypoints | 3.3 – 26.9 scans/min |
-| **PQI** — Pressure Quality Index | Pressing mechanics: body orientation, knee-flexion stance, and proximity during genuine press actions | 0 – 100 |
+| **AWI** - Awareness Index | Cognitive scanning: discrete head-rotation events per minute, from 3D nose/neck/ear keypoints | 3.3 - 26.9 scans/min |
+| **PQI** - Pressure Quality Index | Pressing mechanics: body orientation, knee-flexion stance, and proximity during genuine press actions | 0 - 100 |
 
-A player can scan brilliantly but press with poor mechanics (high AWI, low PQI), or press perfectly without pre-scanning (low AWI, high PQI). **Elite players score high on both — and the data shows exactly who they are.**
+A player can scan brilliantly but press with poor mechanics (high AWI, low PQI), or press perfectly without pre-scanning (low AWI, high PQI). **Elite players score high on both - and the data shows exactly who they are.**
 
 ---
 
 ## Key Results
 
-### AWI — Awareness Index
+### AWI - Awareness Index
 
 **5 matches · 400 player-phase rows · Median: 12.59 scans/min**
 
 | Position | Avg AWI | Interpretation |
 |----------|---------|----------------|
-| DMZ — Defensive Mid Centre | 15.6 | Highest: face the most opponents, must scan constantly |
-| IVL — Centre-back (left) | 10.6 | Elevated: wide role demands spatial awareness |
-| STZ — Striker Centre | 6.2 | Lowest outfield: forward-facing role, fewer opponents to track |
-| TW — Goalkeeper | 3.5 | Ball-tracking dominant, not opponent-scanning |
+| DMZ - Defensive Mid Centre | 15.6 | Highest: face the most opponents, must scan constantly |
+| IVL - Centre-back (left) | 10.6 | Elevated: wide role demands spatial awareness |
+| STZ - Striker Centre | 6.2 | Lowest outfield: forward-facing role, fewer opponents to track |
+| TW - Goalkeeper | 3.5 | Ball-tracking dominant, not opponent-scanning |
 
-**Stability:** Cross-half Pearson R = **0.854** (p < 0.001, n = 69 active phases) — AWI is a stable player trait, not match noise.
+**Stability:** Cross-half Pearson R = **0.854** (p < 0.001, n = 69 active phases) - AWI is a stable player trait, not match noise.
 
-**Validation:** Kimmich (FCB-HSV): 21.77 → 21.15 across halves — consistent with his documented scanning reputation. His FCU-FCB 2nd-half drop to 11.29 (−52%) is a fatigue signal no GPS or positional metric captures.
+**Validation:** Kimmich (FCB-HSV): 21.77 -> 21.15 across halves - consistent with his documented scanning reputation. His FCU-FCB 2nd-half drop to 11.29 (-52%) is a fatigue signal no GPS or positional metric captures.
 
-**Pre-pass signal:** AWI is **+57% above full-phase baseline** in the 5 seconds before a pass — confirming the metric measures pre-decision cognitive load, not incidental movement.
+**Pre-pass signal:** AWI is **+57% above full-phase baseline** in the 5 seconds before a pass - confirming the metric measures pre-decision cognitive load, not incidental movement.
 
-### PQI — Pressure Quality Index
+### PQI - Pressure Quality Index
 
 ```
 PQI = 0.40 × orientation_score + 0.30 × stance_score + 0.30 × proximity_score
@@ -46,7 +46,7 @@ PQI = 0.40 × orientation_score + 0.30 × stance_score + 0.30 × proximity_score
 
 **Outfield leaders:** DMZ (62.9), DMR (62.1), IVL (62.0)
 
-Goalkeepers (TW) post the highest mean PQI (66.6), driven primarily by their **orientation sub-score** (70.4 vs 54.7 outfield average) — when closing down in their penalty area, goalkeepers face the ball carrier directly and square-on by necessity, which maximises the orientation component. This is a structural role effect; position-specific benchmarking is recommended for outfield comparisons.
+Goalkeepers (TW) post the highest mean PQI (66.6), driven primarily by their **orientation sub-score** (70.4 vs 54.7 outfield average) - when closing down in their penalty area, goalkeepers face the ball carrier directly and square-on by necessity, which maximises the orientation component. This is a structural role effect; position-specific benchmarking is recommended for outfield comparisons.
 
 ### The Central Finding: AWI and PQI Are Independent
 
@@ -62,7 +62,7 @@ Scanning awareness and pressing mechanics are statistically orthogonal. Both dim
 | Joshua Kimmich | DMR | 21.77 | 64.7 |
 | Luka Vušković | IVZ | 18.33 | 63.7 |
 
-Vušković is a centre-back whose scanning profile matches a defensive midfielder — the data flags his tactical versatility before any scout would.
+Vušković is a centre-back whose scanning profile matches a defensive midfielder - the data flags his tactical versatility before any scout would.
 
 ---
 
@@ -113,11 +113,11 @@ Vušković is a centre-back whose scanning profile matches a defensive midfielde
 │   ├── pre_pass_awi.py          Pre-pass AWI enrichment (5 s window before each pass)
 │   ├── pressure_pipeline.py     PQI orchestration across all matches and phases
 │   ├── pqi_calculator.py        PQI sub-scores: orientation, stance, proximity (vectorized)
-│   └── skeleton_parser.py       TF15 Parquet parser — head yaw extraction
+│   └── skeleton_parser.py       TF15 Parquet parser - head yaw extraction
 │
 ├── scripts/
-│   ├── run_awi_job.py           SageMaker Processing entry point — AWI for one match
-│   ├── run_pqi_job.py           SageMaker Processing entry point — PQI for one match
+│   ├── run_awi_job.py           SageMaker Processing entry point - AWI for one match
+│   ├── run_pqi_job.py           SageMaker Processing entry point - PQI for one match
 │   └── aggregate_results.py     Concatenates per-match CSVs → awi_full / pqi_full
 │
 ├── pipelines/
@@ -136,7 +136,7 @@ Vušković is a centre-back whose scanning profile matches a defensive midfielde
 │   ├── app.py                   Streamlit dashboard (Player Profile, Match Overview, Leaderboard)
 │   └── run_dashboard.sh         Launch script → http://localhost:8501
 │
-├── tests/                       177 unit tests — no S3 access required
+├── tests/                       177 unit tests - no S3 access required
 ├── results/                     Pipeline outputs (gitignored)
 ├── figures/                     Analysis figures (gitignored)
 ├── submission/                  HTML slides, PRFAQ, build script
@@ -197,7 +197,7 @@ Edit `project_start.sh` and set:
 source project_start.sh
 ```
 
-> Use `source`, not `bash` — the script activates the venv, logs in via SSO, verifies S3 access, and exports all SageMaker env vars into your current shell. Re-run when the SSO token expires (~60 min).
+> Use `source`, not `bash` - the script activates the venv, logs in via SSO, verifies S3 access, and exports all SageMaker env vars into your current shell. Re-run when the SSO token expires (~60 min).
 
 ### 4. Run tests
 
@@ -209,9 +209,9 @@ pytest tests/ -v
 
 ---
 
-## Quick Start — Dashboard Without S3
+## Quick Start - Dashboard Without S3
 
-The pre-computed results (`awi_full.csv`, `pqi_full.csv`, `narratives.csv`) are committed to the repository. You can run the dashboard and explore all results immediately — no AWS credentials, no pipeline run required:
+The pre-computed results (`awi_full.csv`, `pqi_full.csv`, `narratives.csv`) are committed to the repository. You can run the dashboard and explore all results immediately - no AWS credentials, no pipeline run required:
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
@@ -225,7 +225,7 @@ Opens at **http://localhost:8501**. This is the fastest path to verify the outpu
 
 ## Full Workflow
 
-### Step 1 — Build and push the Docker container
+### Step 1 - Build and push the Docker container
 
 Only needed once, or after changes to `src/` or `scripts/`:
 
@@ -237,9 +237,9 @@ This builds the Python 3.11-slim image and pushes it to ECR. The image is used b
 
 ---
 
-### Step 2 — Run the pipeline
+### Step 2 - Run the pipeline
 
-**Option A — SageMaker (recommended, ~15–20 min)**
+**Option A - SageMaker (recommended, ~15-20 min)**
 
 Submits 10 parallel jobs (5 matches × AWI + PQI), waits for completion, then downloads and concatenates results locally:
 
@@ -254,12 +254,12 @@ python pipelines/sagemaker_pipeline.py --action status --run-id <YYYYMMDD-HHMMSS
 ```
 
 Outputs written to:
-- `results/awi_full.csv` — 400 rows, one per player × match × phase
-- `results/pqi_full.csv` — 400 rows, same structure
+- `results/awi_full.csv` - 400 rows, one per player x match x phase
+- `results/pqi_full.csv` - 400 rows, same structure
 
-**Option B — Local notebooks (~90–120 min, fallback)**
+**Option B - Local notebooks (~90-120 min, fallback)**
 
-Run in order. The SSO token expires after ~60 min — re-run `source project_start.sh` and resume from the last checkpoint (completed phases are skipped automatically):
+Run in order. The SSO token expires after ~60 min - re-run `source project_start.sh` and resume from the last checkpoint (completed phases are skipped automatically):
 
 ```bash
 # In Jupyter:
@@ -269,9 +269,9 @@ notebooks/run_pqi_pipeline.ipynb    # → results/pqi_full.csv
 
 ---
 
-### Step 3 — Analyse results
+### Step 3 - Analyse results
 
-No S3 access required — runs entirely from the CSV outputs:
+No S3 access required - runs entirely from the CSV outputs:
 
 ```bash
 # In Jupyter:
@@ -281,7 +281,7 @@ notebooks/analysis_awi_pqi_combined.ipynb    # Combined analysis → figures/
 
 ---
 
-### Step 4 — Launch the dashboard
+### Step 4 - Launch the dashboard
 
 ```bash
 bash dashboard/run_dashboard.sh
@@ -290,15 +290,15 @@ bash dashboard/run_dashboard.sh
 Opens at **http://localhost:8501**
 
 Three tabs:
-- **Player Profile** — player selector with DFL position code + full name, AWI/PQI gauges vs selection median, 5-metric KPI row with percentile ranks and tooltips, scatter in context (colored by role), PQI radar vs role average, PQI component breakdown (Orientation/Stance/Proximity), per-phase trend cards
-- **Match Overview** — summary KPIs, quadrant scatter with 4-quadrant classification and elite player labels, role lollipop chart, PQI decomposition stacked bar, half-time fatigue bar + 1st vs 2nd half scatter, team AWI comparison (color per club)
-- **Leaderboard** — sortable table with DFL position codes, role averages heatmap, AWI bar chart (mean ± std), PQI box distribution
+- **Player Profile** - player selector with DFL position code + full name, AWI/PQI gauges vs selection median, 5-metric KPI row with percentile ranks and tooltips, scatter in context (colored by role), PQI radar vs role average, PQI component breakdown (Orientation/Stance/Proximity), per-phase trend cards
+- **Match Overview** - summary KPIs, quadrant scatter with 4-quadrant classification and elite player labels, role lollipop chart, PQI decomposition stacked bar, half-time fatigue bar + 1st vs 2nd half scatter, team AWI comparison (color per club)
+- **Leaderboard** - sortable table with DFL position codes, role averages heatmap, AWI bar chart (mean +/- std), PQI box distribution
 
 Sidebar: Match, Phase, Position (DFL codes), Min Coverage % (default 50%). Collapsible **Metric Definitions** and **Position Code Reference** expanders explain all metrics and DFL codes inline.
 
 ---
 
-### Step 5 — Generate AI scouting narratives
+### Step 5 - Generate AI scouting narratives
 
 Requires Bedrock access. Uses `eu.amazon.nova-lite-v1:0` by default (no SCP restrictions in `eu-central-1`):
 
@@ -313,7 +313,7 @@ To use Claude Sonnet instead, set `BEDROCK_MODEL_ID=eu.anthropic.claude-sonnet-4
 
 ---
 
-## AWI — Technical Details
+## AWI - Technical Details
 
 ```
 S3 Parquet (TF15, ~4 GB/match)
@@ -344,7 +344,7 @@ compute_awi() → scan_count / phase_minutes
 
 ---
 
-## PQI — Technical Details
+## PQI - Technical Details
 
 Press frames: player's pelvis within 5 m of ball carrier for ≥10 consecutive frames (0.2 s at 50 fps).
 
