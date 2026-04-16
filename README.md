@@ -72,24 +72,24 @@ Vušković is a centre-back whose scanning profile matches a defensive midfielde
 ┌─────────────────────────────────────────────────────────────────────┐
 │                        AWS Infrastructure                           │
 │                                                                     │
-│   S3 (TF15 Parquet, ~4 GB/match)                                   │
+│   S3 (TF15 Parquet, ~4 GB/match)                                    │
 │       │                                                             │
 │       ▼                                                             │
-│   ECR (Docker image)  ──►  SageMaker Processing                    │
+│   ECR (Docker image)  ──►  SageMaker Processing                     │
 │                              10 parallel jobs                       │
-│                              (5 matches × AWI + PQI)               │
-│                              ml.m5.xlarge, ~15–20 min              │
+│                              (5 matches × AWI + PQI)                │
+│                              ml.m5.xlarge, ~15–20 min               │
 │                                   │                                 │
 │                                   ▼                                 │
-│                         S3 (per-match CSVs)                        │
+│                         S3 (per-match CSVs)                         │
 │                                   │                                 │
 │                         aggregate_results.py                        │
 │                                   │                                 │
-│                    ┌──────────────┴──────────────┐                 │
+│                    ┌──────────────┴──────────────┐                  │
 │                    ▼                             ▼                  │
-│             awi_full.csv                  pqi_full.csv             │
+│             awi_full.csv                  pqi_full.csv              │
 │                    │                             │                  │
-│                    └──────────────┬──────────────┘                 │
+│                    └──────────────┬──────────────┘                  │
 │                                   ▼                                 │
 │              Streamlit Dashboard  +  Amazon Bedrock                 │
 │              (Player Profile, Match Overview, Leaderboard)          │
