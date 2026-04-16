@@ -209,6 +209,20 @@ pytest tests/ -v
 
 ---
 
+## Quick Start — Dashboard Without S3
+
+The pre-computed results (`awi_full.csv`, `pqi_full.csv`, `narratives.csv`) are committed to the repository. You can run the dashboard and explore all results immediately — no AWS credentials, no pipeline run required:
+
+```bash
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+bash dashboard/run_dashboard.sh
+```
+
+Opens at **http://localhost:8501**. This is the fastest path to verify the outputs.
+
+---
+
 ## Full Workflow
 
 ### Step 1 — Build and push the Docker container
