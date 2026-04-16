@@ -1,7 +1,8 @@
 # PRFAQ: Football Body Intelligence Platform
 
 **AWS World Sports Innovation Cup 2026 · Challenge 2**
-Team: itzmore
+
+**Team:** itzmore
 
 ---
 
