@@ -25,7 +25,7 @@ Computed across 5 Bundesliga matches and 400 player-phase observations, the plat
 
 The interactive Streamlit dashboard (`dashboard/app.py`) loads the merged AWI + PQI dataset and provides three tabs for exploring body intelligence data at different levels of granularity.
 
-![AWI vs PQI Scatter — all players, coloured by position](figures/fig1_awi_vs_pqi_scatter.png)
+![AWI vs PQI Scatter — all players, coloured by position](../figures/fig1_awi_vs_pqi_scatter.png)
 
 *Figure 1: AWI vs PQI scatter plot for all player-phases across 5 Bundesliga matches, coloured by position. The near-zero correlation (r = −0.11) confirms that scanning awareness and pressing quality are independent skills — both metrics are needed to characterise a player fully. The elite quadrant (top-right) contains 10 unique players across 15 player-phases.*
 

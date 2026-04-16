@@ -292,6 +292,11 @@ hr { border: none; border-top: 2px solid #e8e8f0; margin: 28px 0; }
 
     raw = pathlib.Path('submission/prfaq.md').read_text(encoding='utf-8')
     body = md.markdown(raw, extensions=['tables', 'fenced_code'])
+    # Embed scatter figure as base64 so prfaq.html is self-contained (no relative path dependency)
+    body = body.replace(
+        'src="../figures/fig1_awi_vs_pqi_scatter.png"',
+        f'src="{imgs["scatter"]}"',
+    )
 
     # Inject consistency figure after the cross-half correlation paragraph
     consistency_tag = (
