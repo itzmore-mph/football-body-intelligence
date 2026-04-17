@@ -189,6 +189,54 @@ def _inject_css() -> None:
   }}
   .gcap b {{ color: {C_TEXT}; font-weight: 600; }}
 
+  /* ── KPI tooltip ── */
+  .kpi-info {{
+      position: relative;
+      display: inline-block;
+      cursor: help;
+      color: {C_MUTED};
+      font-size: 0.65rem;
+      margin-left: 3px;
+      vertical-align: middle;
+  }}
+  .kpi-info .kpi-tooltip {{
+      visibility: hidden;
+      opacity: 0;
+      width: 200px;
+      background: #1e2533;
+      color: {C_TEXT};
+      font-size: 0.7rem;
+      font-weight: 400;
+      text-transform: none;
+      letter-spacing: 0;
+      line-height: 1.5;
+      text-align: left;
+      border-radius: 6px;
+      border: 1px solid {C_BORDER};
+      padding: 7px 10px;
+      position: absolute;
+      z-index: 9999;
+      bottom: 130%;
+      left: 50%;
+      transform: translateX(-50%);
+      transition: opacity 0.15s ease;
+      pointer-events: none;
+      white-space: normal;
+  }}
+  .kpi-info .kpi-tooltip::after {{
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-top-color: {C_BORDER};
+  }}
+  .kpi-info:hover .kpi-tooltip {{
+      visibility: visible;
+      opacity: 1;
+  }}
+
   .ph-name {{ font-size: 1.65rem; font-weight: 700; color: {C_TEXT}; margin: 0; }}
   .ph-meta {{ font-size: 0.85rem; color: {C_MUTED}; margin-top: 2px; }}
 
@@ -236,7 +284,7 @@ def safe_float(val: object, default: float = 0.0) -> float:
 
 def kpi(label: str, value: str, sub: str = "", color: str | None = None, help: str | None = None) -> None:
     col = color or C_TEXT
-    info = (f' <span title="{help}" style="cursor:help;color:{C_MUTED};font-size:0.65rem">ℹ</span>'
+    info = (f' <span class="kpi-info">ℹ<span class="kpi-tooltip">{help}</span></span>'
             if help else "")
     st.markdown(
         f'<div class="kpi">'
@@ -685,15 +733,20 @@ def render_match_overview(fdf: pd.DataFrame) -> None:
     top_row = fdf.loc[fdf["awi_per_minute"].idxmax()]
     s1, s2, s3, s4, s5 = st.columns(5, gap="small")
     with s1: kpi("Players", str(fdf["name"].nunique()),
-                 f"{fdf['match_id'].nunique()} match(es)")
-    with s2: kpi("Avg AWI",  f"{fdf['awi_per_minute'].mean():.2f}", "scans/min", C_AWI)
-    with s3: kpi("Avg PQI",  f"{fdf['mean_pqi'].mean():.1f}",       "0–100",     C_PQI)
+                 f"{fdf['match_id'].nunique()} match(es)",
+                 help="Number of unique players included after applying the current filters.")
+    with s2: kpi("Avg AWI",  f"{fdf['awi_per_minute'].mean():.2f}", "scans/min", C_AWI,
+                 help="Average Awareness Index across all filtered players. AWI = head-rotation events per minute.")
+    with s3: kpi("Avg PQI",  f"{fdf['mean_pqi'].mean():.1f}",       "0–100",     C_PQI,
+                 help="Average Press Quality Index across all filtered players. Composite of Orientation (40%), Stance (30%), Proximity (30%).")
     with s4: kpi("Top AWI",  top_row["name"].split()[-1],
-                 f"{top_row['awi_per_minute']:.2f} scans/min", C_GOLD)
+                 f"{top_row['awi_per_minute']:.2f} scans/min", C_GOLD,
+                 help="Player with the highest AWI in the current filtered set.")
     with s5:
         n_elite = len(fdf[(fdf["awi_per_minute"] >= fdf["awi_per_minute"].quantile(0.75)) &
                           (fdf["mean_pqi"] >= fdf["mean_pqi"].quantile(0.75))]["name"].unique())
-        kpi("Elite Players", str(n_elite), "top 25% AWI & PQI", C_GREEN)
+        kpi("Elite Players", str(n_elite), "top 25% AWI & PQI", C_GREEN,
+            help="Players ranking in the top 25th percentile on both AWI and PQI simultaneously.")
     sp(0.75)
 
     # ── Quadrant scatter ──────────────────────────────────────────────────────
@@ -986,11 +1039,15 @@ def render_leaderboard(fdf: pd.DataFrame) -> None:
     o1, o2, o3, o4 = st.columns(4, gap="small")
     elite = fdf[(fdf["awi_per_minute"] >= fdf["awi_per_minute"].quantile(0.75)) &
                 (fdf["mean_pqi"] >= fdf["mean_pqi"].quantile(0.75))]
-    with o1: kpi("Total Players", str(fdf["name"].nunique()), "active player-phases")
+    with o1: kpi("Total Players", str(fdf["name"].nunique()), "active player-phases",
+                 help="Unique players with at least one tracked phase in the current filtered dataset.")
     with o2: kpi("Elite Quadrant", str(elite["name"].nunique()),
-                 "top 25% AWI & PQI", C_GREEN)
-    with o3: kpi("Avg AWI",  f"{fdf['awi_per_minute'].mean():.2f}", "scans/min", C_AWI)
-    with o4: kpi("Avg PQI",  f"{fdf['mean_pqi'].mean():.1f}",       "0–100",     C_PQI)
+                 "top 25% AWI & PQI", C_GREEN,
+                 help="Players ranking in the top 25th percentile on both AWI and PQI simultaneously.")
+    with o3: kpi("Avg AWI",  f"{fdf['awi_per_minute'].mean():.2f}", "scans/min", C_AWI,
+                 help="Average Awareness Index across all filtered players. AWI = head-rotation events per minute.")
+    with o4: kpi("Avg PQI",  f"{fdf['mean_pqi'].mean():.1f}",       "0–100",     C_PQI,
+                 help="Average Press Quality Index across all filtered players. Composite of Orientation (40%), Stance (30%), Proximity (30%).")
     sp(0.75)
 
     # ── Leaderboard table ─────────────────────────────────────────────────────
