@@ -162,18 +162,47 @@ Vušković is a centre-back whose scanning profile matches a defensive midfielde
 - AWS CLI with SSO configured (`aws configure sso`)
 - Docker Desktop (only needed to rebuild the SageMaker container)
 
+> **Windows users:** Install [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install) and enable Docker Desktop's WSL2 backend. Then run all commands inside a WSL2 terminal. The shell scripts (`.sh`) require a bash environment.
+
+---
+
 ### 1. Create virtual environment
 
+**macOS / Linux**
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+**Windows (PowerShell)**
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+**Windows (Command Prompt)**
+```cmd
+python -m venv .venv
+.venv\Scripts\activate.bat
+pip install -r requirements.txt
+```
+
+---
+
 ### 2. Configure environment
 
+**macOS / Linux**
 ```bash
 cp .env.example .env
+cp project_start.sh.template project_start.sh
+```
+
+**Windows**
+```cmd
+copy .env.example .env
+copy project_start.sh.template project_start.sh
 ```
 
 Edit `.env` and set:
@@ -185,10 +214,6 @@ Edit `.env` and set:
 | `HACKATHON_BUCKET` | S3 bucket name provided by AWS |
 | `BEDROCK_MODEL_ID` | `eu.amazon.nova-lite-v1:0` (default) or `eu.anthropic.claude-sonnet-4-6` |
 
-```bash
-cp project_start.sh.template project_start.sh
-```
-
 Edit `project_start.sh` and set:
 
 | Variable | Description |
@@ -197,13 +222,38 @@ Edit `project_start.sh` and set:
 | `SM_IMAGE_URI` | ECR image URI (`<account>.dkr.ecr.eu-central-1.amazonaws.com/football-bi-processing:latest`) |
 | `CHALLENGE_PREFIX` | S3 prefix for match data (no trailing slash) |
 
+---
+
 ### 3. Activate session
 
+**macOS / Linux**
 ```bash
 source project_start.sh
 ```
 
-> Use `source`, not `bash` - the script activates the venv, logs in via SSO, verifies S3 access, and exports all SageMaker env vars into your current shell. Re-run when the SSO token expires (~60 min).
+**Windows (WSL2 or Git Bash)**
+```bash
+source project_start.sh
+```
+
+**Windows (PowerShell — manual equivalent)**
+```powershell
+# Activate venv
+.venv\Scripts\Activate.ps1
+
+# Load .env
+Get-Content .env | Where-Object { $_ -notmatch '^#' -and $_ -match '=' } | ForEach-Object {
+    $k, $v = $_ -split '=', 2
+    [System.Environment]::SetEnvironmentVariable($k.Trim(), $v.Trim(), 'Process')
+}
+
+# SSO login
+aws sso login --profile $env:AWS_PROFILE
+```
+
+> Re-run when the SSO token expires (~60 min).
+
+---
 
 ### 4. Run tests
 
@@ -211,47 +261,55 @@ source project_start.sh
 pytest tests/ -v
 ```
 
-177 tests, all passing. No S3 access required.
+Works identically on macOS, Linux, and Windows. 177 tests, all passing. No S3 access required.
 
 ---
 
-## Quick Start - Verify Results Without AWS Credentials
+## Quick Start — Verify Results Without AWS Credentials
 
-The pre-computed result files (`results/awi_full.csv`, `results/pqi_full.csv`, `results/narratives.csv`) are committed to this repository. These are derived metric aggregations produced by the pipeline - no raw skeleton data or DFL source files are included. You can run the full dashboard and all analysis notebooks immediately without any AWS credentials or pipeline execution:
+The pre-computed result files (`results/awi_full.csv`, `results/pqi_full.csv`, `results/narratives.csv`) are committed to this repository. You can run the full dashboard immediately without any AWS credentials:
 
+**macOS / Linux**
 ```bash
-python3 -m venv .venv && source .venv/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 bash dashboard/run_dashboard.sh
 ```
 
-Opens at **http://localhost:8501**. This is the recommended path to verify outputs without access to the hackathon AWS environment.
-
-To also reproduce the analysis figures:
-
-```bash
-# In Jupyter:
-notebooks/analysis_awi_results.ipynb         # AWI leaderboard, position breakdown
-notebooks/analysis_awi_pqi_combined.ipynb    # Combined analysis → figures/
+**Windows (PowerShell)**
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+streamlit run dashboard/app.py --server.port 8501
 ```
+
+Opens at **http://localhost:8501**
 
 ---
 
 ## Full Workflow
 
-### Step 1 - Build and push the Docker container
+### Step 1 — Build and push the Docker container
 
 Only needed once, or after changes to `src/` or `scripts/`:
 
+**macOS / Linux**
 ```bash
 ./pipelines/build_and_push.sh
 ```
 
-This builds the Python 3.11-slim image and pushes it to ECR. The image is used by all SageMaker Processing jobs.
+**Windows (WSL2 or Git Bash)**
+```bash
+bash pipelines/build_and_push.sh
+```
+
+This builds the Python 3.11-slim image and pushes it to ECR.
 
 ---
 
-### Step 2 - Run the pipeline
+### Step 2 — Run the pipeline
 
 **Option A - SageMaker (recommended, ~15-20 min)**
 
@@ -273,7 +331,7 @@ Outputs written to:
 
 **Option B - Local notebooks (~90-120 min, fallback)**
 
-Run in order. The SSO token expires after ~60 min - re-run `source project_start.sh` and resume from the last checkpoint (completed phases are skipped automatically):
+Run in order. The SSO token expires after ~60 min — re-run `source project_start.sh` (macOS/Linux) or the PowerShell equivalent (Windows) and resume from the last checkpoint (completed phases are skipped automatically):
 
 ```bash
 # In Jupyter:
@@ -283,7 +341,7 @@ notebooks/run_pqi_pipeline.ipynb    # → results/pqi_full.csv
 
 ---
 
-### Step 3 - Analyse results
+### Step 3 — Analyse results
 
 No S3 access required - runs entirely from the CSV outputs:
 
@@ -295,10 +353,16 @@ notebooks/analysis_awi_pqi_combined.ipynb    # Combined analysis → figures/
 
 ---
 
-### Step 4 - Launch the dashboard
+### Step 4 — Launch the dashboard
 
+**macOS / Linux**
 ```bash
 bash dashboard/run_dashboard.sh
+```
+
+**Windows (PowerShell)**
+```powershell
+streamlit run dashboard/app.py --server.port 8501
 ```
 
 Opens at **http://localhost:8501**
@@ -312,7 +376,7 @@ Sidebar: Match, Phase, Position (DFL codes), Min Coverage % (default 50%). Colla
 
 ---
 
-### Step 5 - Generate AI scouting narratives
+### Step 5 — Generate AI scouting narratives
 
 Requires Bedrock access. Uses `eu.amazon.nova-lite-v1:0` by default (no SCP restrictions in `eu-central-1`):
 
