@@ -109,46 +109,30 @@ Top performers: Oscar Höjlund (DMZ, 26.90 / 63.9), Joshua Kimmich (DMR, 21.77 /
 
 ---
 
-## Slide 5: Business Value, AI Narratives & What Comes Next
+## Slide 5: Business Value, Cross-Domain Validation & What Comes Next
 
-### From 50 fps skeleton data to coaching decisions in plain English
+### From 50 fps skeleton data to coaching decisions in plain English — validated across five domains
 
-**Kimmich's fatigue signal:** His AWI drops from 23.38 (FCU-FCB 1st half) to 11.29 (FCU-FCB 2nd half) — a **52% decline** in cognitive engagement that no GPS metric, heat-map, or positional model would detect. This is what body intelligence unlocks: not where players run, but whether they are still mentally engaged.
+**Kimmich's fatigue signal:** His AWI drops from 23.38 (FCU-FCB 1st half) to 11.29 (FCU-FCB 2nd half) — a **52% decline** in cognitive engagement that no GPS metric, heat-map, or positional model would detect.
 
 **For clubs — three immediate applications:**
-- **Scouting:** rank candidates by cognitive awareness (AWI) and pressing mechanics (PQI) independently — find players who excel on both dimensions, or identify which dimension needs targeted development
+- **Scouting:** rank candidates by cognitive awareness (AWI) and pressing mechanics (PQI) independently
 - **Fatigue monitoring:** AWI half-time comparisons surface cognitive disengagement before it becomes a tactical problem
-- **Positional versatility:** players like Vušković whose scanning profiles cross position boundaries are flagged automatically — zero subjective coding
+- **Positional versatility:** players like Vušković whose scanning profiles cross position boundaries are flagged automatically
 
-**For broadcasters:** AWI as a live overlay — *"Höjlund scanned 27 times in the last minute before that interception"* — a number every fan understands.
+**For broadcasters & fans:** Fan View tab with broadcast-style top-3 counter, quadrant classification, and Body Intelligence leaderboard. Live overlay: *"Höjlund scanned 27 times before that interception."*
 
-**For the DFL:** AWI and PQI are the first matchday-grade metrics derived solely from TF15 skeleton data. They create a measurable, repeatable differentiation for the 3D product that no 2D competitor can replicate.
+**For the DFL:** First matchday-grade metrics derived solely from TF15 skeleton data — differentiates the 3D product from any 2D competitor.
 
-**AI-generated scouting narratives (Amazon Bedrock):**
+**Cross-domain validation — every concept has a proven ancestor:**
 
-> *"Oscar Winther Höjlund's AWI of 26.9 scans/min ranks #1 of 400 players — 72% above the league mean. His PQI of 63.9 reflects strong proximity management (96.0) with clear development headroom in orientation (59.0) and stance (38.1). The combination of elite scanning frequency and disciplined pressing makes him a rare dual-threat midfielder. Recommendation: deploy in high-press systems where pre-scanning directly enables ball recovery."*
+| External System | Maps to |
+|---|---|
+| **NFL Next Gen Stats** | PQI proximity sub-score (spatial separation) |
+| **NBA Second Spectrum** | PQI orientation sub-score (defensive matchup tracking) |
+| **Tennis Hawk-Eye** | PQI stance sub-score (joint-angle quality signal) |
+| **Medical gait analysis** | PQI stance Gaussian penalty (knee-angle norms) |
+| **Rugby pose fusion** (Catapult) | PQI composite (tackle-quality sensor fusion) |
+| **Aviation cognitive load** | AWI (head-scan rate as situational awareness proxy) |
 
-**What comes next:**
-- Pre-pass AWI → correlate with progressive pass rate and turnover rate (data already computed)
-- Full-season AWI/PQI trend → fatigue arcs, development tracking, load management
-- Live broadcast overlay via DFL's matchday data stream (<15 s latency, already validated)
-
-> *AWI and PQI turn 141 million data points per match into two numbers every coach already understands — and one quadrant chart that tells you exactly who your elite players are.*
-
----
-
-## Slide 6: Cross-Domain Benchmarking — Where AWI and PQI Come From
-
-### Every concept in this platform has a proven ancestor in another sport or domain
-
-AWI and PQI are not isolated inventions. Each metric maps directly to a concept already validated at scale in a different domain. The table below shows the lineage.
-
-| External System | Concept | Application to AWI / PQI |
-|---|---|---|
-| **NFL Next Gen Stats** (AWS / NGS) | Spatial separation — continuous receiver-defender distance and closing speed as a field-quality metric | PQI **proximity sub-score**: distance to ball carrier tracked at 50 fps, scoring 100 at 0 m and decaying to 0 at ≥5 m — the same continuous-field logic NGS uses to quantify open-field separation |
-| **NBA Second Spectrum** | Defensive matchup tracking — body orientation determines whether a defender is "on" the ball handler | PQI **orientation sub-score**: body yaw vs. vector-to-ball-carrier, penalised by angular deviation on a 0–100 scale — the direct football equivalent of Second Spectrum's chest-facing quality score |
-| **Tennis Hawk-Eye** | Pose-based motion analysis — joint-angle trajectories from multi-camera skeleton data score serve mechanics and recovery stance | PQI **stance sub-score**: knee flexion from TF15 3D skeleton scored against the 130° biomechanical optimum using a Gaussian penalty — the same joint-angle-as-quality-signal approach Hawk-Eye pioneered |
-| **Medical gait analysis** | Knee-angle optimisation — clinical gait labs compare knee flexion against population norms to flag injury risk or performance deficits | The 130° optimum and Gaussian scoring function `100 × exp(−0.5 × ((knee_flex − 130) / 25)²)` are derived directly from sports-medicine literature on athletic pressing stance — the same mathematical form used in clinical gait deviation indices |
-| **Rugby smart ball + pose fusion** (Catapult / Gilbert Pulsar) | Tackle-quality scoring — body position at contact fused with approach angle and proximity to score defensive technique | PQI fuses orientation, stance, and proximity at the press-frame window, exactly as rugby systems fuse approach angle, body height, and contact force. The 10-frame press filter is the football analogue of the contact-detection window |
-
-**AWI's cross-domain ancestor:** Cognitive load measurement in aviation and military simulation, where head-scan rate (helmet-mounted sensors or eye-tracking) is a real-time proxy for situational awareness. The +57% AWI spike before a pass is the football equivalent of the pre-decision scan burst documented in fighter-pilot studies — a direct, measurable signal that the player is actively building a mental model of the field before acting. TF15 makes this measurement possible at matchday scale for the first time in team sports.
+> *The +57% AWI spike before a pass is the football equivalent of the pre-decision scan burst in fighter-pilot studies. TF15 makes this measurement possible at matchday scale for the first time in team sports.*

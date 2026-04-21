@@ -88,7 +88,7 @@ SLIDES = f"""<!DOCTYPE html>
 <!-- SLIDE 1: PROBLEM & KPIs -->
 <div class="slide">
   <div class="slide-header">
-    <span class="slide-num">Slide 1 of 5</span>
+    <span class="slide-num">Slide 1 of 6</span>
     <span class="slide-title">The Problem &amp; Our Two KPIs</span>
   </div>
   <p class="slide-subtitle">Standard tracking tells you <em>where</em> players move. TF15 tells you <em>how</em> they move and <em>where they look</em>.</p>
@@ -115,7 +115,7 @@ SLIDES = f"""<!DOCTYPE html>
 <!-- SLIDE 2: TECHNICAL -->
 <div class="slide">
   <div class="slide-header">
-    <span class="slide-num">Slide 2 of 5</span>
+    <span class="slide-num">Slide 2 of 6</span>
     <span class="slide-title">Technical Approach</span>
   </div>
   <p class="slide-subtitle">S3 &rarr; Skeleton &rarr; Angles &rarr; AWI + PQI &rarr; Dashboard &rarr; AI Narratives</p>
@@ -127,7 +127,7 @@ SLIDES = f"""<!DOCTYPE html>
   &rarr; detect_scans()                    # 11-frame circular smooth &rarr; 25-frame delta &rarr; &ge;45&deg; leading edge
   &rarr; compute_awi()                     # scan_count / phase_minutes
   &rarr; pqi_calculator.py                 # orientation + stance + proximity, vectorized
-  &rarr; Streamlit dashboard               # Player Profile &middot; Match Overview &middot; Leaderboard
+  &rarr; Streamlit dashboard               # Player Profile &middot; Match Overview &middot; Leaderboard &middot; Fan View
   &rarr; Amazon Bedrock (Nova Lite)        # natural-language scouting narratives</pre>
 
   <h3>Key engineering decisions</h3>
@@ -146,7 +146,7 @@ SLIDES = f"""<!DOCTYPE html>
 <!-- SLIDE 3: RESULTS -->
 <div class="slide">
   <div class="slide-header">
-    <span class="slide-num">Slide 3 of 5</span>
+    <span class="slide-num">Slide 3 of 6</span>
     <span class="slide-title">Results &mdash; AWI Leaderboard &amp; Position Patterns</span>
   </div>
   <p class="slide-subtitle">Defensive midfielders are the most cognitively active players on the pitch</p>
@@ -182,7 +182,7 @@ SLIDES = f"""<!DOCTYPE html>
 <!-- SLIDE 4: THE KEY FINDING -->
 <div class="slide">
   <div class="slide-header">
-    <span class="slide-num">Slide 4 of 5</span>
+    <span class="slide-num">Slide 4 of 6</span>
     <span class="slide-title">The Key Finding &mdash; AWI and PQI Are Independent</span>
   </div>
   <p class="slide-subtitle">Scanning awareness and pressing mechanics are two orthogonal dimensions of player intelligence</p>
@@ -213,43 +213,47 @@ SLIDES = f"""<!DOCTYPE html>
   </div>
 </div>
 
-<!-- SLIDE 5: BUSINESS VALUE -->
+<!-- SLIDE 5: BUSINESS VALUE + CROSS-DOMAIN -->
 <div class="slide">
   <div class="slide-header">
     <span class="slide-num">Slide 5 of 5</span>
-    <span class="slide-title">Business Value &amp; Conclusion</span>
+    <span class="slide-title">Business Value &amp; Cross-Domain Validation</span>
   </div>
-  <p class="slide-subtitle">From 141 million data points per match to two numbers every coach understands</p>
+  <p class="slide-subtitle">From 141 million data points per match to two numbers every coach understands &mdash; validated across five domains</p>
 
   <div class="two-col">
     <div>
       <h3>For clubs</h3>
       <ul>
-        <li><strong>Scouting:</strong> rank candidates by AWI and PQI independently &mdash; find players who excel at both, or identify which dimension needs development</li>
+        <li><strong>Scouting:</strong> rank by AWI and PQI independently &mdash; find dual-elite players or target specific development gaps</li>
         <li><strong>Fatigue detection:</strong> Kimmich's AWI drops 52% in FCU-FCB 2nd half &mdash; invisible to GPS</li>
-        <li><strong>Positional outliers:</strong> Vu&scaron;kovi&cacute; (CB) in the elite quadrant flags tactical versatility</li>
+        <li><strong>Positional outliers:</strong> Vu&scaron;kovi&cacute; (CB) in the elite quadrant flags tactical versatility automatically</li>
       </ul>
-      <h3>For broadcasters</h3>
+      <h3>For broadcasters &amp; fans</h3>
       <ul>
-        <li>Live overlay: <em>"H&oslash;jlund scanned 27 times in the last minute before that interception"</em></li>
-        <li>A number every fan understands, derived from data no competitor has</li>
+        <li>Live overlay: <em>"H&oslash;jlund scanned 27 times before that interception"</em></li>
+        <li>Fan View tab: broadcast-style top-3 counter, quadrant classification, Body Intelligence leaderboard</li>
       </ul>
       <h3>For the DFL</h3>
       <ul>
         <li>First matchday-grade metrics derived solely from TF15 skeleton data</li>
         <li>Differentiates the 3D product from any 2D competitor</li>
       </ul>
-      <blockquote>AWI and PQI turn 141 million data points per match into one quadrant chart that tells you who your elite players really are.</blockquote>
     </div>
     <div>
-      <div class="fig">
-        <img src="{imgs['pqi_decomp']}" alt="PQI sub-score decomposition" />
-        <p class="fig-caption">PQI sub-score decomposition by position. Goalkeepers lead on proximity; defensive midfielders lead among outfield players on all three dimensions.</p>
-      </div>
-      <div class="fig" style="margin-top:10px;">
-        <img src="{imgs['half_compare']}" alt="1st vs 2nd half AWI comparison" />
-        <p class="fig-caption">1st vs 2nd half AWI for top players. Cross-half R = 0.854 (n = 69 active players) confirms AWI is a stable trait. Fatigue dips are visible for individual players.</p>
-      </div>
+      <h3>Cross-domain validation &mdash; every concept has a proven ancestor</h3>
+      <table style="font-size:9pt;">
+        <thead><tr><th>External System</th><th>Maps to</th></tr></thead>
+        <tbody>
+          <tr><td><strong>NFL Next Gen Stats</strong></td><td>PQI proximity sub-score (spatial separation)</td></tr>
+          <tr><td><strong>NBA Second Spectrum</strong></td><td>PQI orientation sub-score (defensive matchup tracking)</td></tr>
+          <tr><td><strong>Tennis Hawk-Eye</strong></td><td>PQI stance sub-score (joint-angle quality signal)</td></tr>
+          <tr><td><strong>Medical gait analysis</strong></td><td>PQI stance Gaussian penalty (knee-angle norms)</td></tr>
+          <tr><td><strong>Rugby pose fusion</strong></td><td>PQI composite (tackle-quality sensor fusion)</td></tr>
+          <tr><td><strong>Aviation cognitive load</strong></td><td>AWI (head-scan rate as situational awareness proxy)</td></tr>
+        </tbody>
+      </table>
+      <blockquote style="margin-top:10px; font-size:9pt;">The +57% AWI spike before a pass is the football equivalent of the pre-decision scan burst in fighter-pilot studies. TF15 makes this measurement possible at matchday scale for the first time in team sports.</blockquote>
     </div>
   </div>
 </div>
