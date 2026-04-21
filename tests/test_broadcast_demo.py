@@ -173,10 +173,10 @@ def test_readme_launch_command():
     assert "streamlit run dashboard/broadcast_demo.py" in readme
 
 
-def test_readme_image_reference():
-    """README.md references the broadcast overlay demo image."""
+def test_readme_broadcast_section():
+    """README.md references the broadcast demo."""
     readme = pathlib.Path("README.md").read_text(encoding="utf-8")
-    assert "broadcast_overlay_demo.png" in readme
+    assert "broadcast_demo.py" in readme
 
 
 # ---------------------------------------------------------------------------

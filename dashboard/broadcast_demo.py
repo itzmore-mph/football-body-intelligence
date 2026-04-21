@@ -364,6 +364,7 @@ def build_gauge_fig(
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         font=dict(family="Inter", color=DFL_WHITE),
+        modebar_remove=["zoom", "pan", "select", "lasso", "zoomIn", "zoomOut", "autoScale", "resetScale", "toImage"],
     )
     return fig
 

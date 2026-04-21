@@ -95,7 +95,8 @@ Vušković is a centre-back whose scanning profile matches a defensive midfielde
 │                                   ▼                                 │
 │              Streamlit Dashboard  +  Amazon Bedrock                 │
 │              (Player Profile, Match Overview, Leaderboard,          │
-│               Fan View, AI scouting narratives via Nova Lite)       │
+│               Fan View, Broadcast Demo,                             │
+│               AI scouting narratives via Nova Lite)                 │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -141,8 +142,8 @@ Vušković is a centre-back whose scanning profile matches a defensive midfielde
 │   └── bedrock_reports.ipynb          AI narrative generation via Bedrock
 │
 ├── dashboard/
-│   ├── app.py                   Streamlit dashboard (4 tabs: Player Profile, Match Overview, Leaderboard, Fan View)
-│   ├── broadcast_demo.py        Standalone broadcast overlay demo (Track 2)
+│   ├── app.py                   Streamlit dashboard (5 tabs: Player Profile, Match Overview, Leaderboard, Fan View, Broadcast Demo)
+│   ├── broadcast_demo.py        Standalone broadcast overlay demo (Track 2, also embedded as Broadcast Demo tab)
 │   └── run_dashboard.sh         Launch script → http://localhost:8501
 │
 ├── tests/                       252 unit tests - no S3 access required
@@ -420,6 +421,7 @@ Four tabs:
 - **Match Overview** - summary KPIs, quadrant scatter with 4-quadrant classification and elite player labels, bootstrap CI caption below the scatter plot, role lollipop chart, PQI decomposition stacked bar, half-time fatigue bar + 1st vs 2nd half scatter, team AWI comparison (color per club)
 - **Leaderboard** - "Position-adjusted PQI" toggle (sorts by z-score within position group when on), sortable table with DFL position codes, role averages heatmap, AWI bar chart (mean +/- std), PQI box distribution
 - **Fan View** - broadcast-style top-3 awareness counter, 4-quadrant player comparison (Elite/Smart/Physical/Developing), Body Intelligence leaderboard, "Did you know?" callout with real-time scan frequency
+- **Broadcast Demo** - DFL-styled live overlay mockup: player selector, AWI and PQI circular gauges vs league/role mean, quadrant badge (ELITE/AWARE/PRESSER/DEVELOPING), DFL red ticker with validated findings
 
 Sidebar: Match, Phase, Position (DFL codes), Min Coverage % (default 50%). Collapsible **Metric Definitions** and **Position Code Reference** expanders explain all metrics and DFL codes inline.
 

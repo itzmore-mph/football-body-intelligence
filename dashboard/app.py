@@ -3,15 +3,20 @@ Football Body Intelligence — Streamlit Dashboard
 Bundesliga AWI + PQI Analytics Platform
 """
 import os
+import sys
+
+# Ensure the project root is on sys.path so `src` is importable
+# regardless of the working directory Streamlit is launched from.
+_project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
+
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
-from src.benchmark_report import generate_benchmark_summary
-
 st.set_page_config(
     page_title="Football Body Intelligence",
-    page_icon="⚽",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -1200,14 +1205,14 @@ def render_fan_view(fdf: pd.DataFrame) -> None:
 
     st.markdown(
         f'<div style="font-size:1.1rem;font-weight:700;color:{C_TEXT};margin-bottom:0.25rem">'
-        f'⚡ Body Intelligence — Fan View</div>'
+        f'Body Intelligence — Fan View</div>'
         f'<div style="font-size:0.78rem;color:{C_MUTED};margin-bottom:1.2rem">'
         f'Live-style awareness &amp; pressing leaderboard · Bundesliga 2025/26</div>',
         unsafe_allow_html=True,
     )
 
     # ── Top-3 awareness counter (broadcast-style) ─────────────────────────────
-    sec("🧠 TOP SCANNERS — AWARENESS COUNTER")
+    sec("TOP SCANNERS — AWARENESS COUNTER")
     st.markdown(
         f'<div style="font-size:0.72rem;color:{C_MUTED};margin-bottom:0.75rem">'
         f'Head-rotation events per minute · higher = more active scanning before decisions</div>',
@@ -1219,7 +1224,7 @@ def render_fan_view(fdf: pd.DataFrame) -> None:
                .head(3)
                .reset_index(drop=True))
 
-    medals = ["🥇", "🥈", "🥉"]
+    medals = ["1.", "2.", "3."]
     cols_awi = st.columns(3, gap="medium")
     for i, (_, row) in enumerate(top_awi.iterrows()):
         with cols_awi[i]:
@@ -1246,7 +1251,7 @@ def render_fan_view(fdf: pd.DataFrame) -> None:
     sp(1.0)
 
     # ── 4-quadrant fan comparison ─────────────────────────────────────────────
-    sec("🎯 PLAYER COMPARISON — BODY INTELLIGENCE QUADRANT")
+    sec("PLAYER COMPARISON — BODY INTELLIGENCE QUADRANT")
     st.markdown(
         f'<div style="font-size:0.72rem;color:{C_MUTED};margin-bottom:0.75rem">'
         f'Every player ranked by scanning awareness (AWI) vs pressing quality (PQI). '
@@ -1259,17 +1264,17 @@ def render_fan_view(fdf: pd.DataFrame) -> None:
 
     fdf_fan = fdf.copy()
     fdf_fan["quadrant_label"] = fdf_fan.apply(lambda r: (
-        "⭐ Elite"       if r["awi_per_minute"] >= awi_q75 and r["mean_pqi"] >= pqi_q75 else
-        "🧠 Smart"       if r["awi_per_minute"] >= awi_q75 else
-        "💪 Physical"    if r["mean_pqi"] >= pqi_q75 else
-        "📈 Developing"
+        "ELITE"       if r["awi_per_minute"] >= awi_q75 and r["mean_pqi"] >= pqi_q75 else
+        "SMART"       if r["awi_per_minute"] >= awi_q75 else
+        "PHYSICAL"    if r["mean_pqi"] >= pqi_q75 else
+        "DEVELOPING"
     ), axis=1)
 
     fan_colors = {
-        "⭐ Elite":      C_GREEN,
-        "🧠 Smart":      C_AWI,
-        "💪 Physical":   C_PQI,
-        "📈 Developing": C_MUTED,
+        "ELITE":      C_GREEN,
+        "SMART":      C_AWI,
+        "PHYSICAL":   C_PQI,
+        "DEVELOPING": C_MUTED,
     }
 
     fig_fan = px.scatter(
@@ -1291,7 +1296,7 @@ def render_fan_view(fdf: pd.DataFrame) -> None:
     fig_fan.update_traces(marker_size=10)
 
     # Label elite players
-    elite_fan = (fdf_fan[fdf_fan["quadrant_label"] == "⭐ Elite"]
+    elite_fan = (fdf_fan[fdf_fan["quadrant_label"] == "ELITE"]
                  .drop_duplicates(subset="name")
                  .sort_values("awi_per_minute", ascending=False)
                  .head(8))
@@ -1320,9 +1325,9 @@ def render_fan_view(fdf: pd.DataFrame) -> None:
     y_min = fdf_fan["mean_pqi"].min()
 
     for txt, x, y, col in [
-        ("⭐ ELITE", x_max * 0.97, y_max * 0.99, C_GREEN),
-        ("🧠 SMART", x_max * 0.97, y_min + (pqi_q75 - y_min) * 0.15, C_AWI),
-        ("💪 PHYSICAL", x_min + (awi_q75 - x_min) * 0.15, y_max * 0.99, C_PQI),
+        ("ELITE", x_max * 0.97, y_max * 0.99, C_GREEN),
+        ("SMART", x_max * 0.97, y_min + (pqi_q75 - y_min) * 0.15, C_AWI),
+        ("PHYSICAL", x_min + (awi_q75 - x_min) * 0.15, y_max * 0.99, C_PQI),
     ]:
         fig_fan.add_annotation(
             x=x, y=y, text=txt, showarrow=False,
@@ -1344,7 +1349,7 @@ def render_fan_view(fdf: pd.DataFrame) -> None:
     sp(0.5)
 
     # ── Awareness leaderboard (fan-friendly) ──────────────────────────────────
-    sec("🏆 BODY INTELLIGENCE LEADERBOARD")
+    sec("BODY INTELLIGENCE LEADERBOARD")
     st.markdown(
         f'<div style="font-size:0.72rem;color:{C_MUTED};margin-bottom:0.75rem">'
         f'Top 15 players ranked by combined Body Intelligence score '
@@ -1375,12 +1380,12 @@ def render_fan_view(fdf: pd.DataFrame) -> None:
             "Player":                  st.column_config.TextColumn("Player"),
             "Position":                st.column_config.TextColumn("Pos"),
             "Match":                   st.column_config.TextColumn("Match"),
-            "AWI (scans/min)":         st.column_config.NumberColumn("🧠 AWI", format="%.2f",
+            "AWI (scans/min)":         st.column_config.NumberColumn("AWI", format="%.2f",
                                            help="Scanning awareness: head-rotation events per minute"),
-            "PQI":                     st.column_config.NumberColumn("💪 PQI", format="%.1f",
+            "PQI":                     st.column_config.NumberColumn("PQI", format="%.1f",
                                            help="Pressing quality: body mechanics score 0–100"),
             "Body Intelligence Score": st.column_config.ProgressColumn(
-                                           "⭐ Body Intelligence",
+                                           "Body Intelligence",
                                            format="%.1f",
                                            min_value=0, max_value=100,
                                            help="Combined percentile rank on AWI and PQI"),
@@ -1423,7 +1428,7 @@ def render_benchmark(fdf: pd.DataFrame) -> None:
 
     st.markdown(
         f'<div style="font-size:1.1rem;font-weight:700;color:{C_TEXT};margin-bottom:0.25rem">'
-        f'🌍 Cross-Domain Benchmark</div>'
+        f'Cross-Domain Benchmark</div>'
         f'<div style="font-size:0.78rem;color:{C_MUTED};margin-bottom:1.2rem">'
         f'AWI and PQI placed in context of NFL, NBA, Tennis, Rugby and Aviation systems</div>',
         unsafe_allow_html=True,
@@ -1691,21 +1696,120 @@ def render_benchmark(fdf: pd.DataFrame) -> None:
 
 
 def render_broadcast_demo_tab(fdf: pd.DataFrame) -> None:
-    """Broadcast Demo tab - embeds broadcast overlay inline."""
-    from dashboard.broadcast_demo import render_broadcast_overlay, load_broadcast_data
-    # Load full unfiltered dataset for the overlay
+    """Broadcast Demo tab - renders broadcast overlay inline within the main dashboard."""
+    import sys, os
+    _root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if _root not in sys.path:
+        sys.path.insert(0, _root)
+    from dashboard.broadcast_demo import (
+        load_broadcast_data, compute_league_mean_awi, compute_role_mean_pqi,
+        compute_quadrant_thresholds, classify_quadrant, format_pqi_display,
+        build_gauge_fig, TICKER_MESSAGES,
+    )
+
     broadcast_df = load_broadcast_data()
-    render_broadcast_overlay(broadcast_df, standalone=False)
-    st.caption(
-        "Simulated broadcast overlay. AWI and PQI are real-time capable "
-        "with under 15 seconds latency at 50 fps."
+    if broadcast_df.empty:
+        st.warning("No broadcast data available.")
+        return
+
+    sec("BROADCAST OVERLAY — LIVE MATCH STATISTICS")
+    st.markdown(
+        f'<div style="font-size:0.75rem;color:{C_MUTED};margin-bottom:1rem">'
+        f'Simulated broadcast overlay. AWI and PQI are real-time capable '
+        f'with under 15 seconds latency at 50 fps.</div>',
+        unsafe_allow_html=True,
+    )
+
+    player_names = sorted(broadcast_df["name"].dropna().unique())
+    selected_name = st.selectbox("Select Player", player_names, key="broadcast_player_select")
+
+    player_rows = broadcast_df[broadcast_df["name"] == selected_name]
+    if player_rows.empty:
+        st.warning(f"No data found for {selected_name}.")
+        return
+
+    player = player_rows.iloc[0]
+    position_code = str(player.get("position", "")) if pd.notna(player.get("position")) else "N/A"
+
+    # Player name bar
+    st.markdown(
+        f'<div style="background:{C_SURFACE};border-left:4px solid #D20515;'
+        f'padding:0.6rem 1rem;margin-bottom:1rem;border-radius:0 4px 4px 0;">'
+        f'<div style="font-size:1.3rem;font-weight:700;color:{C_TEXT}">{selected_name}</div>'
+        f'<div style="font-size:0.75rem;color:{C_MUTED};text-transform:uppercase;letter-spacing:0.1em">{position_code}</div>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+    awi_q75, pqi_q75 = compute_quadrant_thresholds(broadcast_df)
+    league_mean_awi = compute_league_mean_awi(broadcast_df)
+    role_mean_pqi_map = compute_role_mean_pqi(broadcast_df)
+
+    player_awi = float(player.get("awi_per_minute", 0.0) or 0.0)
+    raw_pqi = player.get("mean_pqi")
+    player_pqi = None
+    if raw_pqi is not None and pd.notna(raw_pqi):
+        try:
+            player_pqi = float(raw_pqi)
+        except (TypeError, ValueError):
+            player_pqi = None
+
+    pos_group = str(player.get("pos_group", "")) if pd.notna(player.get("pos_group")) else ""
+    role_ref_pqi = role_mean_pqi_map.get(pos_group, 50.0)
+
+    g1, g2, g3 = st.columns([1, 1, 1], gap="medium")
+
+    with g1:
+        st.markdown(f'<div style="font-size:0.65rem;font-weight:600;color:{C_MUTED};text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.2rem">AWI — Awareness Index</div>', unsafe_allow_html=True)
+        awi_axis_max = float(broadcast_df["awi_per_minute"].max()) * 1.1
+        awi_fig = build_gauge_fig(
+            value=round(player_awi, 2),
+            reference=league_mean_awi,
+            label="scans / min",
+            color="#D20515",
+            axis_max=awi_axis_max,
+        )
+        st.plotly_chart(awi_fig, use_container_width=True)
+
+    with g2:
+        st.markdown(f'<div style="font-size:0.65rem;font-weight:600;color:{C_MUTED};text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.2rem">PQI — Press Quality Index</div>', unsafe_allow_html=True)
+        pqi_display = format_pqi_display(player_pqi)
+        if pqi_display == "n/a" or player_pqi is None:
+            pqi_fig = build_gauge_fig(value=0.0, reference=role_ref_pqi, label="n/a (no press frames)", color="#8A8A8A", axis_max=100.0)
+        else:
+            pqi_fig = build_gauge_fig(value=round(player_pqi, 1), reference=role_ref_pqi, label="0 — 100", color="#D20515", axis_max=100.0)
+        st.plotly_chart(pqi_fig, use_container_width=True)
+
+    with g3:
+        st.markdown(f'<div style="font-size:0.65rem;font-weight:600;color:{C_MUTED};text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.2rem">Performance Quadrant</div>', unsafe_allow_html=True)
+        quadrant = classify_quadrant(player_awi, player_pqi, awi_q75, pqi_q75)
+        badge_color = "#D20515" if quadrant == "ELITE" else ("#8A8A8A" if quadrant == "DEVELOPING" else C_SURFACE)
+        badge_text_color = C_TEXT if quadrant not in ("ELITE", "DEVELOPING") else "#FFFFFF"
+        st.markdown(
+            f'<div style="margin-top:2.5rem;text-align:center;">'
+            f'<div style="display:inline-block;padding:0.4rem 1.4rem;font-size:1.1rem;font-weight:700;'
+            f'letter-spacing:0.1em;border-radius:4px;background:{badge_color};color:{badge_text_color};'
+            f'border:1px solid {"#D20515" if quadrant == "ELITE" else C_BORDER}">'
+            f'{quadrant}</div>'
+            f'<div style="font-size:0.7rem;color:{C_MUTED};margin-top:0.5rem">'
+            f'AWI {player_awi:.2f} vs threshold {awi_q75:.2f}<br>'
+            f'PQI {pqi_display} vs threshold {pqi_q75:.1f}</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+    # Ticker bar
+    st.markdown(
+        f'<div style="background:#D20515;color:#FFFFFF;font-size:0.8rem;font-weight:600;'
+        f'padding:0.35rem 1rem;letter-spacing:0.08em;text-transform:uppercase;margin-top:0.5rem">'
+        f'DFL INSIGHT: {TICKER_MESSAGES[0]}</div>',
+        unsafe_allow_html=True,
     )
 
 
 # ── Tabs ──────────────────────────────────────────────────────────────────────
-tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
-    "Player Profile", "Match Overview", "Leaderboard", "⚡ Fan View", "🌍 Cross-Domain Benchmark",
-    "📊 Cross-Sport Context", "📡 Broadcast Demo",
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    "Player Profile", "Match Overview", "Leaderboard", "Fan View", "Broadcast Demo",
 ])
 
 with tab1:
@@ -1721,22 +1825,4 @@ with tab4:
     render_fan_view(fdf)
 
 with tab5:
-    render_benchmark(fdf)
-
-with tab6:
-    # ── Cross-Sport Context ───────────────────────────────────────────────────
-    st.markdown(
-        "AWI and PQI are direct anatomical measures computed from actual joint angles "
-        "and skeletal keypoints captured by the TRACAB TF15 system at 50 Hz. "
-        "The benchmarked alternatives (NBA Second Spectrum, NFL Next Gen Stats, "
-        "Cricket Hawk-Eye, and Industrial Motion Capture) use either proxy-based "
-        "approaches (inferring cognitive load from movement patterns) or apply the "
-        "same joint-angle signal to different domains (injury risk, ergonomic "
-        "assessment). This positions AWI and PQI as methodologically grounded in "
-        "established cross-sport and cross-industry practice."
-    )
-    _benchmark_df = generate_benchmark_summary()
-    st.dataframe(_benchmark_df, width="stretch", hide_index=True)
-
-with tab7:
     render_broadcast_demo_tab(fdf)
