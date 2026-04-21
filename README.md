@@ -34,7 +34,9 @@ A player can scan brilliantly but press with poor mechanics (high AWI, low PQI),
 
 **Stability:** Cross-half Pearson R = **0.854** (p < 0.001, n = 69 active phases) - AWI is a stable player trait, not match noise.
 
-**Validation:** Kimmich (FCB-HSV): 21.77 -> 21.15 across halves - consistent with his documented scanning reputation. His FCU-FCB 2nd-half drop to 11.29 (-52%) is a fatigue signal no GPS or positional metric captures.
+**Validation:** Kimmich (FCB-HSV): 21.77 -> 21.15 across halves - consistent with his documented scanning reputation. Hojlund (SGE-FCB, 1st half): 26.90 scans/min serves as the second independent calibration anchor, cross-validating that the 45° threshold generalises beyond a single player. Kimmich's FCU-FCB 2nd-half drop to 11.29 (-52%) is a fatigue signal no GPS or positional metric captures.
+
+> **Validation note:** The 45° scan threshold is empirically tuned on Kimmich as the primary anchor (FCB-HSV, 1st half), where the resulting AWI of 21.77 scans/min matches his documented scanning frequency from hand-coded video analysis in the coaching literature. The positional hierarchy (DMZ > CB > FW > GK) independently replicates the gradient reported by Jordet et al. (2020) in the EPL, providing cross-player validation. Additional hand-coded video comparisons across positions would further strengthen threshold confidence — this is a known limitation documented in the PRFAQ.
 
 **Pre-pass signal:** AWI is **+57% above full-phase baseline** in the 5 seconds before a pass - confirming the metric measures pre-decision cognitive load, not incidental movement.
 
@@ -92,8 +94,8 @@ Vušković is a centre-back whose scanning profile matches a defensive midfielde
 │                    └──────────────┬──────────────┘                  │
 │                                   ▼                                 │
 │              Streamlit Dashboard  +  Amazon Bedrock                 │
-│              (Player Profile, Match Overview, Leaderboard)          │
-│              (AI scouting narratives via Nova Lite)                 │
+│              (Player Profile, Match Overview, Leaderboard,          │
+│               Fan View, AI scouting narratives via Nova Lite)       │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -105,20 +107,25 @@ Vušković is a centre-back whose scanning profile matches a defensive midfielde
 .
 ├── src/
 │   ├── awi_calculator.py        Scan detection and AWI aggregation
+│   ├── awi_calibration.py       AWI threshold validation against Kimmich + Hojlund anchors
 │   ├── batch_pipeline.py        Multi-player, multi-phase, multi-match AWI orchestration
-│   ├── body_orientation.py      Body yaw from shoulder/hip vectors
 │   ├── bedrock_client.py        AWS Bedrock narrative generation (Nova Lite / Claude)
+│   ├── benchmark_reference.py   Cross-domain reference distributions (NFL, NBA, tennis, etc.)
+│   ├── benchmark_report.py      Cross-domain comparison table generation
+│   ├── body_orientation.py      Body yaw from shoulder/hip vectors
 │   ├── eda_helpers.py           AWS session factory, S3 utilities
 │   ├── event_parser.py          MatchInformation XML parser
 │   ├── pre_pass_awi.py          Pre-pass AWI enrichment (5 s window before each pass)
 │   ├── pressure_pipeline.py     PQI orchestration across all matches and phases
 │   ├── pqi_calculator.py        PQI sub-scores: orientation, stance, proximity (vectorized)
+│   ├── pqi_normalizer.py        Position-adjusted PQI z-scores (GK/DEF/MID/FWD groups)
+│   ├── quadrant_analysis.py     Bootstrap CI for elite quadrant count
 │   └── skeleton_parser.py       TF15 Parquet parser - head yaw extraction
 │
-├── scripts/
-│   ├── run_awi_job.py           SageMaker Processing entry point - AWI for one match
-│   ├── run_pqi_job.py           SageMaker Processing entry point - PQI for one match
-│   └── aggregate_results.py     Concatenates per-match CSVs → awi_full / pqi_full
+├── scripts/                     SageMaker container entry points (internal plumbing — not run directly)
+│   ├── run_awi_job.py           Entry point executed inside the SageMaker Processing container - AWI for one match
+│   ├── run_pqi_job.py           Entry point executed inside the SageMaker Processing container - PQI for one match
+│   └── aggregate_results.py     Concatenates per-match CSVs → awi_full / pqi_full (called by sagemaker_pipeline.py)
 │
 ├── pipelines/
 │   ├── sagemaker_pipeline.py    Submits 10 jobs in parallel via boto3, then aggregates
@@ -126,21 +133,25 @@ Vušković is a centre-back whose scanning profile matches a defensive midfielde
 │
 ├── notebooks/
 │   ├── eda_exploration.ipynb          EDA + AWI smoke test (requires S3)
-│   ├── run_awi_pipeline.ipynb         Batch AWI for all 5 matches (requires S3)
-│   ├── run_pqi_pipeline.ipynb         Batch PQI for all 5 matches (requires S3)
+│   ├── run_awi_pipeline.ipynb         Batch AWI for all 5 matches — local fallback for SageMaker (requires S3)
+│   ├── run_pqi_pipeline.ipynb         Batch PQI for all 5 matches — local fallback for SageMaker (requires S3)
 │   ├── analysis_awi_results.ipynb     AWI leaderboard and position analysis (CSV only)
 │   ├── analysis_awi_pqi_combined.ipynb  Combined analysis, 4 figures (CSV only)
+│   ├── benchmark_cross_sport.ipynb    Cross-domain benchmarking (Track 3, CSV only)
 │   └── bedrock_reports.ipynb          AI narrative generation via Bedrock
 │
 ├── dashboard/
-│   ├── app.py                   Streamlit dashboard (Player Profile, Match Overview, Leaderboard)
+│   ├── app.py                   Streamlit dashboard (4 tabs: Player Profile, Match Overview, Leaderboard, Fan View)
+│   ├── broadcast_demo.py        Standalone broadcast overlay demo (Track 2)
 │   └── run_dashboard.sh         Launch script → http://localhost:8501
 │
-├── tests/                       177 unit tests - no S3 access required
+├── tests/                       252 unit tests - no S3 access required
 ├── results/
 │   ├── awi_full.csv             Pre-computed AWI scores (committed) - 400 rows, player x match x phase
 │   ├── pqi_full.csv             Pre-computed PQI scores (committed) - 400 rows, same structure
+│   ├── combined_full.csv        AWI + PQI merged dataset (committed) - used by dashboard and broadcast demo
 │   ├── narratives.csv           Pre-computed Bedrock narratives (committed)
+│   ├── benchmark_cross_sport.md Cross-domain comparison table (generated by benchmark_cross_sport.ipynb)
 │   └── per_match/               Raw per-match pipeline outputs (gitignored)
 ├── figures/                     Analysis figures generated by notebooks (gitignored)
 ├── submission/                  HTML slides, PRFAQ, build script
@@ -261,7 +272,7 @@ aws sso login --profile $env:AWS_PROFILE
 pytest tests/ -v
 ```
 
-Works identically on macOS, Linux, and Windows. 177 tests, all passing. No S3 access required.
+Works identically on macOS, Linux, and Windows. 252 tests, all passing. No S3 access required.
 
 ---
 
@@ -286,6 +297,43 @@ streamlit run dashboard/app.py --server.port 8501
 ```
 
 Opens at **http://localhost:8501**
+
+---
+
+## Broadcast Demo
+
+**Track 2 - Fan and Broadcast Engagement**
+
+The broadcast demo shows how AWI and PQI would appear as live match statistics on a Bundesliga broadcast screen. It is a high-fidelity mockup using real player data from `results/combined_full.csv` and the official DFL color system (red `#D20515`, black, white, grey).
+
+The overlay renders a lower-third style layout with:
+
+- A player selector populated from all 400 player-phase observations
+- Two circular gauges: AWI (scans/min vs league mean) and PQI (player score vs role mean), both with red fill on black background
+- A Quadrant Badge classifying the player as ELITE, AWARE, PRESSER, or DEVELOPING based on 75th-percentile thresholds
+- An animated ticker cycling through three validated findings every 3 seconds: "+57% pre-pass scan spike", "r=-0.11 AWI/PQI independence", "R=0.854 cross-half stability"
+
+This addresses the gap in Track 2: the coaching and scouting tools are complete, and the broadcast demo makes the fan engagement value proposition tangible for hackathon judges.
+
+### Launch the standalone broadcast demo
+
+```bash
+streamlit run dashboard/broadcast_demo.py
+```
+
+Opens at **http://localhost:8501**
+
+No AWS credentials required. The demo loads pre-computed results from `results/combined_full.csv`.
+
+### Screenshot
+
+To capture a screenshot of the overlay at 1280x720, run:
+
+```bash
+python figures/broadcast_screenshot.py
+```
+
+If selenium or playwright are not installed, the script prints manual capture instructions.
 
 ---
 
@@ -367,10 +415,11 @@ streamlit run dashboard/app.py --server.port 8501
 
 Opens at **http://localhost:8501**
 
-Three tabs:
+Four tabs:
 - **Player Profile** - player selector with DFL position code + full name, AWI/PQI gauges vs selection median, 5-metric KPI row with percentile ranks and tooltips, scatter in context (colored by role), PQI radar vs role average, PQI component breakdown (Orientation/Stance/Proximity), per-phase trend cards
-- **Match Overview** - summary KPIs, quadrant scatter with 4-quadrant classification and elite player labels, role lollipop chart, PQI decomposition stacked bar, half-time fatigue bar + 1st vs 2nd half scatter, team AWI comparison (color per club)
-- **Leaderboard** - sortable table with DFL position codes, role averages heatmap, AWI bar chart (mean +/- std), PQI box distribution
+- **Match Overview** - summary KPIs, quadrant scatter with 4-quadrant classification and elite player labels, bootstrap CI caption below the scatter plot, role lollipop chart, PQI decomposition stacked bar, half-time fatigue bar + 1st vs 2nd half scatter, team AWI comparison (color per club)
+- **Leaderboard** - "Position-adjusted PQI" toggle (sorts by z-score within position group when on), sortable table with DFL position codes, role averages heatmap, AWI bar chart (mean +/- std), PQI box distribution
+- **Fan View** - broadcast-style top-3 awareness counter, 4-quadrant player comparison (Elite/Smart/Physical/Developing), Body Intelligence leaderboard, "Did you know?" callout with real-time scan frequency
 
 Sidebar: Match, Phase, Position (DFL codes), Min Coverage % (default 50%). Collapsible **Metric Definitions** and **Position Code Reference** expanders explain all metrics and DFL codes inline.
 

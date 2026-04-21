@@ -11,6 +11,9 @@ pandas>=2.2
 numpy>=1.26
 scipy>=1.13
 
+# ── S3 filesystem (used in eda_exploration.ipynb) ─────────────────────────────
+s3fs>=2024.2
+
 # ── XML (XXE-safe) ────────────────────────────────────────────────────────────
 defusedxml>=0.7
 

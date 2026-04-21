@@ -62,3 +62,8 @@ submission/*.pdf
 submission/*.mp4
 submission/*.zip
 submission/*.pptx
+
+# ── Internal working documents — not for public repo ─────────────────────────
+submission/SUBMISSION_CHECKLIST.md
+submission/VIDEO_NARRATION_SCRIPT.md
+results/README_results.md

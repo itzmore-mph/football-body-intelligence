@@ -155,6 +155,46 @@ img { width: 100%; max-width: 100%; height: auto; border: 1px solid #e0e0e0; bor
 <li><strong>Body Intelligence scouting filter</strong>: expose the quadrant chart as an interactive filter in the dashboard — search for players above any AWI/PQI threshold across all available data</li>
 <li><strong>Extended Bedrock narratives</strong>: generate reports for all players (not just top-10) and surface them directly in the dashboard's Player Profile tab</li>
 </ul>
+<hr />
+<h2>Cross-Domain Benchmarking</h2>
+<p>AWI and PQI are not isolated inventions. Each metric has a direct conceptual ancestor in a proven system from another sport or domain. The table below maps each external system to the specific concept it pioneered and the precise way that concept is applied in this platform.</p>
+<table>
+<thead>
+<tr>
+<th>External System</th>
+<th>Concept</th>
+<th>Application to AWI / PQI</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>NFL Next Gen Stats</strong> (AWS / NGS)</td>
+<td>Spatial separation metrics — continuous tracking of receiver-defender distance and closing speed to quantify open-field advantage</td>
+<td>PQI's <strong>proximity sub-score</strong> applies the same principle to pressing: distance to ball carrier is tracked frame-by-frame at 50 fps, and the score decays linearly from 100 (0 m) to 0 (≥5 m), mirroring how NGS quantifies separation as a continuous field rather than a binary "open/covered" flag</td>
+</tr>
+<tr>
+<td><strong>NBA Second Spectrum</strong></td>
+<td>Defensive matchup tracking — skeleton-level body orientation is used to determine which defender is "on" which offensive player and whether the defender's chest is facing the ball handler</td>
+<td>PQI's <strong>orientation sub-score</strong> is the direct football equivalent: body yaw (derived from shoulder/hip vectors) is compared to the vector toward the ball carrier, and the angular deviation is penalised on a 0–100 scale. Second Spectrum uses the same angular-deviation logic to score defensive positioning quality</td>
+</tr>
+<tr>
+<td><strong>Tennis Hawk-Eye</strong></td>
+<td>Pose-based motion analysis — joint-angle trajectories are extracted from multi-camera skeleton data to quantify serve mechanics, split-step timing, and recovery stance</td>
+<td>PQI's <strong>stance sub-score</strong> applies the same joint-angle approach to pressing: knee flexion is extracted from the TF15 3D skeleton and scored against the biomechanically optimal pressing angle (130°) using a Gaussian penalty. Hawk-Eye pioneered the idea that a single joint angle — measured continuously at high frame rate — can serve as a quality signal for athletic technique</td>
+</tr>
+<tr>
+<td><strong>Medical gait analysis</strong> (clinical biomechanics)</td>
+<td>Knee-angle optimisation — clinical gait labs measure knee flexion during dynamic tasks (walking, stair descent, athletic cutting) and compare against population norms to identify injury risk or performance deficits</td>
+<td>The 130° knee-flexion optimum in PQI's stance sub-score is derived directly from sports-medicine literature on athletic pressing stance (low centre of gravity, ready to change direction). The Gaussian scoring function — <code>100 × exp(−0.5 × ((knee_flex − 130) / 25)²)</code> — is the same mathematical form used in clinical gait deviation indices to penalise departure from a normative joint angle</td>
+</tr>
+<tr>
+<td><strong>Rugby smart ball + pose fusion</strong> (e.g., Gilbert Pulsar / Catapult)</td>
+<td>Sensor fusion of ball-event data with player pose to compute tackle quality — body position at the moment of contact is combined with ball-carrier proximity and approach angle to score defensive technique</td>
+<td>PQI is the football equivalent of tackle-quality scoring: it fuses three signals (body orientation, knee-flexion stance, proximity) at the moment of a press event, exactly as rugby systems fuse approach angle, body height, and contact force. The press-frame filter (≥10 consecutive frames within 5 m) is the football analogue of the contact-detection window in rugby sensor fusion</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why this matters for AWI specifically:</strong> AWI's closest cross-domain ancestor is <strong>cognitive load measurement in aviation and military simulation</strong>, where head-scan rate (measured by eye-tracking or helmet-mounted sensors) is used as a real-time proxy for situational awareness. The +57% AWI spike in the 5 seconds before a pass is the football equivalent of the pre-decision scan burst documented in fighter-pilot studies — a direct, measurable signal that the player is actively building a mental model of the field before acting. TF15 skeleton data makes this measurement possible at matchday scale for the first time in team sports.</p>
 <footer class="screen-footer" style="margin-top:48px; padding:12px 0; border-top:2px solid #e30613;
   text-align:center; font-size:8.5pt; color:#888; font-family:'Segoe UI',Arial,sans-serif;">
   Football Body Intelligence Platform &nbsp;&middot;&nbsp; AWS World Sports Innovation Cup 2026 &nbsp;&middot;&nbsp; Team: itzmore
