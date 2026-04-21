@@ -21,36 +21,25 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ── Theme detection ───────────────────────────────────────────────────────────
-_theme_base = st.get_option("theme.base") or "dark"
-IS_DARK = _theme_base != "light"
+# ── DFL Bundesliga Palette ────────────────────────────────────────────────────
+# Fixed dark theme matching the broadcast demo look and feel.
+DFL_RED         = "#D20515"   # Bundesliga brand red
 
-# ── Palette ───────────────────────────────────────────────────────────────────
 C_AWI    = "#38BDF8"
 C_PQI    = "#FB923C"
 C_GOLD   = "#FBBF24"
 C_GREEN  = "#34D399"
-C_RED    = "#F87171"
+C_RED    = "#F87171"   # soft red for negative/warning states
 C_PURPLE = "#A78BFA"
 
-if IS_DARK:
-    C_BG            = "#0A0E1A"
-    C_SURFACE       = "#111827"
-    C_BORDER        = "#1F2937"
-    C_MUTED         = "#6B7280"
-    C_TEXT          = "#F9FAFB"
-    THEME           = "plotly_dark"
-    LEGEND_BG       = "rgba(17,24,39,0.85)"
-    MARKER_OUTLINE  = "white"
-else:
-    C_BG            = "#F8FAFC"
-    C_SURFACE       = "#FFFFFF"
-    C_BORDER        = "#CBD5E1"
-    C_MUTED         = "#64748B"
-    C_TEXT          = "#0F172A"
-    THEME           = "plotly_white"
-    LEGEND_BG       = "rgba(255,255,255,0.92)"
-    MARKER_OUTLINE  = "#374151"
+C_BG            = "#000000"
+C_SURFACE       = "#0d0d0d"
+C_BORDER        = "#1f1f1f"
+C_MUTED         = "#8A8A8A"
+C_TEXT          = "#FFFFFF"
+THEME           = "plotly_dark"
+LEGEND_BG       = "rgba(13,13,13,0.92)"
+MARKER_OUTLINE  = "#333333"
 
 POS_COLORS: dict[str, str] = {
     "GK": "#94A3B8", "CB": "#38BDF8", "FB": "#818CF8",
@@ -119,159 +108,237 @@ ROLE_ORDER: list[str] = ["GK", "CB", "FB", "DM", "CM", "WM", "FW"]
 def _inject_css() -> None:
     st.markdown(f"""
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-  html, body, [class*="css"] {{ font-family: 'Inter', sans-serif; }}
+  /* ── Global DFL dark base ── */
+  html, body, [class*="css"] {{
+    font-family: 'Inter', sans-serif;
+    background-color: {C_BG} !important;
+    color: {C_TEXT};
+  }}
+
+  .main {{
+    background-color: {C_BG};
+  }}
 
   .main .block-container {{
-      max-width: 1280px;
-      padding: 0 2rem 3rem;
-      margin: 0 auto;
+    background-color: {C_BG};
+    max-width: 1280px;
+    padding: 0 2rem 3rem;
+    margin: 0 auto;
   }}
 
+  /* ── Sidebar ── */
   section[data-testid="stSidebar"] {{
-      border-right: 1px solid {C_BORDER};
+    background-color: {C_SURFACE} !important;
+    border-right: 1px solid {C_BORDER};
   }}
+  section[data-testid="stSidebar"] * {{ color: {C_TEXT}; }}
 
+  /* ── Tabs ── */
   div[data-testid="stTabs"] > div:first-child {{
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background-color: var(--background-color);
-      border-bottom: 1px solid {C_BORDER};
-      padding: 0.5rem 0 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: {C_BG};
+    border-bottom: 1px solid {C_BORDER};
+    padding: 0.5rem 0 0;
+  }}
+  div[data-testid="stTabs"] button {{
+    color: {C_MUTED} !important;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+  }}
+  div[data-testid="stTabs"] button:hover {{
+    color: {C_TEXT} !important;
+  }}
+  div[data-testid="stTabs"] button[aria-selected="true"] {{
+    color: {C_TEXT} !important;
+    font-weight: 700;
+    border-bottom: 2px solid {DFL_RED} !important;
   }}
   div[data-testid="stTabContent"] {{ padding-top: 1.5rem; }}
 
+  /* ── Charts ── */
   div[data-testid="stPlotlyChart"] .modebar {{ display: none !important; }}
+  div[data-testid="stPlotlyChart"] {{
+    background-color: transparent !important;
+  }}
 
+  /* ── KPI cards ── */
   .kpi {{
-      background: {C_SURFACE};
-      border: 1px solid {C_BORDER};
-      border-radius: 10px;
-      padding: 1rem 0.75rem 0.85rem;
-      text-align: center;
-      min-height: 96px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 2px;
+    background: {C_SURFACE};
+    border: 1px solid {C_BORDER};
+    border-top: 2px solid {DFL_RED};
+    border-radius: 8px;
+    padding: 1rem 0.75rem 0.85rem;
+    text-align: center;
+    min-height: 96px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
   }}
   .kpi-label {{
-      font-size: 0.6rem;
-      font-weight: 600;
-      color: {C_MUTED};
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
+    font-size: 0.6rem;
+    font-weight: 600;
+    color: {C_MUTED};
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
   }}
   .kpi-value {{
-      font-size: 1.8rem;
-      font-weight: 700;
-      line-height: 1.1;
-      color: {C_TEXT};
+    font-size: 1.8rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: {C_TEXT};
   }}
   .kpi-sub {{
-      font-size: 0.62rem;
-      color: {C_MUTED};
+    font-size: 0.62rem;
+    color: {C_MUTED};
   }}
 
+  /* ── Section headers ── */
   .sec {{
-      font-size: 0.6rem;
-      font-weight: 700;
-      color: {C_MUTED};
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      border-bottom: 1px solid {C_BORDER};
-      padding-bottom: 5px;
-      margin: 1.5rem 0 0.9rem;
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: {C_MUTED};
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    border-left: 3px solid {DFL_RED};
+    border-bottom: 1px solid {C_BORDER};
+    padding: 3px 0 5px 8px;
+    margin: 1.5rem 0 0.9rem;
   }}
 
+  /* ── Chart caption ── */
   .gcap {{
-      text-align: center;
-      font-size: 0.72rem;
-      color: {C_MUTED};
-      margin-top: -0.6rem;
-      padding-bottom: 0.4rem;
+    text-align: center;
+    font-size: 0.72rem;
+    color: {C_MUTED};
+    margin-top: -0.6rem;
+    padding-bottom: 0.4rem;
   }}
   .gcap b {{ color: {C_TEXT}; font-weight: 600; }}
 
   /* ── KPI tooltip ── */
   .kpi-info {{
-      position: relative;
-      display: inline-block;
-      cursor: help;
-      color: {C_MUTED};
-      font-size: 0.65rem;
-      margin-left: 3px;
-      vertical-align: middle;
+    position: relative;
+    display: inline-block;
+    cursor: help;
+    color: {C_MUTED};
+    font-size: 0.65rem;
+    margin-left: 3px;
+    vertical-align: middle;
   }}
   .kpi-info .kpi-tooltip {{
-      visibility: hidden;
-      opacity: 0;
-      width: 200px;
-      background: #1e2533;
-      color: {C_TEXT};
-      font-size: 0.7rem;
-      font-weight: 400;
-      text-transform: none;
-      letter-spacing: 0;
-      line-height: 1.5;
-      text-align: left;
-      border-radius: 6px;
-      border: 1px solid {C_BORDER};
-      padding: 7px 10px;
-      position: absolute;
-      z-index: 9999;
-      bottom: 130%;
-      left: 50%;
-      transform: translateX(-50%);
-      transition: opacity 0.15s ease;
-      pointer-events: none;
-      white-space: normal;
+    visibility: hidden;
+    opacity: 0;
+    width: 200px;
+    background: #1a1a1a;
+    color: {C_TEXT};
+    font-size: 0.7rem;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    line-height: 1.5;
+    text-align: left;
+    border-radius: 6px;
+    border: 1px solid {C_BORDER};
+    padding: 7px 10px;
+    position: absolute;
+    z-index: 9999;
+    bottom: 130%;
+    left: 50%;
+    transform: translateX(-50%);
+    transition: opacity 0.15s ease;
+    pointer-events: none;
+    white-space: normal;
   }}
   .kpi-info .kpi-tooltip::after {{
-      content: "";
-      position: absolute;
-      top: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      border: 5px solid transparent;
-      border-top-color: {C_BORDER};
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: {C_BORDER};
   }}
   .kpi-info:hover .kpi-tooltip {{
-      visibility: visible;
-      opacity: 1;
+    visibility: visible;
+    opacity: 1;
   }}
 
-  .ph-name {{ font-size: 1.65rem; font-weight: 700; color: {C_TEXT}; margin: 0; }}
+  /* ── Player header ── */
+  .ph-name {{ font-size: 1.65rem; font-weight: 800; color: {C_TEXT}; margin: 0; }}
   .ph-meta {{ font-size: 0.85rem; color: {C_MUTED}; margin-top: 2px; }}
 
+  /* ── Pills ── */
   .pill {{
-      display: inline-block;
-      background: {C_BORDER};
-      border-radius: 20px;
-      padding: 3px 10px;
-      font-size: 0.68rem;
-      color: {C_MUTED};
-      margin: 2px 3px;
+    display: inline-block;
+    background: {C_BORDER};
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 0.68rem;
+    color: {C_MUTED};
+    margin: 2px 3px;
   }}
-  .pill-hi {{ background: rgba(56,189,248,0.12); color: {C_AWI}; }}
-  .pill-pqi {{ background: rgba(251,146,60,0.12); color: {C_PQI}; }}
-  .pill-green {{ background: rgba(52,211,153,0.12); color: {C_GREEN}; }}
-  .pill-red {{ background: rgba(248,113,113,0.12); color: {C_RED}; }}
+  .pill-hi    {{ background: rgba(56,189,248,0.12);  color: {C_AWI};    }}
+  .pill-pqi   {{ background: rgba(251,146,60,0.12);  color: {C_PQI};   }}
+  .pill-green {{ background: rgba(52,211,153,0.12);  color: {C_GREEN};  }}
+  .pill-red   {{ background: rgba(210,5,21,0.15);    color: {DFL_RED};  }}
 
+  /* ── Narrative ── */
   .narrative-para {{
-      font-size: 0.83rem;
-      line-height: 1.75;
-      color: {C_TEXT};
-      margin-bottom: 0.75rem;
+    font-size: 0.83rem;
+    line-height: 1.75;
+    color: {C_TEXT};
+    margin-bottom: 0.75rem;
   }}
   .narrative-source {{
-      font-size: 0.65rem;
-      color: {C_MUTED};
-      margin-top: 0.5rem;
-      border-top: 1px solid {C_BORDER};
-      padding-top: 0.5rem;
+    font-size: 0.65rem;
+    color: {C_MUTED};
+    margin-top: 0.5rem;
+    border-top: 1px solid {C_BORDER};
+    padding-top: 0.5rem;
+  }}
+
+  /* ── Streamlit native widget overrides ── */
+  div[data-testid="stSelectbox"] label,
+  div[data-testid="stMultiSelect"] label,
+  div[data-testid="stSlider"] label {{
+    color: {C_MUTED} !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+  }}
+  div[data-baseweb="select"] > div,
+  div[data-baseweb="input"] > div {{
+    background-color: {C_SURFACE} !important;
+    border-color: {C_BORDER} !important;
+    color: {C_TEXT} !important;
+  }}
+  div[data-testid="stMetric"] {{
+    background: {C_SURFACE};
+    border: 1px solid {C_BORDER};
+    border-top: 2px solid {DFL_RED};
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+  }}
+  div[data-testid="stExpander"] {{
+    background: {C_SURFACE} !important;
+    border: 1px solid {C_BORDER} !important;
+    border-radius: 8px !important;
+  }}
+  div[data-testid="stDataFrame"] {{
+    background: {C_SURFACE} !important;
+    border: 1px solid {C_BORDER} !important;
+    border-radius: 8px !important;
+  }}
+  .stAlert {{
+    background: {C_SURFACE} !important;
+    border: 1px solid {C_BORDER} !important;
+    color: {C_TEXT} !important;
   }}
 </style>
 """, unsafe_allow_html=True)
@@ -417,10 +484,12 @@ narratives = load_narratives()
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown(f"<div style='font-size:1.05rem;font-weight:700;color:{C_TEXT}'>Football Body Intelligence</div>",
-                unsafe_allow_html=True)
-    st.markdown(f"<div style='font-size:0.72rem;color:{C_MUTED};margin-bottom:0.5rem'>"
-                f"AWI · PQI · Bundesliga Analysis</div>", unsafe_allow_html=True)
+    st.markdown(f"""
+<div style="border-left:3px solid {DFL_RED};padding:0.4rem 0 0.4rem 0.8rem;margin-bottom:0.75rem">
+  <div style="font-size:1.05rem;font-weight:800;color:{C_TEXT};letter-spacing:-0.01em">Football Body Intelligence</div>
+  <div style="font-size:0.68rem;color:{C_MUTED};margin-top:2px;letter-spacing:0.06em;text-transform:uppercase">AWI · PQI · Bundesliga 2025/26</div>
+</div>
+""", unsafe_allow_html=True)
     st.divider()
 
     st.markdown(f"<div style='font-size:0.65rem;font-weight:600;color:{C_MUTED};"
@@ -1824,7 +1893,7 @@ def render_broadcast_demo_tab(fdf: pd.DataFrame) -> None:
             color="#D20515",
             axis_max=awi_axis_max,
         )
-        st.plotly_chart(awi_fig, use_container_width=True)
+        st.plotly_chart(awi_fig, width='stretch')
 
     with g2:
         st.markdown(f'<div style="font-size:0.65rem;font-weight:600;color:{C_MUTED};text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.2rem">PQI — Press Quality Index</div>', unsafe_allow_html=True)
@@ -1833,7 +1902,7 @@ def render_broadcast_demo_tab(fdf: pd.DataFrame) -> None:
             pqi_fig = build_gauge_fig(value=0.0, reference=role_ref_pqi, label="n/a (no press frames)", color="#8A8A8A", axis_max=100.0)
         else:
             pqi_fig = build_gauge_fig(value=round(player_pqi, 1), reference=role_ref_pqi, label="0 — 100", color="#D20515", axis_max=100.0)
-        st.plotly_chart(pqi_fig, use_container_width=True)
+        st.plotly_chart(pqi_fig, width='stretch')
 
     with g3:
         st.markdown(f'<div style="font-size:0.65rem;font-weight:600;color:{C_MUTED};text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.2rem">Performance Quadrant</div>', unsafe_allow_html=True)
