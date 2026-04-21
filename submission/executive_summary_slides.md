@@ -109,30 +109,19 @@ Top performers: Oscar Höjlund (DMZ, 26.90 / 63.9), Joshua Kimmich (DMR, 21.77 /
 
 ---
 
-## Slide 5: Business Value, Cross-Domain Validation & What Comes Next
+## Slide 5: Business Value & What Comes Next
 
-### From 50 fps skeleton data to coaching decisions in plain English — validated across five domains
+### From 50 fps skeleton data to coaching decisions in plain English
 
-**Kimmich's fatigue signal:** His AWI drops from 23.38 (FCU-FCB 1st half) to 11.29 (FCU-FCB 2nd half) — a **52% decline** in cognitive engagement that no GPS metric, heat-map, or positional model would detect.
+**Kimmich's fatigue signal:** His AWI drops from 23.38 (FCU-FCB 1st half) to 11.29 (FCU-FCB 2nd half) - a **52% decline** in cognitive engagement that no GPS metric, heat-map, or positional model would detect.
 
-**For clubs — three immediate applications:**
+**For clubs - three immediate applications:**
 - **Scouting:** rank candidates by cognitive awareness (AWI) and pressing mechanics (PQI) independently
 - **Fatigue monitoring:** AWI half-time comparisons surface cognitive disengagement before it becomes a tactical problem
-- **Positional versatility:** players like Vušković whose scanning profiles cross position boundaries are flagged automatically
+- **Positional versatility:** players like Vuskovic whose scanning profiles cross position boundaries are flagged automatically
 
-**For broadcasters & fans:** Fan View tab with broadcast-style top-3 counter, quadrant classification, and Body Intelligence leaderboard. Live overlay: *"Höjlund scanned 27 times before that interception."*
+**For broadcasters & fans:** Fan View tab with broadcast-style top-3 counter, quadrant classification, and Body Intelligence leaderboard. Live overlay: *"Hojlund scanned 27 times before that interception."*
 
-**For the DFL:** First matchday-grade metrics derived solely from TF15 skeleton data — differentiates the 3D product from any 2D competitor.
+**For the DFL:** First matchday-grade metrics derived solely from TF15 skeleton data - differentiates the 3D product from any 2D competitor.
 
-**Cross-domain validation — every concept has a proven ancestor:**
-
-| External System | Maps to |
-|---|---|
-| **NFL Next Gen Stats** | PQI proximity sub-score (spatial separation) |
-| **NBA Second Spectrum** | PQI orientation sub-score (defensive matchup tracking) |
-| **Tennis Hawk-Eye** | PQI stance sub-score (joint-angle quality signal) |
-| **Medical gait analysis** | PQI stance Gaussian penalty (knee-angle norms) |
-| **Rugby pose fusion** (Catapult) | PQI composite (tackle-quality sensor fusion) |
-| **Aviation cognitive load** | AWI (head-scan rate as situational awareness proxy) |
-
-> *The +57% AWI spike before a pass is the football equivalent of the pre-decision scan burst in fighter-pilot studies. TF15 makes this measurement possible at matchday scale for the first time in team sports.*
+> *The +57% AWI spike before a pass confirms the metric captures the pre-decision cognitive window that coaches call "playing with your head up." TF15 makes this measurement possible at matchday scale for the first time in team sports.*
