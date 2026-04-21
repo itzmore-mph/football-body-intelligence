@@ -21,6 +21,13 @@ DFL_BLACK = "#000000"
 DFL_WHITE = "#FFFFFF"
 DFL_GREY  = "#8A8A8A"
 
+# Light-theme palette (mirrors app.py) used when embedded in the main dashboard
+LIGHT_BG      = "#F4F4F5"
+LIGHT_SURFACE = "#FFFFFF"
+LIGHT_BORDER  = "#E4E4E7"
+LIGHT_MUTED   = "#71717A"
+LIGHT_TEXT    = "#09090B"
+
 # ── Ticker Content ────────────────────────────────────────────────────────────
 TICKER_MESSAGES: list[str] = [
     "+57% pre-pass scan spike",
@@ -199,13 +206,57 @@ def format_pqi_display(pqi: float | None) -> str:
     return f"{val:.1f}"
 
 
+# ── Theme helpers ─────────────────────────────────────────────────────────────
+
+def _theme(dark: bool) -> dict[str, str]:
+    """Return a dict of color tokens for the requested theme.
+
+    Parameters
+    ----------
+    dark:
+        True for the standalone broadcast dark theme, False for the light
+        dashboard theme.
+
+    Returns
+    -------
+    dict[str, str]
+        Keys: bg, surface, text, muted, border, accent, plotly_template.
+    """
+    if dark:
+        return {
+            "bg": DFL_BLACK,
+            "surface": DFL_BLACK,
+            "text": DFL_WHITE,
+            "muted": DFL_GREY,
+            "border": "#333333",
+            "accent": DFL_RED,
+            "plotly_template": "plotly_dark",
+            "gauge_step_lo": "rgba(255,255,255,0.02)",
+            "gauge_step_mid": "rgba(255,255,255,0.04)",
+            "gauge_step_hi": "rgba(255,255,255,0.07)",
+        }
+    return {
+        "bg": LIGHT_BG,
+        "surface": LIGHT_SURFACE,
+        "text": LIGHT_TEXT,
+        "muted": LIGHT_MUTED,
+        "border": LIGHT_BORDER,
+        "accent": DFL_RED,
+        "plotly_template": "plotly_white",
+        "gauge_step_lo": "rgba(0,0,0,0.03)",
+        "gauge_step_mid": "rgba(0,0,0,0.05)",
+        "gauge_step_hi": "rgba(0,0,0,0.08)",
+    }
+
+
 # ── Rendering Functions ───────────────────────────────────────────────────────
 
 def inject_broadcast_css() -> str:
-    """Return CSS string for the broadcast overlay layout.
+    """Return CSS string for the standalone broadcast overlay layout.
 
     Enforces a 16:9 aspect ratio container, black background, DFL font sizing,
     and white text labels. Designed for a 1280x720 presentation viewport.
+    Only injected when running standalone (not embedded in the main dashboard).
 
     Returns
     -------
@@ -220,68 +271,6 @@ def inject_broadcast_css() -> str:
     font-family: 'Inter', sans-serif;
     background-color: {DFL_BLACK};
     color: {DFL_WHITE};
-  }}
-
-  .broadcast-container {{
-    background-color: {DFL_BLACK};
-    aspect-ratio: 16 / 9;
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 1rem;
-    color: {DFL_WHITE};
-  }}
-
-  .broadcast-player-bar {{
-    background-color: {DFL_BLACK};
-    border-left: 4px solid {DFL_RED};
-    padding: 0.5rem 1rem;
-    margin-bottom: 1rem;
-  }}
-
-  .broadcast-player-name {{
-    font-size: 1.6rem;
-    font-weight: 700;
-    color: {DFL_WHITE};
-    line-height: 1.2;
-  }}
-
-  .broadcast-player-pos {{
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: {DFL_GREY};
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-  }}
-
-  .broadcast-label {{
-    font-size: 0.65rem;
-    font-weight: 600;
-    color: {DFL_GREY};
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    margin-bottom: 0.2rem;
-  }}
-
-  .broadcast-badge {{
-    display: inline-block;
-    padding: 0.4rem 1.2rem;
-    font-size: 1.1rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    border-radius: 4px;
-    text-align: center;
-    color: {DFL_WHITE};
-  }}
-
-  .broadcast-ticker {{
-    background-color: {DFL_RED};
-    color: {DFL_WHITE};
-    font-size: 0.8rem;
-    font-weight: 600;
-    padding: 0.35rem 1rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin-top: 0.5rem;
   }}
 
   .main .block-container {{
@@ -305,12 +294,12 @@ def build_gauge_fig(
     label: str,
     color: str,
     axis_max: float,
+    dark: bool = True,
 ) -> go.Figure:
-    """Build a Plotly circular gauge figure with DFL broadcast styling.
+    """Build a Plotly circular gauge figure.
 
-    Matches the layout style of gauge_fig() in app.py: transparent backgrounds,
-    Inter font, and a threshold reference line. Uses the passed color for the
-    gauge bar fill.
+    Adapts colors to the active theme so the gauge is legible on both the
+    dark standalone page and the light main dashboard.
 
     Parameters
     ----------
@@ -324,34 +313,38 @@ def build_gauge_fig(
         Hex color string for the gauge bar fill (e.g. DFL_RED).
     axis_max:
         Maximum value for the gauge axis range.
+    dark:
+        True for dark broadcast theme, False for light dashboard theme.
 
     Returns
     -------
     go.Figure
         A Plotly Figure containing a styled go.Indicator gauge.
     """
+    t = _theme(dark)
+
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
         value=value,
-        title={"text": label, "font": {"size": 11, "color": DFL_GREY, "family": "Inter"}},
-        number={"font": {"size": 34, "color": DFL_WHITE, "family": "Inter"}, "valueformat": ".2f"},
+        title={"text": label, "font": {"size": 11, "color": t["muted"], "family": "Inter"}},
+        number={"font": {"size": 34, "color": t["text"], "family": "Inter"}, "valueformat": ".2f"},
         gauge={
             "axis": {
                 "range": [0, axis_max],
                 "tickwidth": 1,
-                "tickcolor": DFL_GREY,
-                "tickfont": {"size": 9, "color": DFL_GREY, "family": "Inter"},
+                "tickcolor": t["muted"],
+                "tickfont": {"size": 9, "color": t["muted"], "family": "Inter"},
             },
             "bar": {"color": color, "thickness": 0.32},
             "bgcolor": "rgba(0,0,0,0)",
             "borderwidth": 0,
             "steps": [
-                {"range": [0, axis_max * 0.33], "color": "rgba(255,255,255,0.02)"},
-                {"range": [axis_max * 0.33, axis_max * 0.66], "color": "rgba(255,255,255,0.04)"},
-                {"range": [axis_max * 0.66, axis_max], "color": "rgba(255,255,255,0.07)"},
+                {"range": [0, axis_max * 0.33], "color": t["gauge_step_lo"]},
+                {"range": [axis_max * 0.33, axis_max * 0.66], "color": t["gauge_step_mid"]},
+                {"range": [axis_max * 0.66, axis_max], "color": t["gauge_step_hi"]},
             ],
             "threshold": {
-                "line": {"color": DFL_GREY, "width": 2},
+                "line": {"color": t["muted"], "width": 2},
                 "thickness": 0.75,
                 "value": reference,
             },
@@ -360,11 +353,14 @@ def build_gauge_fig(
     fig.update_layout(
         height=240,
         margin=dict(t=50, b=10, l=20, r=20),
-        template="plotly_dark",
+        template=t["plotly_template"],
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(family="Inter", color=DFL_WHITE),
-        modebar_remove=["zoom", "pan", "select", "lasso", "zoomIn", "zoomOut", "autoScale", "resetScale", "toImage"],
+        font=dict(family="Inter", color=t["muted"]),
+        modebar_remove=[
+            "zoom", "pan", "select", "lasso",
+            "zoomIn", "zoomOut", "autoScale", "resetScale", "toImage",
+        ],
     )
     return fig
 
@@ -391,7 +387,10 @@ def ticker_loop(
     while True:
         msg = messages[idx % len(messages)]
         placeholder.markdown(
-            f'<div class="broadcast-ticker">DFL INSIGHT: {msg}</div>',
+            f'<div style="background-color:{DFL_RED};color:{DFL_WHITE};'
+            f'font-size:0.8rem;font-weight:600;padding:0.35rem 1rem;'
+            f'letter-spacing:0.08em;text-transform:uppercase;margin-top:0.5rem;'
+            f'border-radius:4px">DFL INSIGHT: {msg}</div>',
             unsafe_allow_html=True,
         )
         time.sleep(interval)
@@ -410,15 +409,21 @@ def render_broadcast_overlay(df: pd.DataFrame, standalone: bool = True) -> None:
         DataFrame from load_broadcast_data(). Must contain awi_per_minute,
         mean_pqi, pos_group, name, and position columns.
     standalone:
-        When True, runs the animated ticker_loop() (blocks the thread).
-        When False (integrated tab mode), renders only the first ticker
-        message statically to avoid blocking the main dashboard.
+        When True, injects dark-theme CSS and runs the animated ticker_loop()
+        (blocks the thread). When False (integrated tab mode), uses the light
+        theme and renders only the first ticker message statically to avoid
+        blocking the main dashboard.
     """
     if df.empty:
         st.warning("No broadcast data available.")
         return
 
-    st.markdown(inject_broadcast_css(), unsafe_allow_html=True)
+    dark = standalone
+    t = _theme(dark)
+
+    # Only inject the dark broadcast CSS when running standalone.
+    if standalone:
+        st.markdown(inject_broadcast_css(), unsafe_allow_html=True)
 
     # ── Player selector ───────────────────────────────────────────────────────
     player_names = sorted(df["name"].dropna().unique())
@@ -436,13 +441,26 @@ def render_broadcast_overlay(df: pd.DataFrame, standalone: bool = True) -> None:
 
     player = player_rows.iloc[0]
     position_code = str(player.get("position", "")) if pd.notna(player.get("position")) else "N/A"
+    pos_group = str(player.get("pos_group", "")) if pd.notna(player.get("pos_group")) else ""
 
     # ── Player name bar ───────────────────────────────────────────────────────
+    surface = t["surface"]
+    border = t["border"]
+    text_color = t["text"]
+    muted = t["muted"]
+
     st.markdown(
-        f'<div class="broadcast-player-bar">'
-        f'<div class="broadcast-player-name">{selected_name}</div>'
-        f'<div class="broadcast-player-pos">{position_code}</div>'
-        f'</div>',
+        f'<div style="background:{surface};border:1px solid {border};'
+        f'border-left:5px solid {DFL_RED};'
+        f'padding:0.8rem 1.2rem;margin-bottom:1.2rem;border-radius:0 10px 10px 0;'
+        f'box-shadow:0 1px 4px rgba(0,0,0,0.05)">'
+        f'<div style="font-size:1.5rem;font-weight:800;color:{text_color};'
+        f'line-height:1.2;letter-spacing:-0.02em">{selected_name}</div>'
+        f'<div style="font-size:0.75rem;font-weight:500;color:{muted};'
+        f'text-transform:uppercase;letter-spacing:0.12em;margin-top:0.2rem">'
+        f'{position_code}'
+        f'{" / " + pos_group if pos_group else ""}'
+        f'</div></div>',
         unsafe_allow_html=True,
     )
 
@@ -460,35 +478,56 @@ def render_broadcast_overlay(df: pd.DataFrame, standalone: bool = True) -> None:
         except (TypeError, ValueError):
             player_pqi = None
 
-    pos_group = str(player.get("pos_group", "")) if pd.notna(player.get("pos_group")) else ""
     role_ref_pqi = role_mean_pqi_map.get(pos_group, 50.0)
+    pqi_display = format_pqi_display(player_pqi)
+
+    # ── Section label helper ──────────────────────────────────────────────────
+    def _label(text: str) -> None:
+        st.markdown(
+            f'<div style="font-size:0.6rem;font-weight:700;color:{muted};'
+            f'text-transform:uppercase;letter-spacing:0.16em;margin-bottom:0.3rem">'
+            f'{text}</div>',
+            unsafe_allow_html=True,
+        )
 
     # ── Gauge columns ─────────────────────────────────────────────────────────
     g1, g2, g3 = st.columns([1, 1, 1], gap="medium")
 
+    awi_axis_max = max(float(df["awi_per_minute"].max()) * 1.1, 1.0)
+
     with g1:
-        st.markdown('<div class="broadcast-label">AWI - Awareness Index</div>', unsafe_allow_html=True)
-        awi_axis_max = float(df["awi_per_minute"].max()) * 1.1
+        _label("AWI - Awareness Index")
         awi_fig = build_gauge_fig(
             value=round(player_awi, 2),
             reference=league_mean_awi,
             label="scans / min",
             color=DFL_RED,
             axis_max=awi_axis_max,
+            dark=dark,
         )
-        st.plotly_chart(awi_fig, width='stretch')
+        st.plotly_chart(awi_fig, use_container_width=True)
+        # Caption below gauge
+        diff_awi = player_awi - league_mean_awi
+        sign_awi = "+" if diff_awi >= 0 else ""
+        diff_color = "#16A34A" if diff_awi >= 0 else "#DC2626"
+        st.markdown(
+            f'<div style="text-align:center;font-size:0.68rem;color:{muted};margin-top:-0.3rem">'
+            f'League avg <b style="color:{text_color}">{league_mean_awi:.2f}</b>'
+            f' &nbsp;/&nbsp; <span style="color:{diff_color}">{sign_awi}{diff_awi:.2f}</span>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
 
     with g2:
-        st.markdown('<div class="broadcast-label">PQI - Press Quality Index</div>', unsafe_allow_html=True)
-        pqi_display = format_pqi_display(player_pqi)
+        _label("PQI - Press Quality Index")
         if pqi_display == "n/a" or player_pqi is None:
-            # Show a placeholder gauge at 0 with "n/a" label when PQI is missing
             pqi_fig = build_gauge_fig(
                 value=0.0,
                 reference=role_ref_pqi,
                 label="n/a (no press frames)",
-                color=DFL_GREY,
+                color=muted,
                 axis_max=100.0,
+                dark=dark,
             )
         else:
             pqi_fig = build_gauge_fig(
@@ -497,61 +536,99 @@ def render_broadcast_overlay(df: pd.DataFrame, standalone: bool = True) -> None:
                 label="0 - 100",
                 color=DFL_RED,
                 axis_max=100.0,
+                dark=dark,
             )
-        st.plotly_chart(pqi_fig, width='stretch')
+        st.plotly_chart(pqi_fig, use_container_width=True)
+        # Caption below gauge
+        if player_pqi is not None:
+            diff_pqi = player_pqi - role_ref_pqi
+            sign_pqi = "+" if diff_pqi >= 0 else ""
+            diff_pqi_color = "#16A34A" if diff_pqi >= 0 else "#DC2626"
+            st.markdown(
+                f'<div style="text-align:center;font-size:0.68rem;color:{muted};margin-top:-0.3rem">'
+                f'Role avg <b style="color:{text_color}">{role_ref_pqi:.1f}</b>'
+                f' &nbsp;/&nbsp; <span style="color:{diff_pqi_color}">{sign_pqi}{diff_pqi:.1f}</span>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+        else:
+            st.markdown(
+                f'<div style="text-align:center;font-size:0.68rem;color:{muted};margin-top:-0.3rem">'
+                f'No press frames detected for this player</div>',
+                unsafe_allow_html=True,
+            )
 
     with g3:
         # ── Quadrant badge ────────────────────────────────────────────────────
-        st.markdown('<div class="broadcast-label">Performance Quadrant</div>', unsafe_allow_html=True)
+        _label("Performance Quadrant")
         quadrant = classify_quadrant(player_awi, player_pqi, awi_q75, pqi_q75)
 
         if quadrant == "ELITE":
-            badge_color = DFL_RED
+            badge_bg = DFL_RED
+            badge_fg = DFL_WHITE
         elif quadrant == "DEVELOPING":
-            badge_color = DFL_GREY
-        else:
-            badge_color = "#333333"
+            badge_bg = muted
+            badge_fg = DFL_WHITE
+        elif quadrant == "AWARE":
+            badge_bg = "#0284C7"
+            badge_fg = DFL_WHITE
+        else:  # PRESSER
+            badge_bg = "#EA580C"
+            badge_fg = DFL_WHITE
 
         st.markdown(
-            f'<div style="margin-top:2.5rem; text-align:center;">'
-            f'<div class="broadcast-badge" style="background-color:{badge_color};">'
-            f'{quadrant}'
-            f'</div>'
-            f'<div style="font-size:0.7rem;color:{DFL_GREY};margin-top:0.5rem;">'
-            f'AWI {player_awi:.2f} vs threshold {awi_q75:.2f}<br>'
-            f'PQI {pqi_display} vs threshold {pqi_q75:.1f}'
-            f'</div>'
-            f'</div>',
+            f'<div style="margin-top:2rem;text-align:center">'
+            f'<div style="display:inline-block;padding:0.5rem 1.6rem;font-size:1.1rem;'
+            f'font-weight:700;letter-spacing:0.1em;border-radius:6px;'
+            f'background:{badge_bg};color:{badge_fg};text-align:center">'
+            f'{quadrant}</div>'
+            f'<div style="font-size:0.68rem;color:{muted};margin-top:0.6rem;line-height:1.6">'
+            f'AWI {player_awi:.2f} vs Q75 {awi_q75:.2f}<br>'
+            f'PQI {pqi_display} vs Q75 {pqi_q75:.1f}'
+            f'</div></div>',
             unsafe_allow_html=True,
         )
 
     # ── Ticker ────────────────────────────────────────────────────────────────
-    st.markdown("<hr style='border-color:#222;margin:0.5rem 0'>", unsafe_allow_html=True)
+    st.markdown(
+        f"<hr style='border-color:{border};margin:0.8rem 0 0.5rem'>",
+        unsafe_allow_html=True,
+    )
 
     if standalone:
         ticker_loop(TICKER_MESSAGES, TICKER_INTERVAL_SECONDS)
     else:
-        # Static first message for integrated tab mode (avoids blocking the thread)
-        first_msg = TICKER_MESSAGES[0] if TICKER_MESSAGES else ""
+        # Show all ticker messages as a static strip
+        msgs_html = " &nbsp;&middot;&nbsp; ".join(TICKER_MESSAGES)
         st.markdown(
-            f'<div class="broadcast-ticker">DFL INSIGHT: {first_msg}</div>',
+            f'<div style="background:{DFL_RED};color:{DFL_WHITE};font-size:0.78rem;'
+            f'font-weight:600;padding:0.5rem 1.2rem;letter-spacing:0.06em;'
+            f'text-transform:uppercase;border-radius:6px">'
+            f'DFL INSIGHT &nbsp;&nbsp; {msgs_html}</div>',
             unsafe_allow_html=True,
         )
 
 
 # ── Standalone Entry Point ────────────────────────────────────────────────────
-# Streamlit executes the entire module on each run. We detect a live Streamlit
-# runtime by checking for the script run context, which is only present when
-# the module is executed via `streamlit run`, not during pytest import.
-def _is_streamlit_runtime() -> bool:
-    """Return True only when running inside a live Streamlit session."""
+# Only render when this file is the Streamlit entry point (i.e. the user ran
+# `streamlit run dashboard/broadcast_demo.py`).  When app.py imports us, the
+# __name__ is "dashboard.broadcast_demo", not "__main__", so this block is
+# skipped and no dark-theme CSS leaks into the main dashboard.
+def _is_standalone_entry() -> bool:
+    """Return True only when this module is the Streamlit entry point."""
     try:
         from streamlit.runtime.scriptrunner import get_script_run_ctx
-        return get_script_run_ctx() is not None
+        ctx = get_script_run_ctx()
+        if ctx is None:
+            return False
+        # Check if this file is the one Streamlit was told to run
+        import __main__
+        main_file = getattr(__main__, "__file__", "") or ""
+        return os.path.basename(main_file) == "broadcast_demo.py"
     except Exception:
         return False
 
 
-if _is_streamlit_runtime():
+if _is_standalone_entry():
     _broadcast_df = load_broadcast_data()
     render_broadcast_overlay(_broadcast_df, standalone=True)
