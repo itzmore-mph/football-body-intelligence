@@ -1199,23 +1199,56 @@ def render_leaderboard(fdf: pd.DataFrame) -> None:
 
 
 def render_fan_view(fdf: pd.DataFrame) -> None:
-    """Fan Engagement View — simple, broadcast-ready Body Intelligence display."""
+    """Fan Engagement View — Bundesliga broadcast-ready Body Intelligence display."""
+    _DFL_RED = "#D20515"
+
     if guard(fdf):
         return
 
-    st.markdown(
-        f'<div style="font-size:1.1rem;font-weight:700;color:{C_TEXT};margin-bottom:0.25rem">'
-        f'Body Intelligence — Fan View</div>'
-        f'<div style="font-size:0.78rem;color:{C_MUTED};margin-bottom:1.2rem">'
-        f'Live-style awareness &amp; pressing leaderboard · Bundesliga 2025/26</div>',
-        unsafe_allow_html=True,
-    )
+    # ── Page banner ───────────────────────────────────────────────────────────
+    st.markdown(f"""
+<div style="
+    border-left:4px solid {_DFL_RED};
+    padding:0.75rem 1.2rem;
+    margin-bottom:1.5rem;
+    background:{C_SURFACE};
+    border-radius:0 8px 8px 0;
+    display:flex;
+    align-items:center;
+    gap:1.2rem;
+">
+  <div style="flex:1">
+    <div style="font-size:1.5rem;font-weight:800;color:{C_TEXT};letter-spacing:-0.01em;line-height:1.1">BODY INTELLIGENCE</div>
+    <div style="font-size:0.78rem;color:{C_MUTED};margin-top:3px;letter-spacing:0.04em">Bundesliga &nbsp;·&nbsp; Awareness &amp; Pressing Analytics &nbsp;·&nbsp; 5 Matches &nbsp;·&nbsp; 2025/26</div>
+  </div>
+  <div style="background:{_DFL_RED};color:#fff;font-size:0.6rem;font-weight:700;letter-spacing:0.15em;padding:4px 10px;border-radius:3px;text-transform:uppercase;flex-shrink:0">LIVE VIEW</div>
+</div>
+""", unsafe_allow_html=True)
 
-    # ── Top-3 awareness counter (broadcast-style) ─────────────────────────────
+    # ── League-wide KPI row ───────────────────────────────────────────────────
+    n_players   = int(fdf["name"].nunique())
+    league_awi  = float(fdf[fdf["awi_per_minute"] > 0]["awi_per_minute"].mean())
+    awi_q75     = fdf["awi_per_minute"].quantile(0.75)
+    pqi_q75     = fdf["mean_pqi"].quantile(0.75)
+    n_elite     = int(fdf[(fdf["awi_per_minute"] >= awi_q75) & (fdf["mean_pqi"] >= pqi_q75)].shape[0])
+    top_pqi_val = float(fdf["mean_pqi"].max())
+
+    cols_kpi = st.columns(4, gap="small")
+    with cols_kpi[0]:
+        kpi("Players Tracked", str(n_players), "across 5 matches", C_TEXT)
+    with cols_kpi[1]:
+        kpi("League Avg AWI", f"{league_awi:.1f}", "scans / min", C_AWI)
+    with cols_kpi[2]:
+        kpi("Elite Players", str(n_elite), "top 25% AWI + PQI", _DFL_RED)
+    with cols_kpi[3]:
+        kpi("Peak PQI", f"{top_pqi_val:.1f}", "max pressing quality", C_PQI)
+    sp(0.75)
+
+    # ── Top-3 awareness counter ───────────────────────────────────────────────
     sec("TOP SCANNERS — AWARENESS COUNTER")
     st.markdown(
-        f'<div style="font-size:0.72rem;color:{C_MUTED};margin-bottom:0.75rem">'
-        f'Head-rotation events per minute · higher = more active scanning before decisions</div>',
+        f'<div style="font-size:0.72rem;color:{C_MUTED};margin-bottom:1rem">'
+        f'Head-rotation events per minute · higher = more active pre-decision scanning</div>',
         unsafe_allow_html=True,
     )
 
@@ -1224,54 +1257,76 @@ def render_fan_view(fdf: pd.DataFrame) -> None:
                .head(3)
                .reset_index(drop=True))
 
-    medals = ["1.", "2.", "3."]
+    rank_colors = [_DFL_RED, "#555555", "#3a3a3a"]
+    rank_labels = ["#1", "#2", "#3"]
+    awi_max = float(fdf["awi_per_minute"].max())
+
     cols_awi = st.columns(3, gap="medium")
     for i, (_, row) in enumerate(top_awi.iterrows()):
         with cols_awi[i]:
-            pos_group = row.get("pos_group", "—")
-            pos_color = POS_COLORS.get(pos_group, C_MUTED)
-            awi_val   = row["awi_per_minute"]
-            # Broadcast-style big number card
+            pos_group  = str(row.get("pos_group", "")) or "—"
+            pos_color  = POS_COLORS.get(pos_group, C_MUTED)
+            awi_val    = float(row["awi_per_minute"])
+            diff       = awi_val - league_awi
+            sign       = "+" if diff >= 0 else ""
+            bar_pct    = int((awi_val / awi_max) * 100)
+            lg_bar_pct = int((league_awi / awi_max) * 100)
+            diff_color = C_GREEN if diff >= 0 else C_MUTED
             st.markdown(f"""
 <div style="
     background:{C_SURFACE};
     border:1px solid {C_BORDER};
-    border-top: 3px solid {C_AWI};
-    border-radius:12px;
-    padding:1.2rem 1rem 1rem;
+    border-top:3px solid {rank_colors[i]};
+    border-radius:10px;
+    padding:1.2rem 1.1rem 1rem;
     text-align:center;
 ">
-  <div style="font-size:1.6rem;margin-bottom:0.1rem">{medals[i]}</div>
-  <div style="font-size:1.05rem;font-weight:700;color:{C_TEXT};line-height:1.2">{row['name']}</div>
-  <div style="font-size:0.7rem;color:{pos_color};font-weight:600;margin:3px 0 8px">{row['position']} · {row['match_id']}</div>
-  <div style="font-size:2.8rem;font-weight:800;color:{C_AWI};line-height:1">{awi_val:.1f}</div>
-  <div style="font-size:0.65rem;color:{C_MUTED};margin-top:4px">scans / min</div>
+  <div style="
+    display:inline-block;
+    background:{rank_colors[i]};
+    color:#fff;
+    font-size:0.62rem;
+    font-weight:700;
+    letter-spacing:0.12em;
+    padding:3px 10px;
+    border-radius:20px;
+    margin-bottom:0.7rem;
+  ">{rank_labels[i]}</div>
+  <div style="font-size:1.05rem;font-weight:700;color:{C_TEXT};line-height:1.2;margin-bottom:6px">{row['name']}</div>
+  <div style="display:flex;justify-content:center;gap:6px;margin-bottom:0.9rem;flex-wrap:wrap">
+    <span style="display:inline-block;background:{pos_color}22;color:{pos_color};font-size:0.62rem;font-weight:600;padding:2px 9px;border-radius:12px">{pos_group}</span>
+    <span style="display:inline-block;background:{C_BORDER};color:{C_MUTED};font-size:0.62rem;padding:2px 9px;border-radius:12px">{row['match_id']}</span>
+  </div>
+  <div style="font-size:3rem;font-weight:800;color:{rank_colors[i]};line-height:1">{awi_val:.1f}</div>
+  <div style="font-size:0.65rem;color:{C_MUTED};margin:4px 0 1rem;text-transform:uppercase;letter-spacing:0.1em">scans / min</div>
+  <div style="background:{C_BORDER};border-radius:4px;height:4px;margin:0 0 0.45rem;position:relative;overflow:visible">
+    <div style="background:{rank_colors[i]};border-radius:4px;height:100%;width:{bar_pct}%"></div>
+    <div style="position:absolute;top:-3px;left:{lg_bar_pct}%;width:2px;height:10px;background:{C_MUTED};border-radius:1px"></div>
+  </div>
+  <div style="font-size:0.65rem;color:{diff_color}">{sign}{diff:.1f} vs league avg</div>
 </div>
 """, unsafe_allow_html=True)
-    sp(1.0)
+    sp(1.2)
 
     # ── 4-quadrant fan comparison ─────────────────────────────────────────────
     sec("PLAYER COMPARISON — BODY INTELLIGENCE QUADRANT")
     st.markdown(
         f'<div style="font-size:0.72rem;color:{C_MUTED};margin-bottom:0.75rem">'
         f'Every player ranked by scanning awareness (AWI) vs pressing quality (PQI). '
-        f'Elite players are in the top-right. Tap any dot to see who it is.</div>',
+        f'Elite players are in the top-right. Hover any dot to see who it is.</div>',
         unsafe_allow_html=True,
     )
 
-    awi_q75 = fdf["awi_per_minute"].quantile(0.75)
-    pqi_q75 = fdf["mean_pqi"].quantile(0.75)
-
     fdf_fan = fdf.copy()
     fdf_fan["quadrant_label"] = fdf_fan.apply(lambda r: (
-        "ELITE"       if r["awi_per_minute"] >= awi_q75 and r["mean_pqi"] >= pqi_q75 else
-        "SMART"       if r["awi_per_minute"] >= awi_q75 else
-        "PHYSICAL"    if r["mean_pqi"] >= pqi_q75 else
+        "ELITE"      if r["awi_per_minute"] >= awi_q75 and r["mean_pqi"] >= pqi_q75 else
+        "SMART"      if r["awi_per_minute"] >= awi_q75 else
+        "PHYSICAL"   if r["mean_pqi"] >= pqi_q75 else
         "DEVELOPING"
     ), axis=1)
 
     fan_colors = {
-        "ELITE":      C_GREEN,
+        "ELITE":      _DFL_RED,
         "SMART":      C_AWI,
         "PHYSICAL":   C_PQI,
         "DEVELOPING": C_MUTED,
@@ -1291,11 +1346,10 @@ def render_fan_view(fdf: pd.DataFrame) -> None:
             "mean_pqi": "Pressing Quality (PQI)",
             "quadrant_label": "Type",
         },
-        opacity=0.8,
+        opacity=0.85,
     )
-    fig_fan.update_traces(marker_size=10)
+    fig_fan.update_traces(marker_size=10, marker_line_width=1, marker_line_color=MARKER_OUTLINE)
 
-    # Label elite players
     elite_fan = (fdf_fan[fdf_fan["quadrant_label"] == "ELITE"]
                  .drop_duplicates(subset="name")
                  .sort_values("awi_per_minute", ascending=False)
@@ -1305,7 +1359,7 @@ def render_fan_view(fdf: pd.DataFrame) -> None:
         y=elite_fan["mean_pqi"] + 0.8,
         mode="text",
         text=elite_fan["name"].apply(lambda n: n.split()[-1]),
-        textfont=dict(size=9, color=C_GREEN),
+        textfont=dict(size=9, color=_DFL_RED),
         showlegend=False, hoverinfo="skip",
     ))
 
@@ -1318,20 +1372,19 @@ def render_fan_view(fdf: pd.DataFrame) -> None:
                       annotation_font=dict(color=C_MUTED, size=10),
                       annotation_position="top right")
 
-    # Quadrant labels
     x_max = fdf_fan["awi_per_minute"].max()
     y_max = fdf_fan["mean_pqi"].max()
     x_min = fdf_fan["awi_per_minute"].min()
     y_min = fdf_fan["mean_pqi"].min()
 
     for txt, x, y, col in [
-        ("ELITE", x_max * 0.97, y_max * 0.99, C_GREEN),
-        ("SMART", x_max * 0.97, y_min + (pqi_q75 - y_min) * 0.15, C_AWI),
+        ("ELITE",    x_max * 0.97, y_max * 0.99,                    _DFL_RED),
+        ("SMART",    x_max * 0.97, y_min + (pqi_q75 - y_min) * 0.15, C_AWI),
         ("PHYSICAL", x_min + (awi_q75 - x_min) * 0.15, y_max * 0.99, C_PQI),
     ]:
         fig_fan.add_annotation(
             x=x, y=y, text=txt, showarrow=False,
-            font=dict(size=9, color=col), opacity=0.5,
+            font=dict(size=9, color=col), opacity=0.6,
             xanchor="right" if x > awi_q75 else "left",
             yanchor="top" if y > pqi_q75 else "bottom",
         )
@@ -1348,7 +1401,7 @@ def render_fan_view(fdf: pd.DataFrame) -> None:
     st.plotly_chart(fig_fan, width="stretch")
     sp(0.5)
 
-    # ── Awareness leaderboard (fan-friendly) ──────────────────────────────────
+    # ── Body Intelligence leaderboard ─────────────────────────────────────────
     sec("BODY INTELLIGENCE LEADERBOARD")
     st.markdown(
         f'<div style="font-size:0.72rem;color:{C_MUTED};margin-bottom:0.75rem">'
@@ -1368,51 +1421,53 @@ def render_fan_view(fdf: pd.DataFrame) -> None:
     lb.index += 1
 
     lb_display = lb[["name", "position", "match_id", "awi_per_minute", "mean_pqi", "bi_score"]].copy()
-    lb_display.columns = ["Player", "Position", "Match", "AWI (scans/min)", "PQI", "Body Intelligence Score"]
-    lb_display["AWI (scans/min)"] = lb_display["AWI (scans/min)"].round(2)
+    lb_display.columns = ["Player", "Pos", "Match", "AWI", "PQI", "Body Intelligence"]
+    lb_display["AWI"] = lb_display["AWI"].round(2)
     lb_display["PQI"] = lb_display["PQI"].round(1)
-    lb_display["Body Intelligence Score"] = lb_display["Body Intelligence Score"].round(1)
+    lb_display["Body Intelligence"] = lb_display["Body Intelligence"].round(1)
 
     st.dataframe(
         lb_display, width="stretch",
         height=min(45 + len(lb_display) * 35, 560),
         column_config={
-            "Player":                  st.column_config.TextColumn("Player"),
-            "Position":                st.column_config.TextColumn("Pos"),
-            "Match":                   st.column_config.TextColumn("Match"),
-            "AWI (scans/min)":         st.column_config.NumberColumn("AWI", format="%.2f",
-                                           help="Scanning awareness: head-rotation events per minute"),
-            "PQI":                     st.column_config.NumberColumn("PQI", format="%.1f",
-                                           help="Pressing quality: body mechanics score 0–100"),
-            "Body Intelligence Score": st.column_config.ProgressColumn(
-                                           "Body Intelligence",
-                                           format="%.1f",
-                                           min_value=0, max_value=100,
-                                           help="Combined percentile rank on AWI and PQI"),
+            "Player":           st.column_config.TextColumn("Player", width="medium"),
+            "Pos":              st.column_config.TextColumn("Pos", width="small"),
+            "Match":            st.column_config.TextColumn("Match", width="small"),
+            "AWI":              st.column_config.NumberColumn("AWI (scans/min)", format="%.2f",
+                                    help="Scanning awareness: head-rotation events per minute"),
+            "PQI":              st.column_config.NumberColumn("PQI", format="%.1f",
+                                    help="Pressing quality: body mechanics score 0–100"),
+            "Body Intelligence": st.column_config.ProgressColumn(
+                                    "Body Intelligence",
+                                    format="%.1f",
+                                    min_value=0, max_value=100,
+                                    help="Combined percentile rank on AWI and PQI"),
         },
     )
-    sp(0.5)
+    sp(0.75)
 
-    # ── Fun fact callout ──────────────────────────────────────────────────────
+    # ── DFL Insight ticker ────────────────────────────────────────────────────
     if not fdf.empty:
         top_player = fdf.loc[fdf["awi_per_minute"].idxmax()]
+        cadence = 60 / top_player["awi_per_minute"]
         st.markdown(f"""
 <div style="
-    background: rgba(56,189,248,0.07);
-    border: 1px solid rgba(56,189,248,0.25);
-    border-left: 4px solid {C_AWI};
-    border-radius: 8px;
-    padding: 0.9rem 1.1rem;
-    font-size: 0.82rem;
-    color: {C_TEXT};
-    line-height: 1.6;
+    background:{_DFL_RED};
+    color:#fff;
+    border-radius:6px;
+    padding:0.85rem 1.2rem;
+    display:flex;
+    align-items:baseline;
+    gap:0.75rem;
+    flex-wrap:wrap;
 ">
-  <span style="font-weight:700;color:{C_AWI}">Did you know?</span>
-  &nbsp;{top_player['name'].split()[-1]} scanned <strong>{top_player['awi_per_minute']:.0f} times per minute</strong>
-  during {top_player['match_id']} ({top_player['phase_label']}) — that's once every
-  <strong>{60/top_player['awi_per_minute']:.1f} seconds</strong>.
-  AWI spikes <strong>+57%</strong> in the 5 seconds before a player passes the ball.
-  That's what "playing with your head up" looks like in data.
+  <span style="font-size:0.6rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;opacity:0.8;flex-shrink:0">DFL INSIGHT</span>
+  <span style="font-size:0.82rem;font-weight:500;line-height:1.65">
+    {top_player['name'].split()[-1]} scanned <strong>{top_player['awi_per_minute']:.0f} times per minute</strong>
+    in {top_player['match_id']} ({top_player['phase_label']}), once every <strong>{cadence:.1f} seconds</strong>.
+    AWI spikes <strong>+57%</strong> in the 5 seconds before a pass.
+    That's what playing with your head up looks like in data.
+  </span>
 </div>
 """, unsafe_allow_html=True)
 

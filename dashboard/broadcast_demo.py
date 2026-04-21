@@ -476,7 +476,7 @@ def render_broadcast_overlay(df: pd.DataFrame, standalone: bool = True) -> None:
             color=DFL_RED,
             axis_max=awi_axis_max,
         )
-        st.plotly_chart(awi_fig, use_container_width=True)
+        st.plotly_chart(awi_fig, width='stretch')
 
     with g2:
         st.markdown('<div class="broadcast-label">PQI - Press Quality Index</div>', unsafe_allow_html=True)
@@ -498,7 +498,7 @@ def render_broadcast_overlay(df: pd.DataFrame, standalone: bool = True) -> None:
                 color=DFL_RED,
                 axis_max=100.0,
             )
-        st.plotly_chart(pqi_fig, use_container_width=True)
+        st.plotly_chart(pqi_fig, width='stretch')
 
     with g3:
         # ── Quadrant badge ────────────────────────────────────────────────────
