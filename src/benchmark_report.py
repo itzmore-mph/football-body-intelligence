@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import pandas as pd
 
-
 BENCHMARK_REFERENCES: dict[str, dict[str, str]] = {
     "nba_second_spectrum": {
         "system": "NBA Second Spectrum",

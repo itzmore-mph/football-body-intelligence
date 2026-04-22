@@ -1,10 +1,7 @@
 # tests/test_benchmark.py
-import math
-import numpy as np
 import pytest
 
 from src.benchmark_reference import (
-    REFERENCE_CATALOGUE,
     ReferenceDistribution,
     build_comparison_table,
     get_all_references,
@@ -12,6 +9,7 @@ from src.benchmark_reference import (
     percentile_in_reference,
     sample_reference_distribution,
 )
+from src.benchmark_report import BENCHMARK_REFERENCES, generate_benchmark_summary
 
 
 class TestGetAllReferences:
@@ -120,9 +118,6 @@ class TestBuildComparisonTable:
         rows = build_comparison_table(awi_value=24.0, pqi_value=None, orientation_value=None)
         assert all(r["metric_type"] == "AWI" for r in rows)
 
-
-from src.benchmark_report import BENCHMARK_REFERENCES, generate_benchmark_summary
-import pandas as pd
 
 
 class TestBenchmarkReferences:
