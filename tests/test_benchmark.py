@@ -119,3 +119,54 @@ class TestBuildComparisonTable:
     def test_none_values_excluded(self):
         rows = build_comparison_table(awi_value=24.0, pqi_value=None, orientation_value=None)
         assert all(r["metric_type"] == "AWI" for r in rows)
+
+
+from src.benchmark_report import BENCHMARK_REFERENCES, generate_benchmark_summary
+import pandas as pd
+
+
+class TestBenchmarkReferences:
+    def test_has_four_keys(self):
+        assert len(BENCHMARK_REFERENCES) == 4
+
+    def test_expected_keys_present(self):
+        expected = {
+            "nba_second_spectrum",
+            "nfl_next_gen_stats",
+            "cricket_hawk_eye",
+            "industrial_motion_capture",
+        }
+        assert set(BENCHMARK_REFERENCES.keys()) == expected
+
+    def test_each_entry_has_required_fields(self):
+        required = {"system", "sport", "metric_analog", "citation"}
+        for key, entry in BENCHMARK_REFERENCES.items():
+            missing = required - set(entry.keys())
+            assert not missing, f"{key} missing fields: {missing}"
+
+    def test_all_string_values_non_empty(self):
+        for key, entry in BENCHMARK_REFERENCES.items():
+            for field, value in entry.items():
+                assert isinstance(value, str) and len(value) > 0, (
+                    f"{key}.{field} is empty"
+                )
+
+
+class TestGenerateBenchmarkSummary:
+    def test_returns_six_rows(self):
+        df = generate_benchmark_summary()
+        assert len(df) == 6
+
+    def test_has_required_columns(self):
+        df = generate_benchmark_summary()
+        for col in ["System", "Sport", "Maps to", "Key distinction", "Citation"]:
+            assert col in df.columns
+
+    def test_no_null_values(self):
+        df = generate_benchmark_summary()
+        assert not df.isnull().any().any()
+
+    def test_all_values_non_empty_strings(self):
+        df = generate_benchmark_summary()
+        for col in df.columns:
+            assert (df[col].str.len() > 0).all(), f"Column {col} has empty strings"
