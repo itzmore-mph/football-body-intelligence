@@ -32,7 +32,7 @@ TF15 Parquet (S3, ~4 GB/match)
   → detect_scans()                    # 11-frame circular smooth → 25-frame delta → ≥45° leading edge
   → compute_awi()                     # scan_count / phase_minutes
   → pqi_calculator.py                 # orientation + stance + proximity, vectorized
-  → Streamlit dashboard               # 3 tabs: Player Profile, Match Overview, Leaderboard
+  → Streamlit dashboard               # 6 tabs: Player Profile, Match Overview, Leaderboard, Fan View, Broadcast Demo, Benchmark
   → Amazon Bedrock (Nova Lite)        # natural-language scouting narratives
 ```
 
@@ -106,6 +106,8 @@ Top performers: Oscar Höjlund (DMZ, 26.90 / 63.9), Joshua Kimmich (DMR, 21.77 /
 **Outlier worth noting:** Luka Vušković is a centre-back (IVZ) who scans at 18.33 scans/min - a rate that sits firmly in the elite defensive-midfielder range. The data flags his tactical versatility before any scout would.
 
 **PQI leaders among outfield players:** DMZ (62.9) and DMR (62.1) lead, confirming that defensive midfielders dominate both cognitive and physical pressing dimensions. Kimmich's proximity sub-score of 96.0 is the highest among all outfield players in the dataset.
+
+**Cross-domain validation:** AWI and PQI each map to a validated external reference system — no isolated inventions. AWI aligns with aviation cognitive load research (population: 24 scans/min, elite: 34); the +57% pre-pass spike places football players at the upper end of aviation pre-decision profiles. PQI sub-scores map to NBA Second Spectrum (orientation), Tennis Hawk-Eye biomechanics (130° stance optimum), and NFL Next Gen Stats (proximity). All six reference systems are parameterised from published statistics and visualised in the **Benchmark tab**.
 
 ---
 

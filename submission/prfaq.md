@@ -30,11 +30,14 @@ The interactive Streamlit dashboard (`dashboard/app.py`) loads the merged AWI + 
 
 *Figure 1: AWI vs PQI scatter plot for all player-phases across 5 Bundesliga matches, coloured by position. The near-zero correlation (r = −0.11) confirms that scanning awareness and pressing quality are independent skills - both metrics are needed to characterise a player fully. The elite quadrant (top-right) contains 10 unique players across 15 player-phases.*
 
-The dashboard provides three views:
+The dashboard provides six views:
 
 - **Player Profile** - AWI/PQI gauges vs selection median, 5-metric KPI row with percentile ranks and inline tooltips, scatter in context (colored by role group), PQI radar vs role average, PQI component breakdown (Orientation/Stance/Proximity with explanations), per-phase trend cards
 - **Match Overview** - summary KPIs, quadrant scatter with 4-quadrant classification and elite player labels, role lollipop chart, PQI decomposition stacked bar by role, half-time fatigue bar + 1st vs 2nd half AWI scatter, team AWI comparison (color per club)
 - **Leaderboard** - sortable table with DFL position codes, role averages heatmap, AWI bar chart (mean ± std per role), PQI box distribution by role
+- **Fan View** - broadcast-style top-3 awareness counter, 4-quadrant classification, Body Intelligence leaderboard, scan-frequency callout
+- **Broadcast Demo** - DFL-styled live overlay: player selector, AWI and PQI circular gauges, quadrant badge, DFL red ticker with validated findings
+- **Benchmark** - cross-domain validation: AWI vs aviation head-scan research, PQI sub-scores vs NBA Second Spectrum / Tennis Hawk-Eye / NFL Next Gen Stats, pre-decision scan burst comparison showing the +57% spike in football context against aviation reference data
 
 Sidebar: Match, Phase, Position (DFL codes), Min Coverage % (default 50%). Collapsible **Metric Definitions** expander explains AWI, PQI, and all three sub-scores. **Position Code Reference** expander maps all DFL codes to English names.
 
@@ -104,6 +107,21 @@ The positional hierarchy in our data matches the academic literature. Jordet et 
 | Pre-reception scanning, EPL (Jordet et al., 2020) | ~26 scans/min | Video-coded, last 10 s before receiving |
 
 Note: AWI measures continuous full-phase rate across ~50 minutes; video-based studies capture short pre-reception bursts. These are complementary, not interchangeable. The +57% pre-pass spike in our data bridges the two approaches.
+
+### How are AWI and PQI validated against external reference systems?
+
+AWI and PQI are not isolated inventions — each sub-score maps to a validated measurement tradition from another sport or high-stakes industry. Six external reference systems are parameterised in `src/benchmark_reference.py` from published summary statistics:
+
+| Our metric | Reference system | Domain | Key finding |
+|---|---|---|---|
+| AWI (scan rate) | Aviation HUD research (Wickens et al., 2015) | Aviation | Population mean 24 scans/min, elite 34 — football players in the pre-pass window (+57% spike) fall in the upper range of aviation cognitive load profiles |
+| PQI orientation sub-score | NBA Second Spectrum body-tracking | Basketball | Comparable 0–100 scoring; football defensive midfielders (54.7) align with NBA population baseline (62 ± 18) |
+| PQI stance sub-score | Tennis Hawk-Eye biomechanics (Landlinger et al., 2012) | Tennis | Optimal knee-flexion range (110–150°) independently validates the 130° PQI optimum |
+| PQI proximity sub-score | NFL Next Gen Stats proximity scoring | American Football | Positional gradient in proximity quality matches the pattern seen in our football pressing data |
+| PQI composite | Rugby Catapult/Pulsar (Gabbett et al., 2014) | Rugby | Pressing intensity composites structurally analogous to PQI, confirming 0–100 scaling and elite-threshold logic |
+| AWI (biomechanical) | Medical gait analysis IMU research | Biomechanics | Head-movement segmentation methodology underpins the leading-edge scan-event counting used in AWI |
+
+The Benchmark tab in the dashboard shows these comparisons visually — reference distributions, Bundesliga distributions, and percentile positions — using no runtime data fetches: all reference parameters are encoded from published statistics.
 
 ### How does this differ from existing cognitive metrics in football?
 

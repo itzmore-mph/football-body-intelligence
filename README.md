@@ -119,6 +119,8 @@ Vušković is a centre-back whose scanning profile matches a defensive midfielde
 │   ├── pqi_calculator.py        PQI sub-scores: orientation, stance, proximity (vectorized)
 │   ├── pqi_normalizer.py        Position-adjusted PQI z-scores (GK/DEF/MID/FWD groups)
 │   ├── quadrant_analysis.py     Bootstrap CI for elite quadrant count
+│   ├── benchmark_reference.py   Parameterised cross-domain reference distributions (6 systems, no network calls)
+│   ├── benchmark_report.py      Narrative entries (NBA/NFL/Cricket/Industrial) + generate_benchmark_summary()
 │   └── skeleton_parser.py       TF15 Parquet parser - head yaw extraction
 │
 ├── scripts/                     SageMaker container entry points (internal plumbing - not run directly)
@@ -140,11 +142,11 @@ Vušković is a centre-back whose scanning profile matches a defensive midfielde
 │   └── benchmark_cross_sport.ipynb    Cross-domain benchmarking: AWI/PQI vs other sports (CSV only, Track 3)
 │
 ├── dashboard/
-│   ├── app.py                   Streamlit dashboard (5 tabs: Player Profile, Match Overview, Leaderboard, Fan View, Broadcast Demo)
+│   ├── app.py                   Streamlit dashboard (6 tabs: Player Profile, Match Overview, Leaderboard, Fan View, Broadcast Demo, Benchmark)
 │   ├── broadcast_demo.py        Standalone broadcast overlay demo (Track 2, also embedded as Broadcast Demo tab)
 │   └── run_dashboard.sh         Launch script → http://localhost:8501
 │
-├── tests/                       212 unit tests - no S3 access required
+├── tests/                       239 unit tests - no S3 access required
 ├── results/
 │   ├── awi_full.csv             Pre-computed AWI scores (committed) - 400 rows, player x match x phase
 │   ├── pqi_full.csv             Pre-computed PQI scores (committed) - 400 rows, same structure
@@ -275,7 +277,7 @@ aws sso login --profile $env:AWS_PROFILE
 pytest tests/ -v
 ```
 
-Works identically on macOS, Linux, and Windows. 212 tests, all passing. No S3 access required.
+Works identically on macOS, Linux, and Windows. 239 tests, all passing. No S3 access required.
 
 ---
 
@@ -440,12 +442,13 @@ streamlit run dashboard/app.py --server.port 8501
 
 Opens at **http://localhost:8501**
 
-Five tabs:
+Six tabs:
 - **Player Profile** - player selector with DFL position code + full name, AWI/PQI gauges vs selection median, 5-metric KPI row with percentile ranks and tooltips, scatter in context (colored by role), PQI radar vs role average, PQI component breakdown (Orientation/Stance/Proximity), per-phase trend cards
 - **Match Overview** - summary KPIs, quadrant scatter with 4-quadrant classification and elite player labels, bootstrap CI caption below the scatter plot, role lollipop chart, PQI decomposition stacked bar, half-time fatigue bar + 1st vs 2nd half scatter, team AWI comparison (color per club)
 - **Leaderboard** - "Position-adjusted PQI" toggle (sorts by z-score within position group when on), sortable table with DFL position codes, role averages heatmap, AWI bar chart (mean +/- std), PQI box distribution
 - **Fan View** - broadcast-style top-3 awareness counter, 4-quadrant player comparison (Elite/Smart/Physical/Developing), Body Intelligence leaderboard, "Did you know?" callout with real-time scan frequency
 - **Broadcast Demo** - DFL-styled live overlay mockup: player selector, AWI and PQI circular gauges vs league/role mean, quadrant badge (ELITE/AWARE/PRESSER/DEVELOPING), DFL red ticker with validated findings
+- **Benchmark** - cross-domain validation: AWI vs aviation cognitive load research, PQI sub-scores vs NBA Second Spectrum / Tennis Hawk-Eye / NFL Next Gen Stats, pre-decision scan burst comparison (5-bar chart: aviation vs football)
 
 Sidebar: Match, Phase, Position (DFL codes), Min Coverage % (default 50%). Collapsible **Metric Definitions** and **Position Code Reference** expanders explain all metrics and DFL codes inline.
 
