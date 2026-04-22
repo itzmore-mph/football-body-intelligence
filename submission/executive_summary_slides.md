@@ -4,19 +4,19 @@ Team: itzmore
 
 ---
 
-## Slide 1: The Problem — What 3D Skeleton Data Unlocks
+## Slide 1: The Problem - What 3D Skeleton Data Unlocks
 
 ### Standard tracking tells you *where* players move. TF15 tells you *how* they move and *where they look*.
 
-The Bundesliga's TRACAB TF15 system captures 141 million data points per match — not just player positions, but the full 3D skeleton: every joint, every frame, at 50 fps. Yet today this data powers only automated event detection. The body intelligence it contains — *is this player scanning before receiving? are they pressing with correct biomechanics?* — goes unmeasured.
+The Bundesliga's TRACAB TF15 system captures 141 million data points per match - not just player positions, but the full 3D skeleton: every joint, every frame, at 50 fps. Yet today this data powers only automated event detection. The body intelligence it contains - *is this player scanning before receiving? are they pressing with correct biomechanics?* - goes unmeasured.
 
 We built two metrics that change that.
 
-**AWI (Awareness Index)** — cognitive scanning rate: discrete head-rotation events per minute, derived from 3D nose/neck/ear keypoints. Impossible with 2D tracking. Directly measures where a player is *looking*, not just where they are standing.
+**AWI (Awareness Index)** - cognitive scanning rate: discrete head-rotation events per minute, derived from 3D nose/neck/ear keypoints. Impossible with 2D tracking. Directly measures where a player is *looking*, not just where they are standing.
 
-**PQI (Pressure Quality Index)** — pressing mechanics score [0–100]: body orientation toward the ball carrier (40%), knee-flexion stance quality at the biomechanical optimum of 130° (30%), and proximity (30%). Computed only during genuine press frames — ≥10 consecutive frames within 5 m of the ball carrier.
+**PQI (Pressure Quality Index)** - pressing mechanics score [0–100]: body orientation toward the ball carrier (40%), knee-flexion stance quality at the biomechanical optimum of 130° (30%), and proximity (30%). Computed only during genuine press frames - ≥10 consecutive frames within 5 m of the ball carrier.
 
-> *Together, AWI and PQI form a complete Body Intelligence picture. A player can scan brilliantly but press with poor mechanics (high AWI, low PQI), or press perfectly without pre-scanning (low AWI, high PQI). Elite players score high on both — and the data shows exactly who they are.*
+> *Together, AWI and PQI form a complete Body Intelligence picture. A player can scan brilliantly but press with poor mechanics (high AWI, low PQI), or press perfectly without pre-scanning (low AWI, high PQI). Elite players score high on both - and the data shows exactly who they are.*
 
 ---
 
@@ -46,13 +46,13 @@ TF15 Parquet (S3, ~4 GB/match)
 | Press frame filter: ≥10 consecutive frames within 5 m | Excludes incidental proximity; captures genuine pressing intent |
 | SageMaker Processing (10 parallel jobs) | 5 matches × 2 metrics in ~15 min vs ~2 hrs local; zero cold-start overhead |
 
-**Scale:** 5 Bundesliga matches · ~40 players × 2 halves = **400 player-phase rows** · 252 unit tests · production-containerised pipeline (Docker → ECR)
+**Scale:** 5 Bundesliga matches · ~40 players × 2 halves = **400 player-phase rows** · 212 unit tests · production-containerised pipeline (Docker → ECR)
 
 ---
 
-## Slide 3: Results — AWI Leaderboard, Position Patterns & Pre-Pass Signal
+## Slide 3: Results - AWI Leaderboard, Position Patterns & Pre-Pass Signal
 
-### Defensive midfielders are the most cognitively active players on the pitch — and AWI spikes 57% before a pass
+### Defensive midfielders are the most cognitively active players on the pitch - and AWI spikes 57% before a pass
 
 **Top 10 by AWI (scans/min):**
 
@@ -73,37 +73,37 @@ TF15 Parquet (S3, ~4 GB/match)
 
 | Position | Avg AWI | Role |
 |----------|---------|------|
-| DMZ — Defensive Mid Centre | 15.6 | Highest — face the most opponents |
-| IVL/IVR — Centre-back | 10.6 / 5.2 | Wide role-dependent range |
-| STZ — Striker Centre | 6.2 | Lowest outfield |
-| TW — Goalkeeper | 3.5 | Ball-tracking dominant |
+| DMZ - Defensive Mid Centre | 15.6 | Highest - face the most opponents |
+| IVL/IVR - Centre-back | 10.6 / 5.2 | Wide role-dependent range |
+| STZ - Striker Centre | 6.2 | Lowest outfield |
+| TW - Goalkeeper | 3.5 | Ball-tracking dominant |
 
-**Stability:** Cross-half Pearson R = **0.854** (p < 0.001, n = 69 active player-phases): AWI is a stable player trait across the match. Kimmich: 21.77 (FCB-HSV 1st) → 21.15 (FCB-HSV 2nd) — a 0.6-scan variance across 47 minutes of football.
+**Stability:** Cross-half Pearson R = **0.854** (p < 0.001, n = 69 active player-phases): AWI is a stable player trait across the match. Kimmich: 21.77 (FCB-HSV 1st) → 21.15 (FCB-HSV 2nd) - a 0.6-scan variance across 47 minutes of football.
 
-**Pre-pass AWI is +57% above the full-phase baseline.** Players ramp their scanning rate in the 5 seconds before releasing the ball. AWI directly measures the pre-decision cognitive window — the moment coaches describe as "playing with your head up."
+**Pre-pass AWI is +57% above the full-phase baseline.** Players ramp their scanning rate in the 5 seconds before releasing the ball. AWI directly measures the pre-decision cognitive window - the moment coaches describe as "playing with your head up."
 
 ---
 
-## Slide 4: The Surprising Finding — AWI and PQI Are Independent
+## Slide 4: The Surprising Finding - AWI and PQI Are Independent
 
 ### Scanning awareness and pressing mechanics are distinct, orthogonal skills
 
-AWI vs PQI Pearson r = **−0.11** (p = 0.12, n = 198 matched rows). The two metrics are statistically independent — knowing a player's scan rate tells you almost nothing about their pressing mechanics, and vice versa.
+AWI vs PQI Pearson r = **−0.11** (p = 0.12, n = 198 matched rows). The two metrics are statistically independent - knowing a player's scan rate tells you almost nothing about their pressing mechanics, and vice versa.
 
-This is the most important analytical finding: **Body Intelligence has two orthogonal dimensions.** A single-metric model — tracking position, GPS load, or proximity alone — misses half the picture.
+This is the most important analytical finding: **Body Intelligence has two orthogonal dimensions.** A single-metric model - tracking position, GPS load, or proximity alone - misses half the picture.
 
 **The four quadrants:**
 
 | | High PQI (≥62.6) | Low PQI (<62.6) |
 |---|---|---|
-| **High AWI (≥14.7 scans/min)** | 🟢 **Elite** — scans AND presses well | 🟡 Cognitive strength, mechanical gap |
+| **High AWI (≥14.7 scans/min)** | 🟢 **Elite** - scans AND presses well | 🟡 Cognitive strength, mechanical gap |
 | **Low AWI (<14.7 scans/min)** | 🟡 Physical strength, awareness gap | 🔴 Development priority |
 
 **Elite quadrant (both above 75th percentile): 10 unique players, 15 player-phases**
 
 Top performers: Oscar Höjlund (DMZ, 26.90 / 63.9), Joshua Kimmich (DMR, 21.77 / 64.7), Aljoscha Kemlein (DMZ), Nicolai Remberg (DMR), Luka Vušković (IVZ)
 
-**Outlier worth noting:** Luka Vušković is a centre-back (IVZ) who scans at 18.33 scans/min — a rate that sits firmly in the elite defensive-midfielder range. The data flags his tactical versatility before any scout would.
+**Outlier worth noting:** Luka Vušković is a centre-back (IVZ) who scans at 18.33 scans/min - a rate that sits firmly in the elite defensive-midfielder range. The data flags his tactical versatility before any scout would.
 
 **PQI leaders among outfield players:** DMZ (62.9) and DMR (62.1) lead, confirming that defensive midfielders dominate both cognitive and physical pressing dimensions. Kimmich's proximity sub-score of 96.0 is the highest among all outfield players in the dataset.
 

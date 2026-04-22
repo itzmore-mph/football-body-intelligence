@@ -16,17 +16,17 @@ import plotly.graph_objects as go
 import streamlit as st
 
 # ── DFL Color System ──────────────────────────────────────────────────────────
-DFL_RED   = "#D20515"
+DFL_RED   = "#D10214"
 DFL_BLACK = "#000000"
 DFL_WHITE = "#FFFFFF"
 DFL_GREY  = "#8A8A8A"
 
 # Light-theme palette (mirrors app.py) used when embedded in the main dashboard
-LIGHT_BG      = "#F4F4F5"
-LIGHT_SURFACE = "#FFFFFF"
-LIGHT_BORDER  = "#E4E4E7"
-LIGHT_MUTED   = "#71717A"
-LIGHT_TEXT    = "#09090B"
+LIGHT_BG      = "#0B0F1A"
+LIGHT_SURFACE = "#111827"
+LIGHT_BORDER  = "#1E293B"
+LIGHT_MUTED   = "#94A3B8"
+LIGHT_TEXT    = "#F1F5F9"
 
 # ── Ticker Content ────────────────────────────────────────────────────────────
 TICKER_MESSAGES: list[str] = [
@@ -242,10 +242,10 @@ def _theme(dark: bool) -> dict[str, str]:
         "muted": LIGHT_MUTED,
         "border": LIGHT_BORDER,
         "accent": DFL_RED,
-        "plotly_template": "plotly_white",
-        "gauge_step_lo": "rgba(0,0,0,0.03)",
-        "gauge_step_mid": "rgba(0,0,0,0.05)",
-        "gauge_step_hi": "rgba(0,0,0,0.08)",
+        "plotly_template": "plotly_dark",
+        "gauge_step_lo": "rgba(255,255,255,0.02)",
+        "gauge_step_mid": "rgba(255,255,255,0.04)",
+        "gauge_step_hi": "rgba(255,255,255,0.07)",
     }
 
 
@@ -387,10 +387,13 @@ def ticker_loop(
     while True:
         msg = messages[idx % len(messages)]
         placeholder.markdown(
-            f'<div style="background-color:{DFL_RED};color:{DFL_WHITE};'
-            f'font-size:0.8rem;font-weight:600;padding:0.35rem 1rem;'
-            f'letter-spacing:0.08em;text-transform:uppercase;margin-top:0.5rem;'
-            f'border-radius:4px">DFL INSIGHT: {msg}</div>',
+            f'<div style="background-color:#1E293B;color:#94A3B8;'
+            f'border:1px solid #334155;border-left:3px solid {DFL_RED};'
+            f'font-size:0.78rem;font-weight:500;padding:0.5rem 1rem;'
+            f'letter-spacing:0.04em;margin-top:0.5rem;'
+            f'border-radius:6px"><span style="color:{DFL_RED};font-weight:700;'
+            f'font-size:0.6rem;letter-spacing:0.14em;text-transform:uppercase;'
+            f'margin-right:0.6rem">DFL INSIGHT</span>{msg}</div>',
             unsafe_allow_html=True,
         )
         time.sleep(interval)
@@ -505,7 +508,7 @@ def render_broadcast_overlay(df: pd.DataFrame, standalone: bool = True) -> None:
             axis_max=awi_axis_max,
             dark=dark,
         )
-        st.plotly_chart(awi_fig, use_container_width=True)
+        st.plotly_chart(awi_fig, width="stretch")
         # Caption below gauge
         diff_awi = player_awi - league_mean_awi
         sign_awi = "+" if diff_awi >= 0 else ""
@@ -538,7 +541,7 @@ def render_broadcast_overlay(df: pd.DataFrame, standalone: bool = True) -> None:
                 axis_max=100.0,
                 dark=dark,
             )
-        st.plotly_chart(pqi_fig, use_container_width=True)
+        st.plotly_chart(pqi_fig, width="stretch")
         # Caption below gauge
         if player_pqi is not None:
             diff_pqi = player_pqi - role_ref_pqi
@@ -601,10 +604,13 @@ def render_broadcast_overlay(df: pd.DataFrame, standalone: bool = True) -> None:
         # Show all ticker messages as a static strip
         msgs_html = " &nbsp;&middot;&nbsp; ".join(TICKER_MESSAGES)
         st.markdown(
-            f'<div style="background:{DFL_RED};color:{DFL_WHITE};font-size:0.78rem;'
-            f'font-weight:600;padding:0.5rem 1.2rem;letter-spacing:0.06em;'
-            f'text-transform:uppercase;border-radius:6px">'
-            f'DFL INSIGHT &nbsp;&nbsp; {msgs_html}</div>',
+            f'<div style="background:{LIGHT_SURFACE};color:{LIGHT_MUTED};'
+            f'border:1px solid #334155;border-left:3px solid {DFL_RED};'
+            f'font-size:0.75rem;font-weight:500;padding:0.55rem 1.2rem;'
+            f'letter-spacing:0.03em;border-radius:6px">'
+            f'<span style="color:{DFL_RED};font-weight:700;font-size:0.6rem;'
+            f'letter-spacing:0.14em;text-transform:uppercase;margin-right:0.75rem">'
+            f'DFL INSIGHT</span>{msgs_html}</div>',
             unsafe_allow_html=True,
         )
 

@@ -142,7 +142,7 @@ def test_ticker_messages_content():
 
 def test_dfl_colors():
     """DFL color constants match the official DFL color system hex values."""
-    assert DFL_RED == "#D20515"
+    assert DFL_RED == "#D10214"
     assert DFL_BLACK == "#000000"
     assert DFL_WHITE == "#FFFFFF"
     assert DFL_GREY == "#8A8A8A"

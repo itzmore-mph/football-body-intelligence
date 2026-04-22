@@ -1,5 +1,5 @@
 """
-Football Body Intelligence — Streamlit Dashboard
+Football Body Intelligence -- Streamlit Dashboard
 Bundesliga AWI + PQI Analytics Platform
 """
 import os
@@ -21,29 +21,30 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ── DFL Bundesliga Palette ────────────────────────────────────────────────────
-# Fixed dark theme matching the broadcast demo look and feel.
-DFL_RED         = "#D20515"   # Bundesliga brand red
+# -- DFL Bundesliga Palette ------------------------------------------------
+DFL_RED         = "#D10214"   # Official Bundesliga brand red
 
-C_AWI    = "#0284C7"   # sky-700 — vivid on white
-C_PQI    = "#EA580C"   # orange-600 — vivid on white
-C_GOLD   = "#D97706"   # amber-600
-C_GREEN  = "#16A34A"   # green-600
-C_RED    = "#DC2626"   # red-600
-C_PURPLE = "#7C3AED"   # violet-600
+C_AWI    = "#38BDF8"   # sky-400 -- pops on dark
+C_PQI    = "#FB923C"   # orange-400 -- warm on dark
+C_GOLD   = "#FBBF24"   # amber-400
+C_GREEN  = "#4ADE80"   # green-400
+C_RED    = "#F87171"   # red-400
+C_PURPLE = "#A78BFA"   # violet-400
 
-C_BG            = "#F4F4F5"
-C_SURFACE       = "#FFFFFF"
-C_BORDER        = "#E4E4E7"
-C_MUTED         = "#71717A"
-C_TEXT          = "#09090B"
-THEME           = "plotly_white"
-LEGEND_BG       = "rgba(255,255,255,0.95)"
-MARKER_OUTLINE  = "#D4D4D8"
+C_BG            = "#0B0F1A"   # deep navy-black
+C_SURFACE       = "#111827"   # slate-900
+C_SURFACE2      = "#1E293B"   # slate-800 -- elevated cards
+C_BORDER        = "#1E293B"   # subtle border
+C_BORDER_LT     = "#334155"   # lighter border for emphasis
+C_MUTED         = "#94A3B8"   # slate-400
+C_TEXT          = "#F1F5F9"   # slate-100
+THEME           = "plotly_dark"
+LEGEND_BG       = "rgba(17,24,39,0.92)"
+MARKER_OUTLINE  = "#334155"
 
 POS_COLORS: dict[str, str] = {
-    "GK": "#64748B", "CB": "#0284C7", "FB": "#6366F1",
-    "DM": "#EA580C", "CM": "#D97706", "WM": "#16A34A", "FW": "#DB2777",
+    "GK": "#94A3B8", "CB": "#38BDF8", "FB": "#818CF8",
+    "DM": "#FB923C", "CM": "#FBBF24", "WM": "#4ADE80", "FW": "#F472B6",
 }
 
 POS_MAP: dict[str, str] = {
@@ -79,7 +80,7 @@ POS_FULL_MAP: dict[str, str] = {
 PQI_COMPONENTS: dict[str, tuple[str, str]] = {
     "orientation_mean": (
         "Body Orientation",
-        "How directly the player faces the ball carrier. 100 = square-on, 0 = facing 90° away. Weight: 40% of PQI.",
+        "How directly the player faces the ball carrier. 100 = square-on, 0 = facing 90 degrees away. Weight: 40% of PQI.",
     ),
     "stance_mean": (
         "Stance Quality",
@@ -104,13 +105,13 @@ POS_REF: dict[str, list[tuple[str, str]]] = {
 ROLE_ORDER: list[str] = ["GK", "CB", "FB", "DM", "CM", "WM", "FW"]
 
 
-# ── CSS ───────────────────────────────────────────────────────────────────────
+# -- CSS -------------------------------------------------------------------
 def _inject_css() -> None:
     st.markdown(f"""
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
-  /* ── Base ── */
+  /* -- Base -- */
   html, body {{
     font-family: 'Inter', sans-serif !important;
     background-color: {C_BG} !important;
@@ -118,74 +119,80 @@ def _inject_css() -> None:
     -webkit-font-smoothing: antialiased;
   }}
 
-  /* ── Streamlit root containers ── */
   [data-testid="stApp"],
   [data-testid="stAppViewContainer"],
   .appview-container, .stApp {{
     background-color: {C_BG} !important;
   }}
 
-  /* ── Streamlit top bar ── */
+  /* -- Streamlit top bar -- */
   [data-testid="stHeader"] {{
-    background-color: {C_SURFACE} !important;
-    border-bottom: 1px solid {C_BORDER};
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    background-color: {C_BG} !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+    pointer-events: none;
+  }}
+  [data-testid="stHeader"] [data-testid="stToolbar"],
+  [data-testid="stHeader"] [data-testid="stStatusWidget"],
+  [data-testid="stHeader"] button,
+  [data-testid="stHeader"] a {{
+    pointer-events: auto;
   }}
 
-  /* ── Main content ── */
+  /* -- Main content -- */
   [data-testid="stMainBlockContainer"],
   .main .block-container {{
     background-color: {C_BG} !important;
-    max-width: 1360px;
+    max-width: 1400px;
     padding-left: 2rem !important;
     padding-right: 2rem !important;
+    padding-top: 2.5rem !important;
     padding-bottom: 3rem !important;
     margin: 0 auto;
   }}
 
-  /* ── Sidebar ── */
+  /* -- Sidebar -- */
   section[data-testid="stSidebar"] {{
     background-color: {C_SURFACE} !important;
-    border-right: 1px solid {C_BORDER};
+    border-right: 1px solid {C_BORDER_LT};
+    width: 280px !important;
   }}
   section[data-testid="stSidebar"] * {{ color: {C_TEXT}; }}
 
-  /* ════════════════════════════════════════════════
-     TAB NAV
-     Streamlit 1.44+ nests the tablist inside wrapper
-     divs. We use descendant selectors (not >) so the
-     rules match regardless of nesting depth.
-     ════════════════════════════════════════════════ */
-
-  /* Tab bar container (the actual row of buttons) */
-  div[data-testid="stTabs"] [role="tablist"] {{
-    background-color: {C_SURFACE};
-    border-bottom: 2px solid {C_BORDER};
-    padding: 0 0.25rem;
-    gap: 0;
+  /* ============================
+     TAB NAV - Bundesliga style
+     ============================ */
+  div[data-testid="stTabs"] {{
+    margin-top: 0.25rem;
   }}
 
-  /* Individual tab buttons */
+  div[data-testid="stTabs"] [role="tablist"] {{
+    background: {C_SURFACE};
+    border: 1px solid {C_BORDER_LT};
+    border-top: 3px solid {DFL_RED};
+    border-bottom: none;
+    padding: 0 0.75rem;
+    gap: 2px;
+    border-radius: 0;
+  }}
+
   div[data-testid="stTabs"] [role="tab"] {{
     color: {C_MUTED} !important;
     background: transparent !important;
-    padding: 0.7rem 1.2rem !important;
+    padding: 0.9rem 1.5rem !important;
     font-family: 'Inter', sans-serif !important;
-    font-size: 0.72rem !important;
+    font-size: 0.74rem !important;
     font-weight: 600 !important;
-    letter-spacing: 0.08em !important;
+    letter-spacing: 0.06em !important;
     text-transform: uppercase !important;
     white-space: nowrap !important;
     border-radius: 0 !important;
-    border-top: none !important;
-    border-left: none !important;
-    border-right: none !important;
+    border: none !important;
     border-bottom: 3px solid transparent !important;
-    margin-bottom: -2px;
-    transition: color 0.15s ease, border-color 0.15s ease;
+    margin-bottom: 0;
+    transition: all 0.2s ease;
   }}
 
-  /* Cascade color into nested <p>, <span>, <div> Streamlit injects */
   div[data-testid="stTabs"] [role="tab"] * {{
     color: inherit !important;
     font-size: inherit !important;
@@ -194,120 +201,134 @@ def _inject_css() -> None:
     text-transform: inherit !important;
   }}
 
-  /* Hover */
   div[data-testid="stTabs"] [role="tab"]:hover {{
     color: {C_TEXT} !important;
-    border-bottom-color: {C_MUTED} !important;
+    background: rgba(209,2,20,0.06) !important;
+    border-bottom-color: rgba(209,2,20,0.35) !important;
   }}
   div[data-testid="stTabs"] [role="tab"]:hover * {{
     color: {C_TEXT} !important;
   }}
 
-  /* Active / selected tab */
   div[data-testid="stTabs"] [role="tab"][aria-selected="true"] {{
-    color: {C_TEXT} !important;
+    color: #FFFFFF !important;
     font-weight: 700 !important;
     border-bottom: 3px solid {DFL_RED} !important;
+    background: rgba(209,2,20,0.12) !important;
   }}
   div[data-testid="stTabs"] [role="tab"][aria-selected="true"] * {{
-    color: {C_TEXT} !important;
+    color: #FFFFFF !important;
     font-weight: 700 !important;
   }}
 
-  /* Tab content area */
   div[data-testid="stTabContent"] {{ padding-top: 1.5rem; }}
 
-  /* ── Charts — frameless, clean ── */
+  /* -- Charts -- */
   div[data-testid="stPlotlyChart"] .modebar {{ display: none !important; }}
   div[data-testid="stPlotlyChart"],
   div[data-testid="stPlotlyChart"] > div {{ background-color: transparent !important; }}
 
-  /* ── KPI cards ── */
+  /* -- KPI cards (stadium scoreboard style) -- */
   .kpi {{
-    background: {C_SURFACE};
+    background: {C_SURFACE2};
     border: 1px solid {C_BORDER};
-    border-top: 4px solid {DFL_RED};
+    border-top: 2px solid {DFL_RED};
     border-radius: 10px;
-    padding: 1.1rem 1rem 1rem;
+    padding: 1.1rem 0.9rem 0.9rem;
     text-align: center;
     min-height: 108px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     gap: 4px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    transition: box-shadow 0.25s ease, transform 0.2s ease, border-color 0.2s ease;
+    position: relative;
+  }}
+  .kpi:hover {{
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    transform: translateY(-2px);
+    border-color: {C_BORDER_LT};
+    border-top-color: {DFL_RED};
   }}
   .kpi-label {{
-    font-size: 0.57rem;
+    font-size: 0.6rem;
     font-weight: 700;
     color: {C_MUTED};
     text-transform: uppercase;
-    letter-spacing: 0.16em;
+    letter-spacing: 0.12em;
   }}
   .kpi-value {{
-    font-size: 2.1rem;
-    font-weight: 900;
-    line-height: 1;
+    font-size: 1.85rem;
+    font-weight: 800;
+    line-height: 1.1;
     color: {C_TEXT};
-    letter-spacing: -0.03em;
+    letter-spacing: -0.02em;
   }}
   .kpi-sub {{
-    font-size: 0.63rem;
+    font-size: 0.62rem;
     color: {C_MUTED};
-    margin-top: 2px;
+    margin-top: 3px;
+    letter-spacing: 0.01em;
   }}
 
-  /* ── Section headers ── */
+  /* -- Section headers (red accent bar) -- */
   .sec {{
-    font-size: 0.6rem;
-    font-weight: 800;
+    font-size: 0.65rem;
+    font-weight: 700;
     color: {C_TEXT};
     text-transform: uppercase;
-    letter-spacing: 0.2em;
-    border-left: 4px solid {DFL_RED};
-    padding: 1px 0 1px 10px;
-    margin: 2rem 0 1.1rem;
+    letter-spacing: 0.16em;
+    border-left: 3px solid {DFL_RED};
+    padding: 3px 0 3px 10px;
+    margin: 2rem 0 1rem;
   }}
 
-  /* ── Player identity card ── */
+  /* -- Player identity card -- */
   .ph-card {{
-    background: {C_SURFACE};
+    background: {C_SURFACE2};
     border: 1px solid {C_BORDER};
     border-left: 5px solid {DFL_RED};
     border-radius: 0 12px 12px 0;
-    padding: 1.25rem 1.5rem;
+    padding: 1.2rem 1.5rem;
     margin-bottom: 1.5rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    transition: box-shadow 0.2s ease;
+  }}
+  .ph-card:hover {{
+    box-shadow: 0 6px 24px rgba(0,0,0,0.35);
   }}
   .ph-name {{
-    font-size: 2rem;
-    font-weight: 900;
+    font-size: 1.75rem;
+    font-weight: 800;
     color: {C_TEXT};
-    letter-spacing: -0.04em;
-    line-height: 1;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
     margin: 0;
   }}
   .ph-meta {{
     font-size: 0.78rem;
     color: {C_MUTED};
-    margin-top: 0.35rem;
+    margin-top: 0.3rem;
     font-weight: 400;
+    letter-spacing: 0.01em;
   }}
 
-  /* ── Chart caption ── */
+  /* -- Chart caption -- */
   .gcap {{
     text-align: center;
-    font-size: 0.7rem;
+    font-size: 0.72rem;
     color: {C_MUTED};
-    margin-top: -0.4rem;
+    margin-top: -0.3rem;
     padding-bottom: 0.5rem;
+    letter-spacing: 0.01em;
   }}
-  .gcap b {{ color: {C_TEXT}; font-weight: 700; }}
+  .gcap b {{ color: {C_TEXT}; font-weight: 600; }}
 
-  /* ── KPI tooltip ── */
+  /* -- KPI tooltip -- */
   .kpi-info {{
     position: relative;
     display: inline-block;
@@ -320,9 +341,9 @@ def _inject_css() -> None:
   .kpi-info .kpi-tooltip {{
     visibility: hidden;
     opacity: 0;
-    width: 210px;
-    background: #1c1c1c;
-    color: #FFFFFF;
+    width: 220px;
+    background: {C_SURFACE};
+    color: {C_TEXT};
     font-size: 0.7rem;
     font-weight: 400;
     text-transform: none;
@@ -330,17 +351,17 @@ def _inject_css() -> None:
     line-height: 1.55;
     text-align: left;
     border-radius: 8px;
-    border: 1px solid #333;
-    padding: 8px 12px;
+    border: 1px solid {C_BORDER_LT};
+    padding: 10px 14px;
     position: absolute;
     z-index: 9999;
     bottom: 130%;
     left: 50%;
     transform: translateX(-50%);
-    transition: opacity 0.15s ease;
+    transition: opacity 0.2s ease;
     pointer-events: none;
     white-space: normal;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
   }}
   .kpi-info .kpi-tooltip::after {{
     content: "";
@@ -349,14 +370,14 @@ def _inject_css() -> None:
     left: 50%;
     transform: translateX(-50%);
     border: 5px solid transparent;
-    border-top-color: #333;
+    border-top-color: {C_BORDER_LT};
   }}
   .kpi-info:hover .kpi-tooltip {{ visibility: visible; opacity: 1; }}
 
-  /* ── Pills ── */
+  /* -- Pills -- */
   .pill {{
     display: inline-block;
-    background: {C_BG};
+    background: {C_SURFACE2};
     border: 1px solid {C_BORDER};
     border-radius: 20px;
     padding: 3px 10px;
@@ -365,68 +386,133 @@ def _inject_css() -> None:
     color: {C_MUTED};
     margin: 2px 3px;
   }}
-  .pill-hi    {{ background: rgba(56,189,248,0.08);   border-color: rgba(56,189,248,0.25);  color: #0284C7; }}
-  .pill-pqi   {{ background: rgba(234,88,12,0.08);    border-color: rgba(234,88,12,0.25);   color: #EA580C; }}
-  .pill-green {{ background: rgba(22,163,74,0.08);    border-color: rgba(22,163,74,0.25);   color: #16A34A; }}
-  .pill-red   {{ background: rgba(210,5,21,0.06);     border-color: rgba(210,5,21,0.2);     color: {DFL_RED}; }}
+  .pill-hi    {{ background: rgba(56,189,248,0.12);   border-color: rgba(56,189,248,0.3);  color: {C_AWI}; }}
+  .pill-pqi   {{ background: rgba(251,146,60,0.12);   border-color: rgba(251,146,60,0.3);  color: {C_PQI}; }}
+  .pill-green {{ background: rgba(74,222,128,0.12);   border-color: rgba(74,222,128,0.3);  color: {C_GREEN}; }}
+  .pill-red   {{ background: rgba(209,2,20,0.1);      border-color: rgba(209,2,20,0.25);   color: {DFL_RED}; }}
 
-  /* ── Narrative ── */
-  .narrative-para {{ font-size: 0.84rem; line-height: 1.8; color: {C_TEXT}; margin-bottom: 0.75rem; }}
+  /* -- Narrative -- */
+  .narrative-para {{ font-size: 0.82rem; line-height: 1.75; color: {C_TEXT}; margin-bottom: 0.7rem; letter-spacing: 0.01em; }}
   .narrative-source {{
-    font-size: 0.65rem; color: {C_MUTED}; margin-top: 0.5rem;
+    font-size: 0.68rem; color: {C_MUTED}; margin-top: 0.5rem;
     border-top: 1px solid {C_BORDER}; padding-top: 0.5rem;
   }}
 
-  /* ── Widget label overrides ── */
+  /* -- Widget label overrides -- */
   div[data-testid="stSelectbox"] label,
   div[data-testid="stMultiSelect"] label,
   div[data-testid="stSlider"] label {{
     color: {C_MUTED} !important;
-    font-size: 0.68rem !important;
-    font-weight: 700 !important;
+    font-size: 0.7rem !important;
+    font-weight: 600 !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.1em !important;
+    letter-spacing: 0.08em !important;
   }}
   div[data-baseweb="select"] > div,
   div[data-baseweb="input"] > div {{
-    background-color: {C_BG} !important;
+    background-color: {C_SURFACE2} !important;
     border-color: {C_BORDER} !important;
     color: {C_TEXT} !important;
     border-radius: 8px !important;
   }}
   div[data-testid="stMetric"] {{
-    background: {C_SURFACE};
+    background: {C_SURFACE2};
     border: 1px solid {C_BORDER};
-    border-top: 3px solid {DFL_RED};
+    border-top: 2px solid {DFL_RED};
     border-radius: 10px;
     padding: 0.85rem 1rem;
-    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
   }}
   div[data-testid="stExpander"] {{
-    background: {C_SURFACE} !important;
+    background: {C_SURFACE2} !important;
     border: 1px solid {C_BORDER} !important;
     border-radius: 10px !important;
   }}
   div[data-testid="stDataFrame"] {{
-    background: {C_SURFACE} !important;
+    background: {C_SURFACE2} !important;
     border: 1px solid {C_BORDER} !important;
     border-radius: 10px !important;
   }}
   .stAlert {{
-    background: {C_SURFACE} !important;
+    background: {C_SURFACE2} !important;
     border: 1px solid {C_BORDER} !important;
     color: {C_TEXT} !important;
     border-radius: 10px !important;
   }}
 
-  /* ── Dividers ── */
   hr, .stDivider {{ border-color: {C_BORDER} !important; opacity: 1 !important; }}
 
-  /* ── Scrollbar ── */
   ::-webkit-scrollbar {{ width: 5px; height: 5px; }}
   ::-webkit-scrollbar-track {{ background: {C_BG}; }}
-  ::-webkit-scrollbar-thumb {{ background: {C_BORDER}; border-radius: 3px; }}
+  ::-webkit-scrollbar-thumb {{ background: {C_BORDER_LT}; border-radius: 3px; }}
   ::-webkit-scrollbar-thumb:hover {{ background: {C_MUTED}; }}
+
+  /* -- Stat card -- */
+  .stat-card {{
+    background: {C_SURFACE2};
+    border: 1px solid {C_BORDER};
+    border-radius: 10px;
+    padding: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    transition: box-shadow 0.25s ease, transform 0.2s ease, border-color 0.2s ease;
+  }}
+  .stat-card:hover {{
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    transform: translateY(-2px);
+    border-color: {C_BORDER_LT};
+  }}
+
+  .rank-badge {{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #fff;
+    flex-shrink: 0;
+  }}
+
+  /* -- Context bar -- */
+  .context-bar {{
+    background: {C_SURFACE2};
+    border: 1px solid {C_BORDER};
+    border-radius: 10px;
+    padding: 0.6rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.72rem;
+    color: {C_MUTED};
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  }}
+  .context-bar .ctx-label {{
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.6rem;
+    color: {C_MUTED};
+  }}
+  .context-bar .ctx-value {{
+    font-weight: 600;
+    color: {C_TEXT};
+  }}
+  .context-bar .ctx-sep {{
+    color: {C_BORDER_LT};
+  }}
+
+  div[data-testid="stToggle"] label span {{
+    font-size: 0.72rem !important;
+    font-weight: 600 !important;
+    color: {C_MUTED} !important;
+  }}
+
+  .stCaption, [data-testid="stCaptionContainer"] {{
+    color: {C_MUTED} !important;
+  }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -434,7 +520,7 @@ def _inject_css() -> None:
 _inject_css()
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# -- Helpers ---------------------------------------------------------------
 def safe_float(val: object, default: float = 0.0) -> float:
     try:
         return float(val or default)
@@ -444,8 +530,8 @@ def safe_float(val: object, default: float = 0.0) -> float:
 
 def kpi(label: str, value: str, sub: str = "", color: str | None = None, help: str | None = None, border: str | None = None) -> None:
     col = color or C_TEXT
-    bt  = f"border-top:4px solid {border};" if border else ""
-    info = (f' <span class="kpi-info">ℹ<span class="kpi-tooltip">{help}</span></span>'
+    bt  = f"border-top-color:{border};" if border else ""
+    info = (f' <span class="kpi-info">\u2139<span class="kpi-tooltip">{help}</span></span>'
             if help else "")
     st.markdown(
         f'<div class="kpi" style="{bt}">'
@@ -468,8 +554,8 @@ def tip(r: pd.Series) -> str:
     pos = r.get("position", "-") or "-"
     return (
         f"<b>{r['name']}</b> &nbsp;#{int(r['jersey'])}<br>"
-        f"<span style='color:{C_MUTED}'>{pos} · {r['match_id']} · {r['phase_label']}</span><br>"
-        f"AWI <b>{r['awi_per_minute']:.2f}</b> scans/min &nbsp;·&nbsp; PQI <b>{pqi}</b>"
+        f"<span style='color:{C_MUTED}'>{pos} / {r['match_id']} / {r['phase_label']}</span><br>"
+        f"AWI <b>{r['awi_per_minute']:.2f}</b> scans/min &nbsp;|&nbsp; PQI <b>{pqi}</b>"
     )
 
 
@@ -503,9 +589,9 @@ def gauge_fig(value: float, title: str, color: str, axis_max: float, median: flo
             "bgcolor": "rgba(0,0,0,0)",
             "borderwidth": 0,
             "steps": [
-                {"range": [0, axis_max * 0.33], "color": "rgba(0,0,0,0.03)"},
-                {"range": [axis_max * 0.33, axis_max * 0.66], "color": "rgba(0,0,0,0.05)"},
-                {"range": [axis_max * 0.66, axis_max], "color": "rgba(0,0,0,0.08)"},
+                {"range": [0, axis_max * 0.33], "color": "rgba(255,255,255,0.02)"},
+                {"range": [axis_max * 0.33, axis_max * 0.66], "color": "rgba(255,255,255,0.04)"},
+                {"range": [axis_max * 0.66, axis_max], "color": "rgba(255,255,255,0.07)"},
             ],
             "threshold": {"line": {"color": C_MUTED, "width": 2},
                           "thickness": 0.75, "value": median},
@@ -523,8 +609,8 @@ def gauge_cap(value: float, median: float, unit: str) -> None:
     sign = "+" if diff >= 0 else ""
     col  = C_GREEN if diff >= 0 else C_RED
     st.markdown(
-        f'<div class="gcap"><b>{value:.2f}</b> {unit} &nbsp;·&nbsp; '
-        f'median <b>{median:.2f}</b> &nbsp;·&nbsp; '
+        f'<div class="gcap"><b>{value:.2f}</b> {unit} &nbsp;|&nbsp; '
+        f'median <b>{median:.2f}</b> &nbsp;|&nbsp; '
         f'<span style="color:{col}">{sign}{diff:.2f}</span></div>',
         unsafe_allow_html=True)
 
@@ -541,7 +627,19 @@ def chart_layout(fig: go.Figure, h: int = 360, t: int = 20, b: int = 45, l: int 
     return fig
 
 
-# ── Data ──────────────────────────────────────────────────────────────────────
+def context_bar(items: list[tuple[str, str]]) -> None:
+    """Render a horizontal context bar showing active filter state."""
+    parts = []
+    for label, value in items:
+        parts.append(
+            f'<span class="ctx-label">{label}</span> '
+            f'<span class="ctx-value">{value}</span>'
+        )
+    html = ' <span class="ctx-sep">|</span> '.join(parts)
+    st.markdown(f'<div class="context-bar">{html}</div>', unsafe_allow_html=True)
+
+
+# -- Data ------------------------------------------------------------------
 @st.cache_data
 def load_data() -> pd.DataFrame:
     for p in ("results/awi_full.csv", "results/pqi_full.csv"):
@@ -559,6 +657,21 @@ def load_data() -> pd.DataFrame:
     df["pos_group"] = df["position"].map(POS_MAP)
     df["team_name"] = df.apply(
         lambda r: TEAM_NAMES.get((r["match_id"], r["team"]), str(r["team"])), axis=1)
+    # Position-adjusted PQI: z-score within coarse position group (GK/DEF/MID/FWD)
+    _POS_ADJ_MAP = {
+        "TW": "GK",
+        "IVL": "DEF", "IVR": "DEF", "IVZ": "DEF",
+        "LA": "DEF", "RA": "DEF", "LV": "DEF", "RV": "DEF",
+        "DML": "MID", "DMR": "MID", "DMZ": "MID", "DLM": "MID", "DRM": "MID",
+        "ZO": "MID", "RM": "MID",
+        "OHL": "MID", "OHR": "MID", "OLM": "MID", "ORM": "MID",
+        "HL": "MID", "HR": "MID",
+        "STL": "FWD", "STR": "FWD", "STZ": "FWD",
+    }
+    adj_group = df["position"].map(_POS_ADJ_MAP)
+    grp_mean = df["mean_pqi"].groupby(adj_group).transform("mean")
+    grp_std = df["mean_pqi"].groupby(adj_group).transform("std")
+    df["pqi_position_adjusted"] = (df["mean_pqi"] - grp_mean) / grp_std
     return df
 
 
@@ -573,18 +686,32 @@ def load_narratives() -> pd.DataFrame:
 df = load_data()
 narratives = load_narratives()
 
-# ── Sidebar ───────────────────────────────────────────────────────────────────
+# -- Sidebar ---------------------------------------------------------------
 with st.sidebar:
     st.markdown(f"""
-<div style="border-left:3px solid {DFL_RED};padding:0.4rem 0 0.4rem 0.8rem;margin-bottom:0.75rem">
-  <div style="font-size:1.05rem;font-weight:800;color:{C_TEXT};letter-spacing:-0.01em">Football Body Intelligence</div>
-  <div style="font-size:0.68rem;color:{C_MUTED};margin-top:2px;letter-spacing:0.06em;text-transform:uppercase">AWI · PQI · Bundesliga 2025/26</div>
+<div style="border-left:3px solid {DFL_RED};padding:0.5rem 0 0.5rem 0.8rem;margin-bottom:0.5rem">
+  <div style="font-size:1.1rem;font-weight:900;color:{C_TEXT};letter-spacing:-0.02em;line-height:1.15">Football Body<br>Intelligence</div>
+  <div style="font-size:0.62rem;color:{C_MUTED};margin-top:4px;letter-spacing:0.08em;text-transform:uppercase">Bundesliga 2025/26</div>
 </div>
 """, unsafe_allow_html=True)
-    st.divider()
 
-    st.markdown(f"<div style='font-size:0.65rem;font-weight:600;color:{C_MUTED};"
-                f"text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.4rem'>"
+    # Active dataset summary
+    n_matches = df["match_id"].nunique()
+    n_players = df["name"].nunique()
+    st.markdown(
+        f'<div style="background:{C_SURFACE2};border:1px solid {C_BORDER_LT};border-radius:8px;'
+        f'padding:0.5rem 0.7rem;margin:0.5rem 0 0.75rem;font-size:0.65rem;color:{C_MUTED}">'
+        f'<span style="color:{C_TEXT};font-weight:700">{n_matches}</span> matches '
+        f'<span style="color:{C_BORDER_LT}">|</span> '
+        f'<span style="color:{C_TEXT};font-weight:700">{n_players}</span> players '
+        f'<span style="color:{C_BORDER_LT}">|</span> '
+        f'<span style="color:{C_TEXT};font-weight:700">400</span> observations'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(f"<div style='font-size:0.6rem;font-weight:700;color:{C_MUTED};"
+                f"text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.3rem'>"
                 f"Filters</div>", unsafe_allow_html=True)
 
     sel_match = st.selectbox("Match", ["All"] + sorted(df["match_id"].unique()))
@@ -593,6 +720,16 @@ with st.sidebar:
     sel_pos   = st.multiselect("Position", all_positions, placeholder="All positions")
     sel_cov   = st.slider("Min Coverage %", 0, 100, 50,
                           help="Exclude players tracked for less than this % of the phase")
+
+    # Show active filter count
+    n_filters = sum([sel_match != "All", sel_phase != "All", len(sel_pos) > 0, sel_cov > 0])
+    if n_filters > 0:
+        st.markdown(
+            f'<div style="font-size:0.62rem;color:{DFL_RED};font-weight:600;margin-top:0.25rem">'
+            f'{n_filters} filter{"s" if n_filters > 1 else ""} active</div>',
+            unsafe_allow_html=True,
+        )
+
     st.divider()
 
     with st.expander("Metric Definitions", expanded=False):
@@ -600,35 +737,33 @@ with st.sidebar:
 <div style="font-size:0.72rem;line-height:1.6;color:{C_MUTED}">
 
 <div style="color:{C_AWI};font-weight:700;margin-bottom:2px">AWI - Awareness Index</div>
-Discrete head-rotation events per minute. A scan = head turn ≥45° within 0.5 s,
+Discrete head-rotation events per minute. A scan = head turn of 45 degrees or more within 0.5 s,
 detected from 3D nose/neck/ear keypoints at 50 fps. Measures how actively a player
 checks their surroundings before receiving or releasing the ball.
 
 <div style="color:{C_PQI};font-weight:700;margin-top:10px;margin-bottom:2px">PQI - Press Quality Index (0-100)</div>
 Composite score of body mechanics during pressing actions (player within 5 m of
-ball carrier for ≥10 consecutive frames). Three sub-scores:
+ball carrier for 10 or more consecutive frames). Three sub-scores:
 
 <div style="margin-top:6px;padding-left:8px;border-left:2px solid {C_BORDER}">
 <span style="color:{C_TEXT};font-weight:600">Orientation (40%)</span><br>
 How directly the player faces the ball carrier.
-100 = square-on, 0 = facing 90° away.
+100 = square-on, 0 = facing 90 degrees away.
 
 <div style="margin-top:6px">
 <span style="color:{C_TEXT};font-weight:600">Stance (30%)</span><br>
-Knee flexion quality. Peaks at 130° - the biomechanically optimal
+Knee flexion quality. Peaks at 130 degrees - the biomechanically optimal
 pressing position (low centre of gravity, ready to change direction).
-A player pressing upright or with locked knees scores low.
 </div>
 
 <div style="margin-top:6px">
 <span style="color:{C_TEXT};font-weight:600">Proximity (30%)</span><br>
 Distance to ball carrier. 100 = 0 m, 0 = 5 m or beyond.
-Measures whether the player closes down tight enough to be effective.
 </div>
 </div>
 
-<div style="margin-top:8px;color:{C_MUTED}">
-PQI = 0.40 × Orientation + 0.30 × Stance + 0.30 × Proximity
+<div style="margin-top:8px;color:{C_MUTED};font-size:0.65rem">
+PQI = 0.40 x Orientation + 0.30 x Stance + 0.30 x Proximity
 </div>
 </div>
 """, unsafe_allow_html=True)
@@ -640,7 +775,7 @@ PQI = 0.40 × Orientation + 0.30 × Stance + 0.30 × Proximity
                 f'<div style="margin-bottom:6px">'
                 f'<span style="color:{color};font-weight:700;font-size:0.72rem">{group}</span>'
                 f'<span style="color:{C_MUTED};font-size:0.65rem"> - '
-                + " · ".join(f'<span style="color:{C_TEXT}">{code}</span> {name}' for code, name in codes)
+                + " / ".join(f'<span style="color:{C_TEXT}">{code}</span> {name}' for code, name in codes)
                 + '</span></div>',
                 unsafe_allow_html=True,
             )
@@ -648,7 +783,7 @@ PQI = 0.40 × Orientation + 0.30 × Stance + 0.30 × Proximity
     st.caption("AWS World Sports Innovation Cup 2026")
 
 
-# ── Filter ────────────────────────────────────────────────────────────────────
+# -- Filter ----------------------------------------------------------------
 def apply_filters(
     base: pd.DataFrame,
     match: str,
@@ -674,7 +809,7 @@ fdf = apply_filters(df, sel_match, sel_phase, sel_pos, sel_cov)
 fdf = add_tips(fdf)
 
 
-# ── Tab renderers ─────────────────────────────────────────────────────────────
+# -- Tab renderers ---------------------------------------------------------
 def render_player_profile(fdf: pd.DataFrame) -> None:
     if guard(fdf):
         return
@@ -697,6 +832,8 @@ def render_player_profile(fdf: pd.DataFrame) -> None:
     pg       = p.get("pos_group", "-")
     pg_c     = POS_COLORS.get(pg, C_MUTED)
     pos_name = POS_FULL_MAP.get(pos, "")
+
+    # Player identity card
     st.markdown(f"""
 <div class="ph-card">
   <div>
@@ -714,7 +851,7 @@ def render_player_profile(fdf: pd.DataFrame) -> None:
 </div>
 """, unsafe_allow_html=True)
 
-    # ── KPI row ───────────────────────────────────────────────────────────────
+    # -- KPI row -----------------------------------------------------------
     sec("KEY METRICS")
     awi_val = safe_float(p.get("awi_per_minute"))
     pqi_val = safe_float(p.get("mean_pqi"))
@@ -726,10 +863,10 @@ def render_player_profile(fdf: pd.DataFrame) -> None:
     pqi_pct = pct_rank(fdf["mean_pqi"], pqi_val) if pqi_val > 0 else 0
 
     c1, c2, c3, c4, c5 = st.columns(5, gap="small")
-    with c1: kpi("AWI",         f"{awi_val:.2f}", f"Top {100-awi_pct}% · scans/min", C_AWI,
+    with c1: kpi("AWI",         f"{awi_val:.2f}", f"Top {100-awi_pct}% | scans/min", C_AWI,
                  border=C_AWI,
                  help="Awareness Index: head-rotation events per minute. Higher = more active scanning.")
-    with c2: kpi("Mean PQI",    f"{pqi_val:.1f}", f"Top {100-pqi_pct}% · 0–100",    C_PQI,
+    with c2: kpi("Mean PQI",    f"{pqi_val:.1f}", f"Top {100-pqi_pct}% | 0-100",    C_PQI,
                  border=C_PQI,
                  help="Press Quality Index: composite of Orientation (40%), Stance (30%), Proximity (30%) during press frames.")
     with c3: kpi("Total Scans", f"{scans:,}",     f"{mins:.0f} min on pitch",
@@ -739,16 +876,16 @@ def render_player_profile(fdf: pd.DataFrame) -> None:
     with c5: kpi("Press Mins",
                  f"{safe_float(p.get('press_minutes')):.0f}",
                  "min in press frames",
-                 help="Minutes spent within 5 m of the ball carrier for >=10 consecutive frames - the PQI measurement window.")
+                 help="Minutes spent within 5 m of the ball carrier for 10+ consecutive frames.")
     sp(0.75)
 
-    # ── Gauges ────────────────────────────────────────────────────────────────
+    # -- Gauges ------------------------------------------------------------
     sec("PERFORMANCE GAUGES")
     awi_max = max(fdf["awi_per_minute"].max() * 1.15, 1)
     awi_med = fdf["awi_per_minute"].median()
     pqi_med = fdf["mean_pqi"].median()
 
-    g1, g2, _ = st.columns([1, 1, 0.04])
+    g1, g2 = st.columns(2, gap="medium")
     with g1:
         st.plotly_chart(gauge_fig(round(awi_val, 2),
                                   "AWI - Awareness Index (scans/min)",
@@ -761,7 +898,7 @@ def render_player_profile(fdf: pd.DataFrame) -> None:
         gauge_cap(pqi_val, pqi_med, "PQI")
     sp(0.5)
 
-    # ── PQI radar + scatter ───────────────────────────────────────────────────
+    # -- PQI radar + scatter -----------------------------------------------
     sec("PLAYER IN CONTEXT")
     left, right = st.columns([3, 2], gap="medium")
 
@@ -819,8 +956,7 @@ def render_player_profile(fdf: pd.DataFrame) -> None:
             fig_rad.add_trace(go.Scatterpolar(
                 r=group_vals + [group_vals[0]], theta=cats,
                 fill="toself", name=f"{pg} avg",
-                line_color=C_PQI, fillcolor="rgba(251,146,60,0.1)",
-                line_dash="dot",
+                line_color=C_PQI, line_dash="dot",
             ))
             fig_rad.update_layout(
                 polar=dict(
@@ -842,7 +978,7 @@ def render_player_profile(fdf: pd.DataFrame) -> None:
         else:
             st.info("PQI sub-score data not available for this player.")
 
-    # ── PQI component breakdown ───────────────────────────────────────────────
+    # -- PQI component breakdown -------------------------------------------
     avail_comp = {k: v for k, v in PQI_COMPONENTS.items()
                   if k in fdf.columns and pd.notna(p.get(k))}
     if avail_comp:
@@ -854,10 +990,10 @@ def render_player_profile(fdf: pd.DataFrame) -> None:
             med = fdf[col_key].median()
             pct = int((fdf[col_key].dropna() < val).mean() * 100)
             with comp_cols[i]:
-                kpi(label, f"{val:.1f}", f"Median {med:.1f} · Top {100-pct}%",
+                kpi(label, f"{val:.1f}", f"Median {med:.1f} | Top {100-pct}%",
                     help=tooltip)
 
-    # ── Half-time trend ───────────────────────────────────────────────────────
+    # -- Half-time trend ---------------------------------------------------
     all_phases = fdf[fdf["name"] == sel_name].copy()
     if len(all_phases) >= 2:
         sp(0.25)
@@ -867,12 +1003,12 @@ def render_player_profile(fdf: pd.DataFrame) -> None:
             with trend_cols[i]:
                 awi_d = row["awi_per_minute"] - all_phases["awi_per_minute"].mean()
                 col   = C_GREEN if awi_d >= 0 else C_RED
-                kpi(f"{row['match_id']} · {row['phase_label']}",
+                kpi(f"{row['match_id']} | {row['phase_label']}",
                     f"{row['awi_per_minute']:.2f}",
                     f"PQI {row['mean_pqi']:.1f}" if pd.notna(row.get('mean_pqi')) else "PQI -",
                     col)
 
-    # ── AI Scouting Narrative ─────────────────────────────────────────────────
+    # -- AI Scouting Narrative ---------------------------------------------
     narr_row = narratives[
         (narratives["jersey"] == int(p["jersey"])) &
         (narratives["team"] == int(p["team"])) &
@@ -893,7 +1029,7 @@ def render_player_profile(fdf: pd.DataFrame) -> None:
                     )
             st.markdown(
                 f'<div class="narrative-source">'
-                f'Generated by Amazon Bedrock &nbsp;·&nbsp; {p["match_id"]} &nbsp;·&nbsp; {p["phase_label"]}'
+                f'Generated by Amazon Bedrock &nbsp;|&nbsp; {p["match_id"]} &nbsp;|&nbsp; {p["phase_label"]}'
                 f'</div>',
                 unsafe_allow_html=True,
             )
@@ -903,7 +1039,16 @@ def render_match_overview(fdf: pd.DataFrame) -> None:
     if guard(fdf):
         return
 
-    # ── Summary KPIs ──────────────────────────────────────────────────────────
+    # -- Context bar showing active filters --------------------------------
+    ctx_items = []
+    n_matches = fdf["match_id"].nunique()
+    n_players = fdf["name"].nunique()
+    ctx_items.append(("Matches", str(n_matches)))
+    ctx_items.append(("Players", str(n_players)))
+    ctx_items.append(("Observations", str(len(fdf))))
+    context_bar(ctx_items)
+
+    # -- Summary KPIs ------------------------------------------------------
     sec("MATCH SUMMARY")
     top_row = fdf.loc[fdf["awi_per_minute"].idxmax()]
     s1, s2, s3, s4, s5 = st.columns(5, gap="small")
@@ -911,39 +1056,44 @@ def render_match_overview(fdf: pd.DataFrame) -> None:
                  f"{fdf['match_id'].nunique()} match(es)",
                  help="Number of unique players included after applying the current filters.")
     with s2: kpi("Avg AWI",  f"{fdf['awi_per_minute'].mean():.2f}", "scans/min", C_AWI,
-                 help="Average Awareness Index across all filtered players. AWI = head-rotation events per minute.")
-    with s3: kpi("Avg PQI",  f"{fdf['mean_pqi'].mean():.1f}",       "0–100",     C_PQI,
-                 help="Average Press Quality Index across all filtered players. Composite of Orientation (40%), Stance (30%), Proximity (30%).")
+                 border=C_AWI,
+                 help="Average Awareness Index across all filtered players.")
+    with s3: kpi("Avg PQI",  f"{fdf['mean_pqi'].mean():.1f}",       "0-100",     C_PQI,
+                 border=C_PQI,
+                 help="Average Press Quality Index across all filtered players.")
     with s4: kpi("Top AWI",  top_row["name"].split()[-1],
                  f"{top_row['awi_per_minute']:.2f} scans/min", C_GOLD,
+                 border=C_GOLD,
                  help="Player with the highest AWI in the current filtered set.")
     with s5:
         n_elite = len(fdf[(fdf["awi_per_minute"] >= fdf["awi_per_minute"].quantile(0.75)) &
                           (fdf["mean_pqi"] >= fdf["mean_pqi"].quantile(0.75))]["name"].unique())
         kpi("Elite Players", str(n_elite), "top 25% AWI & PQI", C_GREEN,
+            border=C_GREEN,
             help="Players ranking in the top 25th percentile on both AWI and PQI simultaneously.")
     sp(0.75)
 
-    # ── Quadrant scatter ──────────────────────────────────────────────────────
+    # -- Quadrant scatter --------------------------------------------------
     sec("AWI vs PQI - PLAYER QUADRANT ANALYSIS")
 
+    # Quadrant legend as styled cards
     i1, i2, i3, i4 = st.columns(4, gap="small")
     with i1:
         st.markdown(f'<div style="font-size:0.72rem;color:{C_MUTED};padding:0.4rem 0">'
-                    f'<span style="color:{C_AWI};font-weight:600">X-axis - AWI</span><br>'
-                    f'Scanning rate (scans/min)</div>', unsafe_allow_html=True)
+                    f'<span style="color:{C_AWI};font-weight:700">X-axis</span> '
+                    f'AWI scanning rate</div>', unsafe_allow_html=True)
     with i2:
         st.markdown(f'<div style="font-size:0.72rem;color:{C_MUTED};padding:0.4rem 0">'
-                    f'<span style="color:{C_PQI};font-weight:600">Y-axis - PQI</span><br>'
-                    f'Pressing quality (0–100)</div>', unsafe_allow_html=True)
+                    f'<span style="color:{C_PQI};font-weight:700">Y-axis</span> '
+                    f'PQI pressing quality</div>', unsafe_allow_html=True)
     with i3:
         st.markdown(f'<div style="font-size:0.72rem;color:{C_MUTED};padding:0.4rem 0">'
-                    f'<span style="color:{C_MUTED};font-weight:600">Dashed lines</span><br>'
-                    f'75th percentile threshold</div>', unsafe_allow_html=True)
+                    f'<span style="font-weight:700">Dashed lines</span> '
+                    f'75th percentile</div>', unsafe_allow_html=True)
     with i4:
         st.markdown(f'<div style="font-size:0.72rem;color:{C_MUTED};padding:0.4rem 0">'
-                    f'<span style="color:{C_GREEN};font-weight:600">Green - Top performers</span><br>'
-                    f'High on both AWI & PQI</div>', unsafe_allow_html=True)
+                    f'<span style="color:{C_GREEN};font-weight:700">Green</span> '
+                    f'Top performers</div>', unsafe_allow_html=True)
     sp(0.25)
 
     awi_q = fdf["awi_per_minute"].quantile(0.75)
@@ -1005,7 +1155,7 @@ def render_match_overview(fdf: pd.DataFrame) -> None:
                     annotation_text=f"AWI 75th ({awi_q:.1f})",
                     annotation_font=dict(color=C_MUTED, size=9),
                     annotation_position="top right")
-    chart_layout(fig_q, h=420, t=15, b=55, l=55, r=15)
+    chart_layout(fig_q, h=440, t=15, b=55, l=55, r=15)
     fig_q.update_layout(
         xaxis_title="AWI (scans/min)", yaxis_title="Mean PQI",
         legend=dict(
@@ -1028,7 +1178,7 @@ def render_match_overview(fdf: pd.DataFrame) -> None:
     )
     sp(0.25)
 
-    # ── Position group analysis ───────────────────────────────────────────────
+    # -- Position group analysis -------------------------------------------
     sec("POSITION GROUP ANALYSIS")
     pa1, pa2 = st.columns(2, gap="medium")
 
@@ -1106,7 +1256,7 @@ def render_match_overview(fdf: pd.DataFrame) -> None:
 
     st.divider()
 
-    # ── Half-time delta ───────────────────────────────────────────────────────
+    # -- Half-time delta ---------------------------------------------------
     sec("HALF-TIME COGNITIVE FATIGUE - AWI DELTA (2nd - 1st Half)")
     h1 = (fdf[fdf["phase_label"] == "1st half"]
           [["name", "pos_group", "awi_per_minute", "mean_pqi"]]
@@ -1130,15 +1280,15 @@ def render_match_overview(fdf: pd.DataFrame) -> None:
                 x=top_h["short"], y=top_h["awi_delta"],
                 marker_color=top_h["bar_color"].tolist(),
                 marker_line_width=0, opacity=0.9,
-                hovertemplate="<b>%{x}</b><br>AWI Δ: %{y:.2f} scans/min<extra></extra>",
-                name="AWI Δ",
+                hovertemplate="<b>%{x}</b><br>AWI change: %{y:.2f} scans/min<extra></extra>",
+                name="AWI change",
             ))
             fig_d.add_hline(y=0, line_color=C_BORDER, line_width=1.5)
             chart_layout(fig_d, h=320, t=15, b=70, l=50, r=15)
             fig_d.update_layout(
                 title=dict(text="AWI Change 2nd vs 1st Half (top players by 1st-half AWI)",
                            font_size=11, x=0, font_color=C_MUTED),
-                xaxis_tickangle=-35, yaxis_title="AWI Δ (scans/min)",
+                xaxis_tickangle=-35, yaxis_title="AWI change (scans/min)",
                 showlegend=False,
             )
             st.plotly_chart(fig_d, width="stretch")
@@ -1178,7 +1328,7 @@ def render_match_overview(fdf: pd.DataFrame) -> None:
 
     st.divider()
 
-    # ── Team comparison ───────────────────────────────────────────────────────
+    # -- Team comparison ---------------------------------------------------
     sec("TEAM AWI COMPARISON")
     team_stats = (fdf.groupby(["match_id", "team_name"])
                   .agg(awi_mean=("awi_per_minute", "mean"),
@@ -1216,7 +1366,7 @@ def render_leaderboard(fdf: pd.DataFrame) -> None:
     if guard(fdf):
         return
 
-    # ── Summary KPIs ──────────────────────────────────────────────────────────
+    # -- Summary KPIs ------------------------------------------------------
     sec("OVERVIEW")
     o1, o2, o3, o4 = st.columns(4, gap="small")
     elite = fdf[(fdf["awi_per_minute"] >= fdf["awi_per_minute"].quantile(0.75)) &
@@ -1225,14 +1375,56 @@ def render_leaderboard(fdf: pd.DataFrame) -> None:
                  help="Unique players with at least one tracked phase in the current filtered dataset.")
     with o2: kpi("Elite Quadrant", str(elite["name"].nunique()),
                  "top 25% AWI & PQI", C_GREEN,
+                 border=C_GREEN,
                  help="Players ranking in the top 25th percentile on both AWI and PQI simultaneously.")
     with o3: kpi("Avg AWI",  f"{fdf['awi_per_minute'].mean():.2f}", "scans/min", C_AWI,
-                 help="Average Awareness Index across all filtered players. AWI = head-rotation events per minute.")
-    with o4: kpi("Avg PQI",  f"{fdf['mean_pqi'].mean():.1f}",       "0–100",     C_PQI,
-                 help="Average Press Quality Index across all filtered players. Composite of Orientation (40%), Stance (30%), Proximity (30%).")
+                 border=C_AWI,
+                 help="Average Awareness Index across all filtered players.")
+    with o4: kpi("Avg PQI",  f"{fdf['mean_pqi'].mean():.1f}",       "0-100",     C_PQI,
+                 border=C_PQI,
+                 help="Average Press Quality Index across all filtered players.")
     sp(0.75)
 
-    # ── Leaderboard table ─────────────────────────────────────────────────────
+    # -- Top 3 podium ------------------------------------------------------
+    sec("TOP PERFORMERS")
+    top3 = (fdf.sort_values("awi_per_minute", ascending=False)
+            .drop_duplicates(subset="name")
+            .head(3)
+            .reset_index(drop=True))
+
+    if len(top3) >= 3:
+        podium_colors = [C_GOLD, "#94A3B8", "#CD7F32"]  # gold, silver, bronze
+        podium_labels = ["\U0001F947", "\U0001F948", "\U0001F949"]
+        p1, p2, p3 = st.columns(3, gap="small")
+        for i, (col, (_, row)) in enumerate(zip([p1, p2, p3], top3.iterrows())):
+            with col:
+                pg = row.get("pos_group", "-")
+                pg_c = POS_COLORS.get(pg, C_MUTED)
+                pqi_str = f"{row['mean_pqi']:.1f}" if pd.notna(row.get("mean_pqi")) else "n/a"
+                st.markdown(f"""
+<div class="stat-card" style="text-align:center;border-top:3px solid {podium_colors[i]}">
+  <div style="font-size:1.5rem;margin-bottom:0.3rem">{podium_labels[i]}</div>
+  <div style="font-size:1rem;font-weight:800;color:{C_TEXT};line-height:1.2">{row['name']}</div>
+  <div style="margin:0.4rem 0;display:flex;justify-content:center;gap:6px">
+    <span style="display:inline-block;background:{pg_c}18;color:{pg_c};font-size:0.6rem;font-weight:600;padding:2px 8px;border-radius:10px">{pg}</span>
+    <span style="display:inline-block;background:{C_BG};color:{C_MUTED};font-size:0.6rem;padding:2px 8px;border-radius:10px">{row['match_id']}</span>
+  </div>
+  <div style="display:flex;justify-content:center;gap:1.2rem;margin-top:0.5rem">
+    <div>
+      <div style="font-size:1.4rem;font-weight:900;color:{C_AWI}">{row['awi_per_minute']:.2f}</div>
+      <div style="font-size:0.55rem;color:{C_MUTED};text-transform:uppercase;letter-spacing:0.1em">AWI</div>
+    </div>
+    <div style="width:1px;background:{C_BORDER}"></div>
+    <div>
+      <div style="font-size:1.4rem;font-weight:900;color:{C_PQI}">{pqi_str}</div>
+      <div style="font-size:0.55rem;color:{C_MUTED};text-transform:uppercase;letter-spacing:0.1em">PQI</div>
+    </div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
+    sp(0.75)
+
+    # -- Leaderboard table -------------------------------------------------
     sec("PLAYER RANKINGS")
     use_adjusted = st.toggle("Position-adjusted PQI", value=False)
     display_cols = ["jersey", "name", "position", "match_id",
@@ -1257,7 +1449,7 @@ def render_leaderboard(fdf: pd.DataFrame) -> None:
 
     st.dataframe(
         tbl, width="stretch",
-        height=min(45 + len(tbl) * 35, 480),
+        height="auto",
         column_config={
             "jersey":                   st.column_config.NumberColumn("#",               format="%d"),
             "name":                     st.column_config.TextColumn("Player"),
@@ -1276,7 +1468,7 @@ def render_leaderboard(fdf: pd.DataFrame) -> None:
     sp(0.25)
     st.divider()
 
-    # ── Role analytics ────────────────────────────────────────────────────────
+    # -- Role analytics ----------------------------------------------------
     sec("ROLE ANALYTICS")
     hm1, hm2 = st.columns(2, gap="medium")
 
@@ -1301,7 +1493,7 @@ def render_leaderboard(fdf: pd.DataFrame) -> None:
                 aspect="auto", template=THEME,
             )
             fig_hm.update_traces(
-                hovertemplate="<b>%{y}</b> · %{x}<br>%{z:.1f}<extra></extra>")
+                hovertemplate="<b>%{y}</b> | %{x}<br>%{z:.1f}<extra></extra>")
             chart_layout(fig_hm, h=max(260, len(role_avg) * 50 + 70),
                          t=15, b=40, l=10, r=10)
             fig_hm.update_layout(
@@ -1332,7 +1524,7 @@ def render_leaderboard(fdf: pd.DataFrame) -> None:
                 hovertemplate=(
                     f"<b>{row['pos_group']}</b><br>"
                     f"Mean AWI: {row['mean']:.2f} scans/min<br>"
-                    f"Std: ±{row['std']:.2f}<br>"
+                    f"Std: +/-{row['std']:.2f}<br>"
                     f"n={int(row['count'])}<extra></extra>"
                 ),
                 showlegend=False,
@@ -1340,7 +1532,7 @@ def render_leaderboard(fdf: pd.DataFrame) -> None:
         chart_layout(fig_bar, h=max(260, len(role_awi) * 50 + 70),
                      t=15, b=50, l=10, r=30)
         fig_bar.update_layout(
-            title=dict(text="Avg AWI by Role (mean ± std)",
+            title=dict(text="Avg AWI by Role (mean +/- std)",
                        font_size=12, x=0, font_color=C_MUTED),
             xaxis_title="AWI (scans/min)",
             bargap=0.3,
@@ -1368,33 +1560,34 @@ def render_leaderboard(fdf: pd.DataFrame) -> None:
 
 
 def render_fan_view(fdf: pd.DataFrame) -> None:
-    """Fan Engagement View — Bundesliga broadcast-ready Body Intelligence display."""
-    _DFL_RED = "#D20515"
+    """Fan Engagement View - Bundesliga broadcast-ready Body Intelligence display."""
+    _DFL_RED = "#D10214"
 
     if guard(fdf):
         return
 
-    # ── Page banner ───────────────────────────────────────────────────────────
+    # -- Page banner -------------------------------------------------------
     st.markdown(f"""
 <div style="
     border-left:4px solid {_DFL_RED};
     padding:0.75rem 1.2rem;
     margin-bottom:1.5rem;
     background:{C_SURFACE};
-    border-radius:0 8px 8px 0;
+    border-radius:0 10px 10px 0;
     display:flex;
     align-items:center;
     gap:1.2rem;
+    box-shadow:0 2px 8px rgba(0,0,0,0.04);
 ">
   <div style="flex:1">
-    <div style="font-size:1.5rem;font-weight:800;color:{C_TEXT};letter-spacing:-0.01em;line-height:1.1">BODY INTELLIGENCE</div>
-    <div style="font-size:0.78rem;color:{C_MUTED};margin-top:3px;letter-spacing:0.04em">Bundesliga &nbsp;·&nbsp; Awareness &amp; Pressing Analytics &nbsp;·&nbsp; 5 Matches &nbsp;·&nbsp; 2025/26</div>
+    <div style="font-size:1.5rem;font-weight:900;color:{C_TEXT};letter-spacing:-0.02em;line-height:1.1">BODY INTELLIGENCE</div>
+    <div style="font-size:0.75rem;color:{C_MUTED};margin-top:4px;letter-spacing:0.04em">Bundesliga &nbsp;|&nbsp; Awareness &amp; Pressing Analytics &nbsp;|&nbsp; 5 Matches &nbsp;|&nbsp; 2025/26</div>
   </div>
-  <div style="background:{_DFL_RED};color:#fff;font-size:0.6rem;font-weight:700;letter-spacing:0.15em;padding:4px 10px;border-radius:3px;text-transform:uppercase;flex-shrink:0">LIVE VIEW</div>
+  <div style="background:{_DFL_RED};color:#fff;font-size:0.58rem;font-weight:700;letter-spacing:0.15em;padding:5px 12px;border-radius:4px;text-transform:uppercase;flex-shrink:0">LIVE VIEW</div>
 </div>
 """, unsafe_allow_html=True)
 
-    # ── League-wide KPI row ───────────────────────────────────────────────────
+    # -- League-wide KPI row -----------------------------------------------
     n_players   = int(fdf["name"].nunique())
     league_awi  = float(fdf[fdf["awi_per_minute"] > 0]["awi_per_minute"].mean())
     awi_q75     = fdf["awi_per_minute"].quantile(0.75)
@@ -1406,18 +1599,18 @@ def render_fan_view(fdf: pd.DataFrame) -> None:
     with cols_kpi[0]:
         kpi("Players Tracked", str(n_players), "across 5 matches", C_TEXT)
     with cols_kpi[1]:
-        kpi("League Avg AWI", f"{league_awi:.1f}", "scans / min", C_AWI)
+        kpi("League Avg AWI", f"{league_awi:.1f}", "scans / min", C_AWI, border=C_AWI)
     with cols_kpi[2]:
-        kpi("Elite Players", str(n_elite), "top 25% AWI + PQI", _DFL_RED)
+        kpi("Elite Players", str(n_elite), "top 25% AWI + PQI", _DFL_RED, border=_DFL_RED)
     with cols_kpi[3]:
-        kpi("Peak PQI", f"{top_pqi_val:.1f}", "max pressing quality", C_PQI)
+        kpi("Peak PQI", f"{top_pqi_val:.1f}", "max pressing quality", C_PQI, border=C_PQI)
     sp(0.75)
 
-    # ── Top-3 awareness counter ───────────────────────────────────────────────
+    # -- Top-3 awareness counter -------------------------------------------
     sec("TOP SCANNERS - AWARENESS COUNTER")
     st.markdown(
         f'<div style="font-size:0.72rem;color:{C_MUTED};margin-bottom:1rem">'
-        f'Head-rotation events per minute · higher = more active pre-decision scanning</div>',
+        f'Head-rotation events per minute. Higher = more active pre-decision scanning.</div>',
         unsafe_allow_html=True,
     )
 
@@ -1426,7 +1619,7 @@ def render_fan_view(fdf: pd.DataFrame) -> None:
                .head(3)
                .reset_index(drop=True))
 
-    rank_colors = [_DFL_RED, "#555555", "#3a3a3a"]
+    rank_colors = [_DFL_RED, "#94A3B8", "#CD7F32"]
     rank_labels = ["#1", "#2", "#3"]
     awi_max = float(fdf["awi_per_minute"].max())
 
@@ -1442,19 +1635,12 @@ def render_fan_view(fdf: pd.DataFrame) -> None:
             lg_bar_pct = int((league_awi / awi_max) * 100)
             diff_color = C_GREEN if diff >= 0 else C_MUTED
             st.markdown(f"""
-<div style="
-    background:{C_SURFACE};
-    border:1px solid {C_BORDER};
-    border-top:3px solid {rank_colors[i]};
-    border-radius:10px;
-    padding:1.2rem 1.1rem 1rem;
-    text-align:center;
-">
+<div class="stat-card" style="text-align:center;border-top:3px solid {rank_colors[i]}">
   <div style="
     display:inline-block;
     background:{rank_colors[i]};
     color:#fff;
-    font-size:0.62rem;
+    font-size:0.6rem;
     font-weight:700;
     letter-spacing:0.12em;
     padding:3px 10px;
@@ -1477,12 +1663,12 @@ def render_fan_view(fdf: pd.DataFrame) -> None:
 """, unsafe_allow_html=True)
     sp(1.2)
 
-    # ── 4-quadrant fan comparison ─────────────────────────────────────────────
+    # -- 4-quadrant fan comparison -----------------------------------------
     sec("PLAYER COMPARISON - BODY INTELLIGENCE QUADRANT")
     st.markdown(
         f'<div style="font-size:0.72rem;color:{C_MUTED};margin-bottom:0.75rem">'
         f'Every player ranked by scanning awareness (AWI) vs pressing quality (PQI). '
-        f'Elite players are in the top-right. Hover any dot to see who it is.</div>',
+        f'Elite players are in the top-right.</div>',
         unsafe_allow_html=True,
     )
 
@@ -1570,7 +1756,7 @@ def render_fan_view(fdf: pd.DataFrame) -> None:
     st.plotly_chart(fig_fan, width="stretch")
     sp(0.5)
 
-    # ── Body Intelligence leaderboard ─────────────────────────────────────────
+    # -- Body Intelligence leaderboard -------------------------------------
     sec("BODY INTELLIGENCE LEADERBOARD")
     st.markdown(
         f'<div style="font-size:0.72rem;color:{C_MUTED};margin-bottom:0.75rem">'
@@ -1597,7 +1783,7 @@ def render_fan_view(fdf: pd.DataFrame) -> None:
 
     st.dataframe(
         lb_display, width="stretch",
-        height=min(45 + len(lb_display) * 35, 560),
+        height="auto",
         column_config={
             "Player":           st.column_config.TextColumn("Player", width="medium"),
             "Pos":              st.column_config.TextColumn("Pos", width="small"),
@@ -1605,7 +1791,7 @@ def render_fan_view(fdf: pd.DataFrame) -> None:
             "AWI":              st.column_config.NumberColumn("AWI (scans/min)", format="%.2f",
                                     help="Scanning awareness: head-rotation events per minute"),
             "PQI":              st.column_config.NumberColumn("PQI", format="%.1f",
-                                    help="Pressing quality: body mechanics score 0–100"),
+                                    help="Pressing quality: body mechanics score 0-100"),
             "Body Intelligence": st.column_config.ProgressColumn(
                                     "Body Intelligence",
                                     format="%.1f",
@@ -1615,27 +1801,28 @@ def render_fan_view(fdf: pd.DataFrame) -> None:
     )
     sp(0.75)
 
-    # ── DFL Insight ticker ────────────────────────────────────────────────────
+    # -- DFL Insight ticker ------------------------------------------------
     if not fdf.empty:
         top_player = fdf.loc[fdf["awi_per_minute"].idxmax()]
         cadence = 60 / top_player["awi_per_minute"]
         st.markdown(f"""
 <div style="
-    background:{_DFL_RED};
-    color:#fff;
-    border-radius:6px;
-    padding:0.85rem 1.2rem;
+    background:{C_SURFACE2};
+    border:1px solid {C_BORDER_LT};
+    border-left:3px solid {_DFL_RED};
+    color:{C_TEXT};
+    border-radius:8px;
+    padding:0.85rem 1.3rem;
     display:flex;
     align-items:baseline;
     gap:0.75rem;
     flex-wrap:wrap;
 ">
-  <span style="font-size:0.6rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;opacity:0.8;flex-shrink:0">DFL INSIGHT</span>
-  <span style="font-size:0.82rem;font-weight:500;line-height:1.65">
-    {top_player['name'].split()[-1]} scanned <strong>{top_player['awi_per_minute']:.0f} times per minute</strong>
-    in {top_player['match_id']} ({top_player['phase_label']}), once every <strong>{cadence:.1f} seconds</strong>.
-    AWI spikes <strong>+57%</strong> in the 5 seconds before a pass.
-    That's what playing with your head up looks like in data.
+  <span style="font-size:0.6rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:{_DFL_RED};flex-shrink:0">DFL INSIGHT</span>
+  <span style="font-size:0.8rem;font-weight:400;line-height:1.7;color:{C_MUTED}">
+    {top_player['name'].split()[-1]} scanned <strong style="color:{C_TEXT}">{top_player['awi_per_minute']:.0f} times per minute</strong>
+    in {top_player['match_id']} ({top_player['phase_label']}), once every <strong style="color:{C_TEXT}">{cadence:.1f} seconds</strong>.
+    AWI spikes <strong style="color:{C_AWI}">+57%</strong> in the 5 seconds before a pass.
   </span>
 </div>
 """, unsafe_allow_html=True)
@@ -1664,16 +1851,7 @@ def render_broadcast_demo_tab(fdf: pd.DataFrame) -> None:
     render_broadcast_overlay(broadcast_df, standalone=False)
 
 
-# ── Brand strip + Tabs ───────────────────────────────────────────────────────
-st.markdown(f"""
-<div style="
-  height:3px;
-  background:linear-gradient(90deg, {DFL_RED} 0%, {DFL_RED} 30%, {C_BORDER} 100%);
-  border-radius:2px;
-  margin-bottom:0.15rem;
-"></div>
-""", unsafe_allow_html=True)
-
+# -- Tabs ------------------------------------------------------------------
 tab_profile, tab_match, tab_board, tab_fan, tab_broadcast = st.tabs([
     "Player Profile",
     "Match Overview",
