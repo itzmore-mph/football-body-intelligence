@@ -1841,6 +1841,9 @@ def render_benchmark_tab(fdf: pd.DataFrame) -> None:
         st.error("benchmark_reference module not found.")
         return
 
+    if guard(fdf):
+        return
+
     st.markdown("## Cross-Domain Benchmark")
     st.markdown(
         "AWI and PQI are not isolated inventions. Each metric maps directly to a concept "
@@ -1970,13 +1973,15 @@ def render_benchmark_tab(fdf: pd.DataFrame) -> None:
         textfont=dict(color=C_TEXT),
     ))
     fig_burst.add_annotation(
-        x=4, y=bl_pre_pass, ax=3, ay=bl_mean,
+        x="Football<br>(pre-pass AWI)", y=bl_pre_pass,
+        ax="Football<br>(baseline AWI)", ay=bl_mean,
         xref="x", yref="y", axref="x", ayref="y",
         text="+57%", showarrow=True, arrowhead=2,
         arrowcolor=C_GREEN, font=dict(color=C_GREEN, size=13),
     )
     fig_burst.add_annotation(
-        x=2, y=34.0, ax=1, ay=24.0,
+        x="Aviation<br>(pre-decision)", y=34.0,
+        ax="Aviation<br>(high workload)", ay=24.0,
         xref="x", yref="y", axref="x", ayref="y",
         text="+42%", showarrow=True, arrowhead=2,
         arrowcolor=C_GOLD, font=dict(color=C_GOLD, size=13),
