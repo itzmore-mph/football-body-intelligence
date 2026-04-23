@@ -7,7 +7,7 @@ No I/O, no S3 access, no side effects.
 from dataclasses import dataclass
 
 import pandas as pd
-from scipy.stats import spearmanr  # noqa: F401 (used in run_sensitivity)
+from scipy.stats import spearmanr
 
 
 @dataclass
@@ -53,3 +53,68 @@ def generate_weight_grid(step: float = 0.05) -> list[dict[str, float]]:
                 "proximity": round(k * step, 10),
             })
     return combos
+
+
+def run_sensitivity(
+    df: pd.DataFrame,
+    weight_grid: list[dict[str, float]],
+    player_col: str = "name",
+) -> SensitivityResult:
+    """
+    Run PQI weight sensitivity analysis over all combinations in ``weight_grid``.
+
+    For each weight combination the function re-computes a weighted PQI from the
+    per-player mean sub-scores, ranks players (rank 1 = highest PQI), and compares
+    that ranking to the baseline (0.40 / 0.30 / 0.30) via Spearman rho and rank delta.
+
+    Args:
+        df:          DataFrame with columns ``orientation_mean``, ``stance_mean``,
+                     ``proximity_mean``, and ``player_col``. Multiple rows per player
+                     (different matches / phases) are aggregated by mean.
+        weight_grid: List of weight dicts as returned by ``generate_weight_grid``.
+        player_col:  Column used to identify players. Default "name".
+
+    Returns:
+        SensitivityResult with:
+          correlations   -- one row per weight combo; columns w_orientation, w_stance,
+                           w_proximity, spearman_rho.
+          rank_deltas    -- indexed by player; one column per weight combo key;
+                           value = rank under that combo minus baseline rank
+                           (positive = dropped, negative = rose).
+          baseline_ranking -- Series indexed by player; values = baseline rank (1 = best).
+    """
+    player_scores = (
+        df.groupby(player_col)[["orientation_mean", "stance_mean", "proximity_mean"]]
+        .mean()
+    )
+
+    def _rank(w: dict[str, float]) -> pd.Series:
+        pqi = (
+            w["orientation"] * player_scores["orientation_mean"]
+            + w["stance"] * player_scores["stance_mean"]
+            + w["proximity"] * player_scores["proximity_mean"]
+        )
+        return pqi.rank(ascending=False, method="min")
+
+    baseline_ranking = _rank(BASELINE_WEIGHTS)
+
+    correlations: list[dict] = []
+    rank_deltas: dict[str, pd.Series] = {}
+
+    for w in weight_grid:
+        key = _weight_combo_key(w)
+        ranking = _rank(w)
+        rho, _ = spearmanr(baseline_ranking.values, ranking.values)
+        correlations.append({
+            "w_orientation": w["orientation"],
+            "w_stance": w["stance"],
+            "w_proximity": w["proximity"],
+            "spearman_rho": float(rho),
+        })
+        rank_deltas[key] = ranking - baseline_ranking
+
+    return SensitivityResult(
+        correlations=pd.DataFrame(correlations),
+        rank_deltas=pd.DataFrame(rank_deltas),
+        baseline_ranking=baseline_ranking,
+    )
