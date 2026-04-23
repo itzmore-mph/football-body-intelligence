@@ -5,6 +5,7 @@ from src.pqi_sensitivity import (
     _weight_combo_key,
     generate_weight_grid,
     run_sensitivity,
+    summary_stats,
 )
 
 
@@ -119,3 +120,41 @@ def test_run_sensitivity_rho_in_range():
     grid = generate_weight_grid(step=0.25)
     result = run_sensitivity(df, grid)
     assert result.correlations["spearman_rho"].between(-1.0, 1.0).all()
+
+
+def _make_result() -> SensitivityResult:
+    df = _make_player_df()
+    grid = generate_weight_grid(step=0.25)
+    return run_sensitivity(df, grid)
+
+
+def test_summary_stats_keys():
+    result = _make_result()
+    stats = summary_stats(result)
+    expected_keys = {
+        "spearman_min", "spearman_max", "spearman_mean",
+        "frac_above_0_9",
+        "most_stable_players", "most_volatile_players",
+    }
+    assert set(stats.keys()) == expected_keys
+
+
+def test_summary_stats_frac_above_0_9_bounds():
+    result = _make_result()
+    stats = summary_stats(result)
+    assert 0.0 <= stats["frac_above_0_9"] <= 1.0
+
+
+def test_summary_stats_spearman_ordering():
+    result = _make_result()
+    stats = summary_stats(result)
+    assert stats["spearman_min"] <= stats["spearman_mean"] <= stats["spearman_max"]
+
+
+def test_summary_stats_stable_volatile_are_lists():
+    result = _make_result()
+    stats = summary_stats(result)
+    assert isinstance(stats["most_stable_players"], list)
+    assert isinstance(stats["most_volatile_players"], list)
+    assert len(stats["most_stable_players"]) <= 5
+    assert len(stats["most_volatile_players"]) <= 5

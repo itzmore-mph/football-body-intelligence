@@ -118,3 +118,32 @@ def run_sensitivity(
         rank_deltas=pd.DataFrame(rank_deltas),
         baseline_ranking=baseline_ranking,
     )
+
+
+def summary_stats(result: SensitivityResult) -> dict:
+    """
+    Summarise rank-stability across all weight combinations.
+
+    Args:
+        result: SensitivityResult returned by ``run_sensitivity``.
+
+    Returns:
+        Dict with keys:
+          spearman_min          -- minimum Spearman rho across all weight combos.
+          spearman_max          -- maximum Spearman rho (always 1.0 when baseline is in grid).
+          spearman_mean         -- mean Spearman rho.
+          frac_above_0_9        -- fraction of combos with rho > 0.90.
+          most_stable_players   -- list of up to 5 player names with smallest mean |rank_delta|.
+          most_volatile_players -- list of up to 5 player names with largest mean |rank_delta|.
+    """
+    rhos = result.correlations["spearman_rho"]
+    mean_abs_delta = result.rank_deltas.abs().mean(axis=1)
+    n_top = min(5, len(mean_abs_delta))
+    return {
+        "spearman_min": float(rhos.min()),
+        "spearman_max": float(rhos.max()),
+        "spearman_mean": float(rhos.mean()),
+        "frac_above_0_9": float((rhos > 0.9).mean()),
+        "most_stable_players": mean_abs_delta.nsmallest(n_top).index.tolist(),
+        "most_volatile_players": mean_abs_delta.nlargest(n_top).index.tolist(),
+    }
