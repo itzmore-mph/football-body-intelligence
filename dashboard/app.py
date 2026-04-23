@@ -1865,7 +1865,7 @@ def render_benchmark_tab(fdf: pd.DataFrame) -> None:
         }
         for r in refs
     ]
-    st.dataframe(pd.DataFrame(cat_rows), hide_index=True, use_container_width=True)
+    st.dataframe(pd.DataFrame(cat_rows), hide_index=True, width='stretch')
 
     # ── Block 2: AWI vs Aviation ──────────────────────────────────────────────
     st.markdown("### AWI vs Aviation Cognitive Load")
@@ -1906,7 +1906,7 @@ def render_benchmark_tab(fdf: pd.DataFrame) -> None:
         legend=dict(bgcolor=LEGEND_BG),
         height=350,
     )
-    st.plotly_chart(fig_awi, use_container_width=True)
+    st.plotly_chart(fig_awi, width='stretch')
 
     # ── Block 3: PQI Sub-Scores vs References ─────────────────────────────────
     st.markdown("### PQI Sub-Scores vs Cross-Domain References")
@@ -1945,7 +1945,7 @@ def render_benchmark_tab(fdf: pd.DataFrame) -> None:
                 xaxis_title="Score (0-100)", yaxis_title="Count",
                 showlegend=False, height=300,
             )
-            st.plotly_chart(fig_sub, use_container_width=True)
+            st.plotly_chart(fig_sub, width='stretch')
 
     # ── Block 4: Pre-Decision Scan Burst ──────────────────────────────────────
     st.markdown("### Pre-Decision Scan Burst")
@@ -1993,7 +1993,7 @@ def render_benchmark_tab(fdf: pd.DataFrame) -> None:
         yaxis=dict(range=[0, max(values) * 1.25]),
         height=420,
     )
-    st.plotly_chart(fig_burst, use_container_width=True)
+    st.plotly_chart(fig_burst, width='stretch')
 
 
 def render_broadcast_demo_tab(fdf: pd.DataFrame) -> None:
