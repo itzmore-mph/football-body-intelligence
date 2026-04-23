@@ -118,8 +118,6 @@ Vušković is a centre-back whose scanning profile matches a defensive midfielde
 │   ├── pressure_pipeline.py     PQI orchestration across all matches and phases
 │   ├── pqi_calculator.py        PQI sub-scores: orientation, stance, proximity (vectorized)
 │   ├── pqi_normalizer.py        Position-adjusted PQI z-scores (GK/DEF/MID/FWD groups)
-│   ├── pqi_sensitivity.py       PQI weight grid scan — Spearman rank-correlation + per-player rank-delta
-│   │                            API: generate_weight_grid(), run_sensitivity(), summary_stats()
 │   ├── quadrant_analysis.py     Bootstrap CI for elite quadrant count
 │   ├── benchmark_reference.py   Parameterised cross-domain reference distributions (6 systems, no network calls)
 │   ├── benchmark_report.py      Narrative entries (NBA/NFL/Cricket/Industrial) + generate_benchmark_summary()
