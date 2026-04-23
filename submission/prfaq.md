@@ -59,6 +59,12 @@ The 30° threshold in sports-science literature is measured from direct video, w
 
 Cross-half Pearson correlation R = 0.854 (p < 0.001, n = 69 active player-phases). Players who rank high in AWI in the first half rank high in the second half, independently of match context. Kimmich across two full matches: 21.77 / 21.15 (FCB-HSV) and 23.38 / 11.29 (FCU-FCB). The second-match second-half drop to 11.29 is itself informative - a 52% decline that no GPS or positional metric would detect, potentially indicating late-match fatigue or a tactical instruction to hold position.
 
+### Why are the PQI weights 0.40 / 0.30 / 0.30?
+
+The weights reflect domain-informed priors: orientation is the dominant indicator of an effective press (a player facing the wrong direction cannot apply genuine pressure, regardless of proximity), while stance and proximity are necessary conditions but not sufficient on their own. This 40/30/30 split was set analytically, not fitted to labelled data — press-quality annotation at frame resolution does not yet exist for these five matches.
+
+To validate that the choice is not decisive for the conclusions, we ran a full weight sensitivity analysis (`src/pqi_sensitivity.py`): all 231 combinations of (w_orientation, w_stance, w_proximity) at 0.05 resolution where weights sum to 1.0. The analysis reports Spearman rank-correlation against the baseline ranking and per-player rank-deltas for every combination. A high mean Spearman rho across the grid confirms that the player ranking is structurally stable and that the specific weight choice does not materially change who ranks high or low.
+
 ### What does the pre-pass AWI finding mean?
 
 In the 5 seconds before a player releases the ball, their AWI is +57% above their full-phase baseline. This confirms the metric captures the pre-decision cognitive window that coaches call "playing with your head up." It also validates that AWI measures intentional scanning - players actively increase their head-rotation rate precisely when they need to assess the field before acting.
