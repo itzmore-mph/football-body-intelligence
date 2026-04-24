@@ -7,6 +7,8 @@ No I/O, no S3 access, no side effects.
 import numpy as np
 import pandas as pd
 
+from src.angle_utils import circular_diff
+
 # --- Constants ---
 PQI_WEIGHTS = {"orientation": 0.40, "stance": 0.30, "proximity": 0.30}
 
@@ -24,9 +26,9 @@ def compute_orientation_score(
     Compute orientation sub-score from body yaw and ball direction.
 
     orientation_score = max(0, 100 - (angle_to_target / 90) * 100)
-    angle_to_target  = |((body_yaw - ball_direction) + 180) % 360 - 180|
+    angle_to_target   = circular_diff(body_yaw, ball_direction)
 
-    Uses the same circular delta formula as awi_calculator._angular_delta.
+    See :func:`src.angle_utils.circular_diff` for the wraparound-safe formula.
 
     Args:
         body_yaw_deg:      np.ndarray of body yaw angles in degrees.
@@ -38,8 +40,7 @@ def compute_orientation_score(
     body_yaw_deg = np.asarray(body_yaw_deg, dtype=np.float64)
     ball_direction_deg = np.asarray(ball_direction_deg, dtype=np.float64)
 
-    raw = body_yaw_deg - ball_direction_deg
-    angle_to_target = np.abs(((raw + 180.0) % 360.0) - 180.0)
+    angle_to_target = circular_diff(body_yaw_deg, ball_direction_deg)
     score = 100.0 - (angle_to_target / 90.0) * 100.0
     return np.maximum(0.0, score)
 

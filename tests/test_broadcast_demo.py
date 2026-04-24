@@ -154,9 +154,9 @@ def test_dfl_colors():
 
 
 def test_screenshot_docstring():
-    """figures/broadcast_screenshot.py has a non-empty docstring containing 'manual'."""
-    script_path = pathlib.Path("figures/broadcast_screenshot.py")
-    assert script_path.exists(), "figures/broadcast_screenshot.py not found"
+    """scripts/broadcast_screenshot.py has a non-empty docstring containing 'manual'."""
+    script_path = pathlib.Path("scripts/broadcast_screenshot.py")
+    assert script_path.exists(), "scripts/broadcast_screenshot.py not found"
     source = script_path.read_text(encoding="utf-8")
     # Extract the module-level docstring by looking for the opening triple-quote
     # and reading until the closing triple-quote. We check the raw source rather

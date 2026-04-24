@@ -18,6 +18,7 @@ TRACAB coordinate system:
 
 from math import atan2, degrees
 
+from src.angle_utils import circular_diff
 from src.skeleton_parser import PART
 
 # Keypoint pairs for body yaw, tried in priority order.
@@ -78,9 +79,8 @@ def pre_orientation_angle(
 ) -> float:
     """Compute angle between body direction and direction toward ball.
 
-    Uses the minimum circular angular difference (handles ±180° boundary),
-    same formula as awi_calculator._angular_delta:
-      abs(((body_yaw - ball_direction) + 180) % 360 - 180)
+    Uses :func:`src.angle_utils.circular_diff` for the wraparound-safe angular
+    difference between the body yaw and the ball-direction azimuth.
 
     Interpretation:
       0°   → body fully facing the incoming ball (ideal pre-orientation)
@@ -100,5 +100,4 @@ def pre_orientation_angle(
     if dx == 0.0 and dy == 0.0:
         return 0.0  # player on the ball -- treat as perfectly pre-oriented
     ball_direction = degrees(atan2(dy, dx))
-    raw = body_yaw_deg - ball_direction
-    return abs(((raw + 180) % 360) - 180)
+    return circular_diff(body_yaw_deg, ball_direction)

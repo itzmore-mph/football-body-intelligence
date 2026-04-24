@@ -7,6 +7,7 @@ AWI = scanning events per minute, based on rapid head direction changes.
 from math import degrees, atan2
 import numpy as np
 import pandas as pd
+from src.angle_utils import circular_diff
 from src.skeleton_parser import extract_head_angles
 
 # Constants
@@ -19,13 +20,10 @@ SCAN_THRESHOLD_DEG = 45.0     # XY-projected head angles are compressed vs. true
 def _angular_delta(a: "pd.Series", b: "pd.Series") -> "pd.Series":
     """Compute the minimum angular difference between two yaw series (degrees).
 
-    Handles wraparound at the ±180° boundary correctly.
-    Example: delta between +170° and -170° = 20°, not 340°.
-
-    Formula: abs(((a - b) + 180) % 360 - 180)
+    Thin wrapper preserved for backward compatibility. Prefer
+    :func:`src.angle_utils.circular_diff` for new code.
     """
-    raw = a - b
-    return ((raw + 180) % 360 - 180).abs()
+    return circular_diff(a, b)
 
 
 def _smooth_yaw_circular(series: pd.Series, window: int = 11) -> pd.Series:

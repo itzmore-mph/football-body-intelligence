@@ -6,12 +6,17 @@ Mirrors batch_pipeline.py structure.
 
 import time
 import os
+from pathlib import Path
 import numpy as np
 import pyarrow as pa
 import pyarrow.parquet as pq
 import pyarrow.compute as pc
 import pyarrow.fs as pafs
 import pandas as pd
+
+# Repo root, two parents up from src/pressure_pipeline.py
+# Used to resolve output paths regardless of cwd.
+_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 from src.batch_pipeline import MATCH_CONFIGS, _load_phases_from_parquet  # noqa: F401
 from src.pqi_calculator import (
@@ -663,9 +668,11 @@ def run_all_matches_pqi(
 
     result = pd.concat(frames, ignore_index=True)
 
-    # Save final output
-    os.makedirs("results", exist_ok=True)
-    result.to_csv("results/pqi_full.csv", index=False)
-    print(f"\n[done] Saved {len(result)} rows to results/pqi_full.csv")
+    # Save final output, resolved against the repo root so cwd doesn't matter.
+    out_dir = _REPO_ROOT / "results"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_path = out_dir / "pqi_full.csv"
+    result.to_csv(out_path, index=False)
+    print(f"\n[done] Saved {len(result)} rows to {out_path}")
 
     return result

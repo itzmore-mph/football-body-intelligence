@@ -27,7 +27,6 @@ FCU-FCB are placeholders — verify with list_bucket() on first run.
 """
 
 import time
-from math import degrees, atan2
 import numpy as np
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -37,34 +36,9 @@ import pandas as pd
 
 from src.skeleton_parser import extract_head_angles_batch, PART, _compute_yaw
 from src.awi_calculator import detect_scans, compute_awi
+from src.angle_utils import circular_diff
 from src.event_parser import extract_phases_from_metadata, extract_players_from_match_info
 from src.eda_helpers import load_xml
-
-# Body joint pairs for yaw (same as body_orientation.py — avoid circular import)
-_BODY_JOINT_PAIRS = [
-    (PART["left_shoulder"], PART["right_shoulder"]),
-    (PART["left_hip"],      PART["right_hip"]),
-]
-_BODY_PART_IDS = {PART["left_shoulder"], PART["right_shoulder"],
-                  PART["left_hip"],      PART["right_hip"]}
-
-
-def _body_yaw(parts_list: list) -> float | None:
-    parts = {p["name"]: p for p in parts_list if p["name"] in _BODY_PART_IDS}
-    for left_id, right_id in _BODY_JOINT_PAIRS:
-        l, r = parts.get(left_id), parts.get(right_id)
-        if l is None or r is None:
-            continue
-        dx, dy = l["position_x"] - r["position_x"], l["position_y"] - r["position_y"]
-        if dx == 0.0 and dy == 0.0:
-            continue
-        return degrees(atan2(-dx, dy))
-    return None
-
-
-def _circular_diff(a: float, b: float) -> float:
-    """Minimum angular difference between two yaw values (degrees)."""
-    return abs(((a - b) + 180) % 360 - 180)
 
 
 # ── Match configuration ──────────────────────────────────────────────────────
@@ -439,9 +413,10 @@ def compute_scan_direction_profile(
     if event_df.empty:
         return empty
 
-    delta = event_df["head_yaw_deg"].to_numpy() - event_df["body_yaw_deg"].to_numpy()
-    diff = np.abs(((delta + 180) % 360) - 180)
-
+    diff = circular_diff(
+        event_df["head_yaw_deg"].to_numpy(),
+        event_df["body_yaw_deg"].to_numpy(),
+    )
     n = len(diff)
     return {
         "scan_forward_pct":   round(int((diff < 60).sum()) / n, 4),
@@ -483,8 +458,10 @@ def compute_hbd(angles_df: pd.DataFrame) -> dict:
     df = angles_df.dropna(subset=["head_yaw_deg", "body_yaw_deg"])
     if df.empty:
         return {"hbd_mean_deg": None, "hbd_n_frames": 0}
-    delta = df["head_yaw_deg"].to_numpy() - df["body_yaw_deg"].to_numpy()
-    diffs = np.abs(((delta + 180) % 360) - 180)
+    diffs = circular_diff(
+        df["head_yaw_deg"].to_numpy(),
+        df["body_yaw_deg"].to_numpy(),
+    )
     return {
         "hbd_mean_deg": round(float(diffs.mean()), 2),
         "hbd_n_frames": len(df),

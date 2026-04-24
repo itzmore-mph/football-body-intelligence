@@ -335,7 +335,7 @@ No AWS credentials required. The demo loads pre-computed results from `results/c
 To capture a screenshot of the overlay at 1280x720, run:
 
 ```bash
-python figures/broadcast_screenshot.py
+python scripts/broadcast_screenshot.py
 ```
 
 If selenium or playwright are not installed, the script prints manual capture instructions.
