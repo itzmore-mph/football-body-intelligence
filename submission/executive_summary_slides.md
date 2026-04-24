@@ -46,7 +46,7 @@ TF15 Parquet (S3, ~4 GB/match)
 | Press frame filter: ≥10 consecutive frames within 5 m | Excludes incidental proximity; captures genuine pressing intent |
 | SageMaker Processing (10 parallel jobs) | 5 matches × 2 metrics in ~15 min vs ~2 hrs local; zero cold-start overhead |
 
-**Scale:** 5 Bundesliga matches · ~40 players × 2 halves = **400 player-phase rows** · 212 unit tests · production-containerised pipeline (Docker → ECR)
+**Scale:** 5 Bundesliga matches · ~40 players × 2 halves = **400 player-phase rows** · 324 unit + property-based tests · production-containerised pipeline (Docker → ECR)
 
 ---
 
