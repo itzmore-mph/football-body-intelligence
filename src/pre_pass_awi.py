@@ -317,7 +317,7 @@ def enrich_match_with_pre_pass_awi(
     Returns:
         DataFrame with columns: jersey, team, match_id, phase_label,
         pre_pass_awi, pre_pass_scan_pct, n_passes_tracked.
-        One row per player × phase. Merge with awi_all_matches.csv on
+        One row per player × phase. Merge with results/awi_full.csv on
         (jersey, team, match_id, phase_label).
     """
     from src.skeleton_parser import extract_head_angles_batch

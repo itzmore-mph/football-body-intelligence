@@ -29,7 +29,7 @@ FCU-FCB are placeholders — verify with list_bucket() on first run.
 import time
 import numpy as np
 import pyarrow as pa
-import pyarrow.parquet as pq
+import pyarrow.parquet as pq  # noqa: F401 (kept for tests that patch src.batch_pipeline.pq.read_table)
 import pyarrow.compute as pc
 import pyarrow.fs as pafs
 import pandas as pd
@@ -37,8 +37,27 @@ import pandas as pd
 from src.skeleton_parser import extract_head_angles_batch, PART, _compute_yaw
 from src.awi_calculator import detect_scans, compute_awi
 from src.angle_utils import circular_diff
-from src.event_parser import extract_phases_from_metadata, extract_players_from_match_info
+from src.event_parser import extract_players_from_match_info
 from src.eda_helpers import load_xml
+from src.pipeline_io import (
+    load_phases_from_parquet as _load_phases_from_parquet,
+    load_phase_df,
+    read_phase_table_with_retry,
+)
+
+# Public re-exports so downstream modules and tests can patch them via
+# ``src.batch_pipeline.<name>`` (patching through the alias updates this
+# module's global binding, which is what the runners resolve at call time).
+__all__ = [
+    "MATCH_CONFIGS",
+    "load_phase_df",
+    "stream_player_angles",
+    "compute_phase_awi_all_players",
+    "run_match_awi",
+    "run_all_matches",
+    "run_match_unified",
+    "run_all_matches_unified",
+]
 
 
 # ── Match configuration ──────────────────────────────────────────────────────
@@ -81,33 +100,8 @@ MATCH_CONFIGS = [
 
 
 # ── Low-level helpers ────────────────────────────────────────────────────────
-
-def _load_phases_from_parquet(s3fs: pafs.S3FileSystem, parquet_path: str) -> list[dict]:
-    """Read phase frame boundaries from the TF15 Parquet metadata header.
-
-    The TF15 1.1 spec stores phase boundaries as key-value metadata on the
-    Parquet file itself (not in a separate JSON). Keys: phase_1_start,
-    phase_1_end, phase_2_start, phase_2_end (bytes when read via pyarrow).
-
-    Args:
-        s3fs:         pyarrow S3FileSystem.
-        parquet_path: Full S3 path without s3:// prefix (bucket/key).
-
-    Returns:
-        List of phase dicts from extract_phases_from_metadata().
-
-    Raises:
-        RuntimeError: If TF15 metadata is missing or unrecognized.
-    """
-    pf = pq.ParquetFile(parquet_path, filesystem=s3fs)
-    kv = pf.metadata.metadata  # dict[bytes, bytes] or None
-    if not kv:
-        raise RuntimeError(
-            f"Parquet file has no key-value metadata: {parquet_path}. "
-            "Cannot determine phase boundaries automatically."
-        )
-    return extract_phases_from_metadata(dict(kv))
-
+# Phase-boundary and parquet-read helpers live in src.pipeline_io (imported
+# above as _load_phases_from_parquet, load_phase_df, read_phase_table_with_retry).
 
 # Part IDs needed for vectorized yaw extraction
 _NOSE, _NECK = PART["nose"], PART["neck"]
@@ -273,21 +267,20 @@ def stream_player_angles(
 ) -> dict[tuple[int, int], pd.DataFrame]:
     """Read a phase from S3 then extract head + body angles via vectorized PyArrow ops.
 
-    Uses pq.read_table with frame_number filters to skip irrelevant row groups,
-    then _extract_angles_vectorized to compute yaw with numpy instead of Python
-    loops. Typical speedup: 20-50x over the previous itertuples approach.
+    Uses :func:`pipeline_io.read_phase_table_with_retry` for the parquet read
+    (frame-number filter, column pruning, token-aware retry/backoff), then
+    :func:`_extract_angles_vectorized` to compute yaw with numpy instead of
+    Python loops. Typical speedup: 20-50x over the previous itertuples approach.
 
     Returns:
         Dict mapping (jersey, team) -> DataFrame[frame_number, head_yaw_deg, body_yaw_deg].
     """
-    table = pq.read_table(
+    table = read_phase_table_with_retry(
+        s3fs,
         parquet_path,
-        filesystem=s3fs,
+        phase_start,
+        phase_end,
         columns=["frame_number", "skeletons"],
-        filters=[
-            ("frame_number", ">=", phase_start),
-            ("frame_number", "<=", phase_end),
-        ],
     )
     result = _extract_angles_vectorized(table, player_keys)
     del table
@@ -468,101 +461,9 @@ def compute_hbd(angles_df: pd.DataFrame) -> dict:
     }
 
 
-def load_phase_df(
-    s3fs: pafs.S3FileSystem,
-    parquet_path: str,
-    phase_start: int,
-    phase_end: int,
-) -> pd.DataFrame:
-    """Stream-read skeleton frames for a single phase from S3.
-
-    Uses pq.read_table() with frame_number filters and column pruning.
-    Filters are applied at row-group granularity, so a few frames outside
-    [phase_start, phase_end] may be included — compute_awi() clips them.
-
-    Args:
-        s3fs:         pyarrow S3FileSystem.
-        parquet_path: Full S3 path (bucket/challenge_prefix/match/file.parquet).
-        phase_start:  Inclusive start frame number.
-        phase_end:    Inclusive end frame number.
-
-    Returns:
-        DataFrame[frame_number, skeletons] for the given phase window.
-    """
-    table = pq.read_table(
-        parquet_path,
-        filesystem=s3fs,
-        columns=["frame_number", "skeletons"],
-        filters=[
-            ("frame_number", ">=", phase_start),
-            ("frame_number", "<=", phase_end),
-        ],
-    )
-    return table.to_pandas()
-
-
-def _load_phase_df_with_retry(
-    s3fs: pafs.S3FileSystem,
-    parquet_path: str,
-    phase_start: int,
-    phase_end: int,
-    max_retries: int = 3,
-    backoff_base: float = 15.0,
-) -> pd.DataFrame:
-    """load_phase_df with exponential backoff retry on transient network errors.
-
-    Waits backoff_base * 2^attempt seconds between attempts (15s, 30s, 60s).
-    Re-raises the last exception if all retries are exhausted.
-    Does not help with token expiry (HTTP 400) — refresh the token and re-run.
-    """
-    _TOKEN_ERRORS = ("ExpiredToken", "InvalidClientTokenId", "HTTP 400", "400")
-
-    last_exc: Exception | None = None
-    for attempt in range(max_retries):
-        try:
-            return load_phase_df(s3fs, parquet_path, phase_start, phase_end)
-        except Exception as e:
-            err_str = str(e)
-            if any(marker in err_str for marker in _TOKEN_ERRORS):
-                print(f"    [token expired] {e}. Refresh token and re-run.")
-                raise
-            last_exc = e
-            wait = backoff_base * (2 ** attempt)
-            print(f"    [retry {attempt + 1}/{max_retries}] {e}. Waiting {wait:.0f}s...")
-            time.sleep(wait)
-    raise last_exc  # type: ignore[misc]
-
-
-def _stream_player_angles_with_retry(
-    s3fs: pafs.S3FileSystem,
-    parquet_path: str,
-    phase_start: int,
-    phase_end: int,
-    player_keys: list[tuple[int, int]],
-    max_retries: int = 3,
-    backoff_base: float = 15.0,
-) -> dict[tuple[int, int], pd.DataFrame]:
-    """stream_player_angles with exponential backoff on transient S3 errors.
-
-    Mirrors _load_phase_df_with_retry; detects token expiry and surfaces it
-    immediately rather than retrying (retrying won't help — need a new token).
-    """
-    _TOKEN_ERRORS = ("ExpiredToken", "InvalidClientTokenId", "HTTP 400", "400")
-
-    last_exc: Exception | None = None
-    for attempt in range(max_retries):
-        try:
-            return stream_player_angles(s3fs, parquet_path, phase_start, phase_end, player_keys)
-        except Exception as e:
-            err_str = str(e)
-            if any(marker in err_str for marker in _TOKEN_ERRORS):
-                print(f"    [token expired] {e}. Refresh token and re-run.")
-                raise
-            last_exc = e
-            wait = backoff_base * (2 ** attempt)
-            print(f"    [retry {attempt + 1}/{max_retries}] {e}. Waiting {wait:.0f}s...")
-            time.sleep(wait)
-    raise last_exc  # type: ignore[misc]
+# load_phase_df (pandas-returning) is imported from src.pipeline_io at the top
+# of the module. stream_player_angles now delegates its parquet read to
+# read_phase_table_with_retry, so no separate retry wrapper is required.
 
 
 # ── Core computation ─────────────────────────────────────────────────────────
@@ -725,7 +626,7 @@ def run_match_awi(
             f"frames {phase_info['start_frame']:,} – {phase_info['end_frame']:,} ... ",
             end="", flush=True,
         )
-        angles_by_player = _stream_player_angles_with_retry(
+        angles_by_player = stream_player_angles(
             s3fs, parquet_path,
             phase_info["start_frame"], phase_info["end_frame"],
             player_keys,
@@ -936,7 +837,7 @@ def run_match_unified(
             end=" ", flush=True,
         )
 
-        angles_by_player = _stream_player_angles_with_retry(
+        angles_by_player = stream_player_angles(
             s3fs, parquet_path,
             phase_info["start_frame"], phase_info["end_frame"],
             player_keys,

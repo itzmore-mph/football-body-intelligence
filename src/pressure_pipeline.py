@@ -9,16 +9,15 @@ import os
 from pathlib import Path
 import numpy as np
 import pyarrow as pa
-import pyarrow.parquet as pq
 import pyarrow.compute as pc
-import pyarrow.fs as pafs
 import pandas as pd
 
 # Repo root, two parents up from src/pressure_pipeline.py
 # Used to resolve output paths regardless of cwd.
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 
-from src.batch_pipeline import MATCH_CONFIGS, _load_phases_from_parquet  # noqa: F401
+from src.batch_pipeline import MATCH_CONFIGS
+from src.pipeline_io import load_phases_from_parquet, read_phase_table_with_retry
 from src.pqi_calculator import (
     compute_orientation_score,
     compute_stance_score,
@@ -528,7 +527,7 @@ def run_match_pqi(
     player_meta = {(p["jersey"], p["team"]): p for p in players}
 
     # Load phase boundaries from Parquet TF15 metadata
-    phases = _load_phases_from_parquet(s3fs, parquet_path)
+    phases = load_phases_from_parquet(s3fs, parquet_path)
     print(f"  [{match_id}] {len(players)} players, {len(phases)} phases")
 
     for phase_info in phases:
@@ -547,33 +546,14 @@ def run_match_pqi(
             end="", flush=True,
         )
 
-        # Read parquet with retry logic
-        last_exc: Exception | None = None
-        table = None
-        for attempt in range(3):
-            try:
-                table = pq.read_table(
-                    parquet_path,
-                    filesystem=s3fs,
-                    columns=["frame_number", "skeletons", "ball", "ball_exists"],
-                    filters=[
-                        ("frame_number", ">=", phase_start),
-                        ("frame_number", "<=", phase_end),
-                    ],
-                )
-                break
-            except Exception as e:
-                err_str = str(e)
-                if "ExpiredToken" in err_str:
-                    print(f"\n    [token expired] {e}. Refresh token and re-run.")
-                    raise
-                last_exc = e
-                wait = 15.0 * (2 ** attempt)
-                print(f"\n    [retry {attempt + 1}/3] {e}. Waiting {wait:.0f}s...")
-                time.sleep(wait)
-
-        if table is None:
-            raise last_exc  # type: ignore[misc]
+        # Read parquet via shared retry helper (token-aware, exponential backoff).
+        table = read_phase_table_with_retry(
+            s3fs,
+            parquet_path,
+            phase_start,
+            phase_end,
+            columns=["frame_number", "skeletons", "ball", "ball_exists"],
+        )
 
         # Map phase_info keys to the dict expected by compute_phase_pqi_all_players
         phase_info_dict = {
