@@ -29,8 +29,8 @@ REFERENCE_CASES: dict[str, dict] = {
     },
 }
 
-# Path to the pre-computed AWI results file (relative to the project root).
-_AWI_CSV_PATH = os.path.join("results", "awi_full.csv")
+# Absolute path anchored to src/ parent (project root), so it works from any CWD.
+_AWI_CSV_PATH = os.path.join(os.path.dirname(__file__), "..", "results", "awi_full.csv")
 
 
 # ---------------------------------------------------------------------------
