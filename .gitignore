@@ -46,6 +46,7 @@ results/*
 !results/pqi_full.csv
 !results/combined_full.csv
 !results/narratives.csv
+!results/match_moments.csv
 
 # ── Generated figures ─────────────────────────────────────────────────────────
 figures/*

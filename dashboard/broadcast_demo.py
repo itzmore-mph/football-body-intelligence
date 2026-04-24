@@ -52,26 +52,46 @@ POS_MAP: dict[str, str] = {
 # ── Data Loading ──────────────────────────────────────────────────────────────
 
 def load_broadcast_data(path: str = "results/combined_full.csv") -> pd.DataFrame:
-    """Load and enrich the merged dataset.
+    """Load the merged AWI + PQI dataset for broadcast overlay.
 
-    Reads the combined CSV, maps position codes to position groups via POS_MAP,
-    and returns the enriched DataFrame. Calls st.error() and st.stop() if the
-    file is not found.
+    Merges ``awi_full.csv`` and ``pqi_full.csv`` on the fly so the broadcast
+    demo always reflects the latest pipeline output, even if the analysis
+    notebook has not been re-run.  Falls back to a pre-built
+    ``combined_full.csv`` only when the source CSVs are missing.
 
     Parameters
     ----------
     path:
-        Path to the combined CSV file.
+        Legacy path kept for backward compatibility.  Ignored when the
+        source CSVs exist.
 
     Returns
     -------
     pd.DataFrame
-        DataFrame with an added pos_group column.
+        DataFrame with an added ``pos_group`` column.
     """
-    if not os.path.exists(path):
-        st.error(f"`{path}` not found. Run the pipeline first to generate the data file.")
+    awi_path = "results/awi_full.csv"
+    pqi_path = "results/pqi_full.csv"
+
+    if os.path.exists(awi_path) and os.path.exists(pqi_path):
+        awi = pd.read_csv(awi_path)
+        pqi = pd.read_csv(pqi_path)
+        pqi_cols = ["jersey", "team", "match_id", "phase_label",
+                    "mean_pqi", "median_pqi", "std_pqi",
+                    "n_press_frames", "press_minutes",
+                    "orientation_mean", "stance_mean", "proximity_mean"]
+        df = awi.merge(pqi[[c for c in pqi_cols if c in pqi.columns]],
+                       on=["jersey", "team", "match_id", "phase_label"],
+                       how="left")
+    elif os.path.exists(path):
+        df = pd.read_csv(path)
+    else:
+        st.error(
+            f"Neither `{awi_path}` + `{pqi_path}` nor `{path}` found. "
+            "Run the pipeline first to generate the data files."
+        )
         st.stop()
-    df = pd.read_csv(path)
+
     df["pos_group"] = df["position"].map(POS_MAP)
     return df
 
