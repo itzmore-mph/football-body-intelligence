@@ -107,7 +107,7 @@ Top performers: Oscar Höjlund (DMZ, 26.90 / 63.9), Joshua Kimmich (DMR, 21.77 /
 
 **PQI leaders among outfield players:** DMZ (62.9) and DMR (62.1) lead, confirming that defensive midfielders dominate both cognitive and physical pressing dimensions. Kimmich's proximity sub-score of 96.0 is the highest among all outfield players in the dataset.
 
-**Cross-domain validation:** AWI and PQI each map to a validated external reference system — no isolated inventions. AWI aligns with aviation cognitive load research (population: 24 scans/min, elite: 34); the +57% pre-pass spike places football players at the upper end of aviation pre-decision profiles. PQI sub-scores map to NBA Second Spectrum (orientation), Tennis Hawk-Eye biomechanics (130° stance optimum), and NFL Next Gen Stats (proximity). All six reference systems are parameterised from published statistics and visualised in the **Benchmark tab**.
+**Cross-domain validation:** AWI and PQI each map to a validated external reference system — no isolated inventions. AWI aligns with cockpit visual-scanning research (Lounis et al., 2021, PLOS ONE; population mean: 12 scans/min, elite: 19); football active players match the aviation population baseline, while the pre-pass spike (~19.2 scans/min) reaches aviation elite levels. PQI sub-scores map to NBA Second Spectrum EPV (Cervone et al., 2016; orientation), tennis ready-position biomechanics (Elliott, 2006, BJSM; stance), and NFL player-tracking (Eager et al., 2023, MIT Sloan; proximity). All six reference systems are parameterised from published, peer-reviewed sources and visualised in the **Benchmark tab**.
 
 ---
 

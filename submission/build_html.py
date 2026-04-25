@@ -245,15 +245,15 @@ SLIDES = f"""<!DOCTYPE html>
       <table style="font-size:9pt;">
         <thead><tr><th>External System</th><th>Maps to</th></tr></thead>
         <tbody>
-          <tr><td><strong>NFL Next Gen Stats</strong></td><td>PQI proximity sub-score (spatial separation)</td></tr>
-          <tr><td><strong>NBA Second Spectrum</strong></td><td>PQI orientation sub-score (defensive matchup tracking)</td></tr>
-          <tr><td><strong>Tennis Hawk-Eye</strong></td><td>PQI stance sub-score (joint-angle quality signal)</td></tr>
-          <tr><td><strong>Medical gait analysis</strong></td><td>PQI stance Gaussian penalty (knee-angle norms)</td></tr>
-          <tr><td><strong>Rugby pose fusion</strong></td><td>PQI composite (tackle-quality sensor fusion)</td></tr>
-          <tr><td><strong>Aviation cognitive load</strong></td><td>AWI (head-scan rate as situational awareness proxy)</td></tr>
+          <tr><td><strong>NFL Next Gen Stats</strong> <span style="color:#666;font-weight:normal;">(Eager et al., 2023, MIT Sloan)</span></td><td>PQI proximity sub-score (distance-decay scoring)</td></tr>
+          <tr><td><strong>NBA Second Spectrum</strong> <span style="color:#666;font-weight:normal;">(Cervone et al., 2016, JASA)</span></td><td>PQI orientation sub-score (EPV defensive positioning)</td></tr>
+          <tr><td><strong>Tennis biomechanics</strong> <span style="color:#666;font-weight:normal;">(Elliott, 2006, BJSM)</span></td><td>PQI stance sub-score (optimal knee-flexion deviation)</td></tr>
+          <tr><td><strong>Occupational biomechanics REBA</strong> <span style="color:#666;font-weight:normal;">(Hignett &amp; McAtamney, 2000, Appl. Ergon.)</span></td><td>PQI stance Gaussian penalty (joint-angle deviation structure)</td></tr>
+          <tr><td><strong>Rugby 3D motion capture</strong> <span style="color:#666;font-weight:normal;">(Hendricks et al., 2021, Sports Med. Open)</span></td><td>PQI composite (three-factor tackle biomechanics)</td></tr>
+          <tr><td><strong>Cockpit visual scanning</strong> <span style="color:#666;font-weight:normal;">(Lounis et al., 2021, PLOS ONE)</span></td><td>AWI (scan-transition rate as situational awareness proxy)</td></tr>
         </tbody>
       </table>
-      <blockquote style="margin-top:10px; font-size:9pt;">The +57% AWI spike before a pass is the football equivalent of the pre-decision scan burst in fighter-pilot studies. TF15 makes this measurement possible at matchday scale for the first time in team sports.</blockquote>
+      <blockquote style="margin-top:10px; font-size:9pt;">The pre-pass AWI spike (~19.2 scans/min) reaches the aviation elite level (19 scans/min, Lounis et al., 2021). TF15 makes this measurement possible at matchday scale for the first time in team sports.</blockquote>
     </div>
   </div>
 </div>
