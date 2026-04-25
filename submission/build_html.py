@@ -168,7 +168,7 @@ SLIDES = f"""<!DOCTYPE html>
         </tbody>
       </table>
       <p style="margin-top:10px;"><strong>Kimmich validation:</strong> 21.77 (FCB-HSV H1) &rarr; 21.15 (H2) &rarr; 23.38 (FCU-FCB H1) &rarr; 11.29 (H2). The H2 drop of 52% is a fatigue signal no GPS metric would catch.</p>
-      <p style="margin-top:6px;">Cross-half R = <strong>0.854</strong> (p &lt; 0.001, n = 69): AWI is a stable player trait.</p>
+      <p style="margin-top:6px;">Cross-half r = <strong>0.660</strong> (n = 79): AWI is a stable player trait.</p>
     </div>
     <div>
       <div class="fig">
@@ -318,10 +318,10 @@ img { width: 100%; max-width: 100%; height: auto; border: 1px solid #e0e0e0; bor
     consistency_tag = (
         '\n<div class="fig">'
         f'<img src="{imgs["half_compare"]}" alt="Cross-half AWI consistency">'
-        '<p class="fig-caption">1st half vs 2nd half AWI &mdash; R = 0.854, p &lt; 0.001 across all 5 matches</p>'
+        '<p class="fig-caption">1st half vs 2nd half AWI &mdash; r = 0.660, p &lt; 0.001 across all 5 matches</p>'
         '</div>\n'
     )
-    # Insert after the sentence containing "R = 0.854"
+    # Insert after the sentence containing "r = 0.660"
     body = body.replace(
         'We also observe cross-match stability for players who appear in multiple games (Kimmich, Goretzka, Kimmich). The metric captures individual cognitive style, not just tactical instructions.</p>',
         'We also observe cross-match stability for players who appear in multiple games (Kimmich, Goretzka, Kimmich). The metric captures individual cognitive style, not just tactical instructions.</p>'

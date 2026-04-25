@@ -30,9 +30,9 @@ LIGHT_TEXT    = "#F1F5F9"
 
 # ── Ticker Content ────────────────────────────────────────────────────────────
 TICKER_MESSAGES: list[str] = [
-    "+57% pre-pass scan spike",
+    "+59% pre-pass scan spike",
     "r=-0.11 AWI/PQI independence",
-    "R=0.854 cross-half stability",
+    "r=0.660 cross-half stability",
 ]
 
 TICKER_INTERVAL_SECONDS: int = 3

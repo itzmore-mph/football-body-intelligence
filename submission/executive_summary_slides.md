@@ -52,7 +52,7 @@ TF15 Parquet (S3, ~4 GB/match)
 
 ## Slide 3: Results - AWI Leaderboard, Position Patterns & Pre-Pass Signal
 
-### Defensive midfielders are the most cognitively active players on the pitch - and AWI spikes 57% before a pass
+### Defensive midfielders are the most cognitively active players on the pitch - and AWI spikes 59% before a pass
 
 **Top 10 by AWI (scans/min):**
 
@@ -78,9 +78,9 @@ TF15 Parquet (S3, ~4 GB/match)
 | STZ - Striker Centre | 6.2 | Lowest outfield |
 | TW - Goalkeeper | 3.5 | Ball-tracking dominant |
 
-**Stability:** Cross-half Pearson R = **0.854** (p < 0.001, n = 69 active player-phases): AWI is a stable player trait across the match. Kimmich: 21.77 (FCB-HSV 1st) → 21.15 (FCB-HSV 2nd) - a 0.6-scan variance across 47 minutes of football.
+**Stability:** Cross-half Pearson r = **0.660** (n = 79 active player-phases): AWI is a stable player trait across the match. Kimmich: 21.77 (FCB-HSV 1st) → 21.15 (FCB-HSV 2nd) - a 0.6-scan variance across 47 minutes of football.
 
-**Pre-pass AWI is +57% above the full-phase baseline.** Players ramp their scanning rate in the 5 seconds before releasing the ball. AWI directly measures the pre-decision cognitive window - the moment coaches describe as "playing with your head up."
+**Pre-pass AWI is +59% above the full-phase baseline.** Players ramp their scanning rate in the 5 seconds before releasing the ball. AWI directly measures the pre-decision cognitive window - the moment coaches describe as "playing with your head up."
 
 ---
 
@@ -126,4 +126,4 @@ Top performers: Oscar Höjlund (DMZ, 26.90 / 63.9), Joshua Kimmich (DMR, 21.77 /
 
 **For the DFL:** First matchday-grade metrics derived solely from TF15 skeleton data - differentiates the 3D product from any 2D competitor.
 
-> *The +57% AWI spike before a pass confirms the metric captures the pre-decision cognitive window that coaches call "playing with your head up." TF15 makes this measurement possible at matchday scale for the first time in team sports.*
+> *The +59% AWI spike before a pass confirms the metric captures the pre-decision cognitive window that coaches call "playing with your head up." TF15 makes this measurement possible at matchday scale for the first time in team sports.*

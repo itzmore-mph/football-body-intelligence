@@ -32,13 +32,13 @@ A player can scan brilliantly but press with poor mechanics (high AWI, low PQI),
 | STZ - Striker Centre | 6.2 | Lowest outfield: forward-facing role, fewer opponents to track |
 | TW - Goalkeeper | 3.5 | Ball-tracking dominant, not opponent-scanning |
 
-**Stability:** Cross-half Pearson R = **0.854** (p < 0.001, n = 69 active phases) - AWI is a stable player trait, not match noise.
+**Stability:** Cross-half Pearson r = **0.660** (n = 79 active phases) - AWI is a stable player trait, not match noise.
 
 **Validation:** Kimmich (FCB-HSV): 21.77 -> 21.15 across halves - consistent with his documented scanning reputation. Hojlund (SGE-FCB, 1st half): 26.90 scans/min serves as the second independent calibration anchor, cross-validating that the 45° threshold generalises beyond a single player. Kimmich's FCU-FCB 2nd-half drop to 11.29 (-52%) is a fatigue signal no GPS or positional metric captures.
 
 > **Validation note:** The 45° scan threshold is empirically tuned on Kimmich as the primary anchor (FCB-HSV, 1st half), where the resulting AWI of 21.77 scans/min matches his documented scanning frequency from hand-coded video analysis in the coaching literature. The positional hierarchy (DMZ > CB > FW > GK) independently replicates the gradient reported by Jordet et al. (2020) in the EPL, providing cross-player validation. Additional hand-coded video comparisons across positions would further strengthen threshold confidence - this is a known limitation documented in the PRFAQ.
 
-**Pre-pass signal:** AWI is **+57% above full-phase baseline** in the 5 seconds before a pass - confirming the metric measures pre-decision cognitive load, not incidental movement.
+**Pre-pass signal:** AWI is **+59% above full-phase baseline** in the 5 seconds before a pass - confirming the metric measures pre-decision cognitive load, not incidental movement.
 
 ### PQI - Pressure Quality Index
 
@@ -322,7 +322,7 @@ The overlay renders a lower-third style layout with:
 - A player selector populated from all 400 player-phase observations
 - Two circular gauges: AWI (scans/min vs league mean) and PQI (player score vs role mean), both with red fill on black background
 - A Quadrant Badge classifying the player as ELITE, AWARE, PRESSER, or DEVELOPING based on 75th-percentile thresholds
-- An animated ticker cycling through three validated findings every 3 seconds: "+57% pre-pass scan spike", "r=-0.11 AWI/PQI independence", "R=0.854 cross-half stability"
+- An animated ticker cycling through three validated findings every 3 seconds: "+59% pre-pass scan spike", "r=-0.11 AWI/PQI independence", "r=0.660 cross-half stability"
 
 This addresses the gap in Track 2: the coaching and scouting tools are complete, and the broadcast demo makes the fan engagement value proposition tangible for hackathon judges.
 

@@ -1822,7 +1822,7 @@ def render_fan_view(fdf: pd.DataFrame) -> None:
   <span style="font-size:0.8rem;font-weight:400;line-height:1.7;color:{C_MUTED}">
     {top_player['name'].split()[-1]} scanned <strong style="color:{C_TEXT}">{top_player['awi_per_minute']:.0f} times per minute</strong>
     in {top_player['match_id']} ({top_player['phase_label']}), once every <strong style="color:{C_TEXT}">{cadence:.1f} seconds</strong>.
-    AWI spikes <strong style="color:{C_AWI}">+57%</strong> in the 5 seconds before a pass.
+    AWI spikes <strong style="color:{C_AWI}">+59%</strong> in the 5 seconds before a pass.
   </span>
 </div>
 """, unsafe_allow_html=True)
@@ -1950,7 +1950,7 @@ def render_benchmark_tab(fdf: pd.DataFrame) -> None:
     # ── Block 4: Pre-Decision Scan Burst ──────────────────────────────────────
     st.markdown("### Pre-Decision Scan Burst")
     st.markdown(
-        "The +57% AWI spike in the 5 seconds before a pass mirrors the pre-decision scan "
+        "The +59% AWI spike in the 5 seconds before a pass mirrors the pre-decision scan "
         "burst documented in fighter-pilot studies (aviation: +40-65%). "
         "The Bundesliga finding sits at the midpoint of this aviation range."
     )
@@ -1976,7 +1976,7 @@ def render_benchmark_tab(fdf: pd.DataFrame) -> None:
         x="Football<br>(pre-pass AWI)", y=bl_pre_pass,
         ax="Football<br>(baseline AWI)", ay=bl_mean,
         xref="x", yref="y", axref="x", ayref="y",
-        text="+57%", showarrow=True, arrowhead=2,
+        text="+59%", showarrow=True, arrowhead=2,
         arrowcolor=C_GREEN, font=dict(color=C_GREEN, size=13),
     )
     fig_burst.add_annotation(
