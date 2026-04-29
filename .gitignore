@@ -40,13 +40,7 @@ build/
 *.parquet
 
 # ── Pipeline results (derived from S3 data, large) ────────────────────────────
-# Ignore the directory but commit the key output CSVs and figures
-results/*
-!results/awi_full.csv
-!results/pqi_full.csv
-!results/combined_full.csv
-!results/narratives.csv
-!results/match_moments.csv
+results/
 
 # ── Generated figures ─────────────────────────────────────────────────────────
 figures/*
