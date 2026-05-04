@@ -69,7 +69,7 @@ SLIDES = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Football Body Intelligence Platform — Executive Summary</title>
+<title>Football Body Intelligence Platform  -  Executive Summary</title>
 <style>{CSS}</style>
 </head>
 <body>
@@ -93,23 +93,23 @@ SLIDES = f"""<!DOCTYPE html>
   </div>
   <p class="slide-subtitle">Standard tracking tells you <em>where</em> players move. TF15 tells you <em>how</em> they move and <em>where they look</em>.</p>
 
-  <p>The Bundesliga's TRACAB TF15 system captures 141 million data points per match — full 3D skeleton at 50 fps. Today it powers only automated event detection. The body intelligence it contains goes unmeasured.</p>
+  <p>The Bundesliga's TRACAB TF15 system captures 141 million data points per match  -  full 3D skeleton at 50 fps. Today it powers only automated event detection. The body intelligence it contains goes unmeasured.</p>
 
   <div class="two-col" style="margin-top:14px;">
     <div>
-      <h3>AWI &mdash; Awareness Index</h3>
+      <h3>AWI &ndash; Awareness Index</h3>
       <p>Discrete head-scanning events per minute, derived from 3D nose/neck/ear keypoints.<br>
       <em>Impossible with 2D tracking. Directly measures where a player is looking.</em></p>
       <p>A scan = head rotation &ge;45&deg; within 0.5 s. One sustained turn = one event.</p>
     </div>
     <div>
-      <h3>PQI &mdash; Pressure Quality Index</h3>
+      <h3>PQI &ndash; Pressure Quality Index</h3>
       <p>Pressing mechanics score [0&ndash;100] during genuine press frames (&ge;10 consecutive frames within 5 m of ball carrier).</p>
       <p>PQI = 0.40 &times; orientation + 0.30 &times; stance + 0.30 &times; proximity</p>
     </div>
   </div>
 
-  <blockquote style="margin-top:16px;">A player can scan brilliantly but press with poor mechanics (high AWI, low PQI), or press perfectly without pre-scanning (low AWI, high PQI). Elite players score high on both &mdash; and the data shows exactly who they are.</blockquote>
+  <blockquote style="margin-top:16px;">A player can scan brilliantly but press with poor mechanics (high AWI, low PQI), or press perfectly without pre-scanning (low AWI, high PQI). Elite players score high on both &ndash; and the data shows exactly who they are.</blockquote>
 </div>
 
 <!-- SLIDE 2: TECHNICAL -->
@@ -147,7 +147,7 @@ SLIDES = f"""<!DOCTYPE html>
 <div class="slide">
   <div class="slide-header">
     <span class="slide-num">Slide 3 of 6</span>
-    <span class="slide-title">Results &mdash; AWI Leaderboard &amp; Position Patterns</span>
+    <span class="slide-title">Results &ndash; AWI Leaderboard &amp; Position Patterns</span>
   </div>
   <p class="slide-subtitle">Defensive midfielders are the most cognitively active players on the pitch</p>
 
@@ -183,7 +183,7 @@ SLIDES = f"""<!DOCTYPE html>
 <div class="slide">
   <div class="slide-header">
     <span class="slide-num">Slide 4 of 6</span>
-    <span class="slide-title">The Key Finding &mdash; AWI and PQI Are Independent</span>
+    <span class="slide-title">The Key Finding &ndash; AWI and PQI Are Independent</span>
   </div>
   <p class="slide-subtitle">Scanning awareness and pressing mechanics are two orthogonal dimensions of player intelligence</p>
 
@@ -202,11 +202,11 @@ SLIDES = f"""<!DOCTYPE html>
       </table>
       <p style="margin-top:10px;"><strong>Elite quadrant (both &gt;75th pct):</strong> 10 unique players, 15 player-phases</p>
       <p>Top performers: H&oslash;jlund (DMZ, 26.90 / 63.9), Kimmich (DMR, 21.77 / 64.7), Kemlein (DMZ, 21.89 / 63.2), Remberg (DMR, 20.52 / 63.7), Vu&scaron;kovi&cacute; (IVZ, 18.33 / 63.7)</p>
-      <p style="margin-top:8px; font-size:9pt; color:#555;">Vu&scaron;kovi&cacute; is a centre-back whose scanning profile matches a defensive midfielder &mdash; tactical versatility visible in the data.</p>
+      <p style="margin-top:8px; font-size:9pt; color:#555;">Vu&scaron;kovi&cacute; is a centre-back whose scanning profile matches a defensive midfielder &ndash; tactical versatility visible in the data.</p>
     </div>
     <div>
       <div class="fig">
-        <img src="{imgs['scatter']}" alt="AWI vs PQI scatter — body intelligence quadrant" />
+        <img src="{imgs['scatter']}" alt="AWI vs PQI scatter  -  body intelligence quadrant" />
         <p class="fig-caption">AWI vs PQI scatter for all player-phases. Near-zero correlation confirms two independent dimensions. Elite quadrant (top-right) contains 10 unique players.</p>
       </div>
     </div>
@@ -219,14 +219,14 @@ SLIDES = f"""<!DOCTYPE html>
     <span class="slide-num">Slide 5 of 5</span>
     <span class="slide-title">Business Value &amp; Cross-Domain Validation</span>
   </div>
-  <p class="slide-subtitle">From 141 million data points per match to two numbers every coach understands &mdash; validated across five domains</p>
+  <p class="slide-subtitle">From 141 million data points per match to two numbers every coach understands &ndash; validated across five domains</p>
 
   <div class="two-col">
     <div>
       <h3>For clubs</h3>
       <ul>
-        <li><strong>Scouting:</strong> rank by AWI and PQI independently &mdash; find dual-elite players or target specific development gaps</li>
-        <li><strong>Fatigue detection:</strong> Kimmich's AWI drops 52% in FCU-FCB 2nd half &mdash; invisible to GPS</li>
+        <li><strong>Scouting:</strong> rank by AWI and PQI independently &ndash; find dual-elite players or target specific development gaps</li>
+        <li><strong>Fatigue detection:</strong> Kimmich's AWI drops 52% in FCU-FCB 2nd half &ndash; invisible to GPS</li>
         <li><strong>Positional outliers:</strong> Vu&scaron;kovi&cacute; (CB) in the elite quadrant flags tactical versatility automatically</li>
       </ul>
       <h3>For broadcasters &amp; fans</h3>
@@ -241,7 +241,7 @@ SLIDES = f"""<!DOCTYPE html>
       </ul>
     </div>
     <div>
-      <h3>Cross-domain validation &mdash; every concept has a proven ancestor</h3>
+      <h3>Cross-domain validation &ndash; every concept has a proven ancestor</h3>
       <table style="font-size:9pt;">
         <thead><tr><th>External System</th><th>Maps to</th></tr></thead>
         <tbody>
@@ -318,7 +318,7 @@ img { width: 100%; max-width: 100%; height: auto; border: 1px solid #e0e0e0; bor
     consistency_tag = (
         '\n<div class="fig">'
         f'<img src="{imgs["half_compare"]}" alt="Cross-half AWI consistency">'
-        '<p class="fig-caption">1st half vs 2nd half AWI &mdash; r = 0.660, p &lt; 0.001 across all 5 matches</p>'
+        '<p class="fig-caption">1st half vs 2nd half AWI &ndash; r = 0.660, p &lt; 0.001 across all 5 matches</p>'
         '</div>\n'
     )
     # Insert after the sentence containing "r = 0.660"

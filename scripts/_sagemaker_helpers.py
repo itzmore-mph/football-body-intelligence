@@ -7,7 +7,7 @@ need identically: env-var parsing, S3 client + PyArrow filesystem creation,
 match-config lookup, and result CSV writing.
 
 Each Processing Job handles exactly one match (identified via the ``MATCH_ID``
-env var). The IAM execution role provides AWS credentials automatically — no
+env var). The IAM execution role provides AWS credentials automatically - no
 explicit key/secret needed. Output CSV is written to ``/opt/ml/processing/output/``
 (or ``$SM_OUTPUT_DIR``) and uploaded to S3 by SageMaker after the job completes.
 
@@ -107,7 +107,7 @@ def run_metric_job(metric: Literal["awi", "pqi"]) -> None:
     s3_client = session.client("s3")
     s3fs      = _build_s3fs(session, region)
 
-    # MATCH_CONFIGS lives in batch_pipeline regardless of metric — it's the
+    # MATCH_CONFIGS lives in batch_pipeline regardless of metric - it's the
     # single source of truth for the 5 challenge matches.
     from src.batch_pipeline import MATCH_CONFIGS  # noqa: WPS433
     runner = _resolve_runner(metric)

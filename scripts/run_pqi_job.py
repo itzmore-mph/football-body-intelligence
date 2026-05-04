@@ -1,7 +1,7 @@
 """
 scripts/run_pqi_job.py
 
-SageMaker Processing entry point for the PQI metric — one Processing Job per
+SageMaker Processing entry point for the PQI metric - one Processing Job per
 match. The orchestrator (``pipelines/sagemaker_pipeline.py``) launches this
 script with ``MATCH_ID`` set in the env. All shared logic lives in
 ``scripts/_sagemaker_helpers.py``.

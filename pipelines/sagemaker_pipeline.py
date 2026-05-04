@@ -1,6 +1,6 @@
 """
 pipelines/sagemaker_pipeline.py
-Football Body Intelligence — SageMaker Processing orchestration via boto3.
+Football Body Intelligence - SageMaker Processing orchestration via boto3.
 
 Rewritten for SageMaker SDK v3 compatibility: uses boto3 directly instead of
 the sagemaker.processing API (removed in v3). No SDK version dependency.
@@ -203,7 +203,7 @@ def _aggregate_locally(sm, run_id: str) -> None:
     for metric in ("awi", "pqi"):
         files = sorted(glob.glob(f"{tmp}/{metric}/*.csv"))
         if not files:
-            print(f"  WARNING: No {metric.upper()} CSVs found — skipping.")
+            print(f"  WARNING: No {metric.upper()} CSVs found - skipping.")
             continue
         df = pd.concat([pd.read_csv(f) for f in files], ignore_index=True)
         out = f"results/{metric}_full.csv"

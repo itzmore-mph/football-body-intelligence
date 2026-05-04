@@ -29,9 +29,9 @@ from src.pqi_calculator import (
 from src.event_parser import extract_players_from_match_info
 from src.eda_helpers import load_xml
 
-# Schema for results/pqi_full.csv — mirrors awi_full.csv structure
+# Schema for results/pqi_full.csv - mirrors awi_full.csv structure
 PQI_SCHEMA = {
-    # Identity (join keys — same as awi_full.csv)
+    # Identity (join keys - same as awi_full.csv)
     "jersey":           int,
     "team":             int,
     "name":             str,
@@ -296,7 +296,7 @@ def identify_press_frames(
         suffixes=("_presser", "_carrier"),
     )
 
-    # Pelvis positions are in cm — divide by 100 to get metres
+    # Pelvis positions are in cm - divide by 100 to get metres
     dx = merged["pelvis_x_presser"] - merged["pelvis_x_carrier"]
     dy = merged["pelvis_y_presser"] - merged["pelvis_y_carrier"]
     distance_m = np.sqrt(dx ** 2 + dy ** 2) / 100.0
@@ -349,7 +349,7 @@ def compute_phase_pqi_all_players(
         # Build a synthetic "ball carrier" DataFrame using ball position
         # (pelvis positions are in cm; convert back to cm for identify_press_frames)
         if player_df.empty or player_df["ball_x_m"].isna().all():
-            # No valid data — return zero-press result
+            # No valid data - return zero-press result
             agg = aggregate_pqi_for_player(
                 pd.Series([], dtype=float),
                 pd.Series([], dtype=float),
@@ -577,7 +577,7 @@ def run_match_pqi(
         if checkpoint_path:
             combined = pd.concat(frames, ignore_index=True)
             combined.to_csv(checkpoint_path, index=False)
-            print(f"  [{match_id}] Phase {label} done — {len(phase_frame)} rows saved to checkpoint.")
+            print(f"  [{match_id}] Phase {label} done - {len(phase_frame)} rows saved to checkpoint.")
 
     return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
 

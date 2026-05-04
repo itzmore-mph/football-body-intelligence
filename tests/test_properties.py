@@ -325,32 +325,34 @@ def test_no_hardcoded_credentials(notebook_cells):
 
 
 def test_no_hardcoded_credentials_in_notebook():
-    """Concrete test: notebooks/eda_exploration.ipynb must not contain hardcoded AWS credentials."""
+    """Notebooks must not contain hardcoded AWS credentials."""
     import json as _json
     import pathlib
+    import glob
 
-    notebook_path = pathlib.Path("notebooks/eda_exploration.ipynb")
-    assert notebook_path.exists(), "eda_notebook.ipynb not found"
+    notebooks = sorted(glob.glob("notebooks/*.ipynb"))
+    assert notebooks, "No notebooks found in notebooks/"
 
-    notebook = _json.loads(notebook_path.read_text())
-    source_cells = []
-    for cell in notebook.get("cells", []):
-        source = cell.get("source", [])
-        if isinstance(source, list):
-            source_cells.append("".join(source))
-        elif isinstance(source, str):
-            source_cells.append(source)
+    for nb_path in notebooks:
+        notebook = _json.loads(pathlib.Path(nb_path).read_text())
+        source_cells = []
+        for cell in notebook.get("cells", []):
+            source = cell.get("source", [])
+            if isinstance(source, list):
+                source_cells.append("".join(source))
+            elif isinstance(source, str):
+                source_cells.append(source)
 
-    for cell_text in source_cells:
-        assert not AWS_ACCESS_KEY_PATTERN.search(cell_text), (
-            f"Notebook cell contains AWS Access Key ID pattern: {cell_text[:80]!r}"
-        )
-        tokens = cell_text.split()
-        for token in tokens:
-            if len(token) == 40 and AWS_SECRET_KEY_PATTERN.fullmatch(token):
-                raise AssertionError(
-                    f"Notebook cell contains a 40-char alphanumeric token matching AWS secret key pattern: {token!r}"
-                )
+        for cell_text in source_cells:
+            assert not AWS_ACCESS_KEY_PATTERN.search(cell_text), (
+                f"{nb_path}: cell contains AWS Access Key ID pattern: {cell_text[:80]!r}"
+            )
+            tokens = cell_text.split()
+            for token in tokens:
+                if len(token) == 40 and AWS_SECRET_KEY_PATTERN.fullmatch(token):
+                    raise AssertionError(
+                        f"{nb_path}: cell contains a 40-char token matching AWS secret key pattern: {token!r}"
+                    )
 
 
 # ===========================================================================

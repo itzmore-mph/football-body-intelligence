@@ -59,7 +59,7 @@ BENCHMARK_REFERENCES: dict[str, dict[str, str]] = {
             "High-speed optical tracking captures full 3D body pose of the bowler. "
             "Each delivery is scored by the deviation of key joint angles (elbow, shoulder, "
             "hip at ball release) from a biomechanically optimal configuration, penalising "
-            "deviations that reduce efficiency or legality — the same penalty structure as "
+            "deviations that reduce efficiency or legality - the same penalty structure as "
             "the PQI stance Gaussian formula."
         ),
         "temporal_resolution": "High-speed optical (multi-camera)",
@@ -81,7 +81,7 @@ BENCHMARK_REFERENCES: dict[str, dict[str, str]] = {
             "REBA (Rapid Entire Body Assessment) applies a structured penalty to joint-angle "
             "deviation from a neutral reference posture, via wearable IMUs or optical markers. "
             "Small deviations incur small penalties; large deviations incur exponentially "
-            "larger penalties — the direct conceptual predecessor of the PQI stance formula."
+            "larger penalties - the direct conceptual predecessor of the PQI stance formula."
         ),
         "temporal_resolution": "Static posture snapshots or low-frequency IMU",
         "application_domain": "Occupational injury risk quantification from awkward postures",

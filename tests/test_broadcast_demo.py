@@ -132,9 +132,9 @@ def test_format_pqi_display_none():
 def test_ticker_messages_content():
     """TICKER_MESSAGES contains all three required validated-finding strings."""
     required = [
-        "+57% pre-pass scan spike",
+        "+59% pre-pass scan spike",
         "r=-0.11 AWI/PQI independence",
-        "R=0.854 cross-half stability",
+        "r=0.660 cross-half stability",
     ]
     for msg in required:
         assert msg in TICKER_MESSAGES, f"Missing required ticker message: {msg!r}"

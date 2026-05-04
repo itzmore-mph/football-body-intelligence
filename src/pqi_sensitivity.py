@@ -1,6 +1,6 @@
 """
 pqi_sensitivity.py
-Grid scan over PQI weight combinations — rank-stability analysis.
+Grid scan over PQI weight combinations - rank-stability analysis.
 No I/O, no S3 access, no side effects.
 """
 

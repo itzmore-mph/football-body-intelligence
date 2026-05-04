@@ -236,7 +236,7 @@ def compute_pre_pass_awi_per_pass(
     an average, enabling the caller to rank moments and extract the top-N.
 
     Each returned dict represents one pass and includes the scan count in the
-    5-second window before it — the raw material for broadcast highlights:
+    5-second window before it - the raw material for broadcast highlights:
     "Kimmich performed 4 scans in the 5s before his assist at minute 67."
 
     Args:

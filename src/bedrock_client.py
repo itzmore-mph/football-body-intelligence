@@ -2,7 +2,7 @@
 bedrock_client.py
 
 Generates natural language player reports using Amazon Bedrock Claude Sonnet 4.6.
-No hardcoded credentials — all AWS access via boto3.Session(profile_name=...).
+No hardcoded credentials - all AWS access via boto3.Session(profile_name=...).
 """
 
 import json
@@ -35,7 +35,7 @@ def create_bedrock_client(
 
     Uses the same AWS session pattern as eda_helpers.create_session().
     Credentials come from the environment (AWS_PROFILE env var) or the
-    explicit profile_name argument — never hardcoded.
+    explicit profile_name argument - never hardcoded.
 
     Args:
         region:       AWS region for Bedrock (default: eu-central-1).
@@ -76,7 +76,7 @@ def build_player_prompt(
     return (
         f"You are a football analytics expert writing a concise player intelligence report.\n\n"
         f"Player: {player_row['name']} ({player_row['position']})\n"
-        f"Match: {match_context['match_label']} — {player_row['phase_label']}\n\n"
+        f"Match: {match_context['match_label']} - {player_row['phase_label']}\n\n"
         f"AWARENESS INDEX (AWI):\n"
         f"- AWI: {player_row['awi_per_minute']:.1f} scans/min\n"
         f"- League rank: #{awi_context['league_rank']} of {awi_context['total_players']}\n"
@@ -346,14 +346,14 @@ def generate_match_summary(
     prompt = (
         f"You are a football analytics expert writing a match intelligence summary.\n\n"
         f"Match ID: {match_id}\n\n"
-        f"AWARENESS INDEX (AWI) — Top Performers:\n{awi_block}\n"
+        f"AWARENESS INDEX (AWI) - Top Performers:\n{awi_block}\n"
         f"Match average AWI: {avg_awi:.1f} scans/min\n\n"
-        f"PRESSURE QUALITY INDEX (PQI) — Top Performers:\n{pqi_block}\n"
+        f"PRESSURE QUALITY INDEX (PQI) - Top Performers:\n{pqi_block}\n"
         f"Match average PQI: {avg_pqi:.1f}/100\n\n"
         f"Write a 3-paragraph match intelligence summary (max 250 words) covering:\n"
-        f"1. Cognitive awareness patterns — which players or positions showed elite scanning behaviour\n"
-        f"2. Pressing mechanics — which players demonstrated the best body mechanics under pressure\n"
-        f"3. Tactical insights — what the combined AWI+PQI data reveals about team pressing strategy\n"
+        f"1. Cognitive awareness patterns - which players or positions showed elite scanning behaviour\n"
+        f"2. Pressing mechanics - which players demonstrated the best body mechanics under pressure\n"
+        f"3. Tactical insights - what the combined AWI+PQI data reveals about team pressing strategy\n"
         f"Format the output as markdown with clear section headers."
     )
 

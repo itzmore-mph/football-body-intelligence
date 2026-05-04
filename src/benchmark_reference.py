@@ -2,10 +2,10 @@
 """
 Cross-domain reference distributions for AWI and PQI benchmarking.
 
-All parameters are calibrated from published research — no network calls are
+All parameters are calibrated from published research - no network calls are
 made at runtime. Citations are embedded in the REFERENCE_CATALOGUE.
 
-IMPORTANT — interpretation of benchmark values:
+IMPORTANT - interpretation of benchmark values:
   Each entry cites a peer-reviewed source that studies an analogous construct
   in the named domain.  The mean/std/elite_mean values are calibrated estimates
   on the same unit scale as AWI or the relevant PQI sub-score; they are *not*
@@ -77,7 +77,7 @@ REFERENCE_CATALOGUE: list[ReferenceDistribution] = [
             "Cervone et al. introduce Expected Possession Value (EPV) using 25 Hz optical "
             "tracking. The EPV framework underlies Second Spectrum's defensive-alignment "
             "analytics, which score how well a defender's body position covers the ball "
-            "carrier — an analogous construct to PQI orientation. Values are calibrated to "
+            "carrier - an analogous construct to PQI orientation. Values are calibrated to "
             "a 0–100 scale; they are not directly extracted from the paper's EPV tables."
         ),
     ),
@@ -166,7 +166,7 @@ REFERENCE_CATALOGUE: list[ReferenceDistribution] = [
         ),
         data_note=(
             "REBA applies a Gaussian-style penalty to joint-angle deviation from a neutral "
-            "reference posture — the same mathematical structure as the PQI stance formula. "
+            "reference posture - the same mathematical structure as the PQI stance formula. "
             "The PQI stance score (peak at 130° knee flexion) is conceptually derived from "
             "this occupational-ergonomics tradition. Values represent an athletic-performance "
             "adaptation of the REBA scoring range; the paper itself addresses occupational "

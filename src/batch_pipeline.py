@@ -8,7 +8,7 @@ Pipeline per match:
   2. Read player roster from MatchInformation XML
   3. For each phase:
      a. Load parquet with frame filter + column pruning (frame_number, skeletons)
-     b. extract_head_angles_batch() — single pass for all players
+     b. extract_head_angles_batch() - single pass for all players
      c. detect_scans() + compute_awi() per player
      d. del phase_df to free ~200-400 MB before loading the next phase
   4. Concatenate results into a tidy DataFrame
@@ -23,7 +23,7 @@ S3 path conventions (challenge_prefix already excludes bucket):
   XML keys : {challenge_prefix}/{key}
 
 MATCH_CONFIGS defines all 5 matches. Folder names for BVB-VFB, SGE-FCB, SGE-FCU,
-FCU-FCB are placeholders — verify with list_bucket() on first run.
+FCU-FCB are placeholders - verify with list_bucket() on first run.
 """
 
 import time
@@ -114,7 +114,7 @@ def _extract_angles_vectorized(
     table: pa.Table,
     player_keys: list[tuple[int, int]],
 ) -> dict[tuple[int, int], pd.DataFrame]:
-    """Extract head and body yaw using PyArrow + numpy — no Python loops per frame.
+    """Extract head and body yaw using PyArrow + numpy - no Python loops per frame.
 
     Flattens the nested skeletons ListArray into numpy arrays, filters to target
     players with a boolean mask, then computes all atan2 values vectorized.
@@ -368,7 +368,7 @@ def compute_scan_direction_profile(
     head yaw and body yaw to classify scan type:
       - forward:    |head - body| < 60°   (looking where body faces)
       - lateral:    60° <= diff < 120°    (sideways glance)
-      - blind_side: diff >= 120°          (looking behind/opposite — highest value)
+      - blind_side: diff >= 120°          (looking behind/opposite - highest value)
 
     Blind-side scans are tactically most valuable: the player gathers information
     from directions their body cannot see, disrupting opponents' model of their
@@ -438,7 +438,7 @@ def compute_hbd(angles_df: pd.DataFrame) -> dict:
     """Compute Head-Body Decoupling (HBD) from a player's angle DataFrame.
 
     HBD measures how often a player's head faces a different direction than
-    their body — the anatomical signal for a blind-side scan. A high HBD score
+    their body - the anatomical signal for a blind-side scan. A high HBD score
     means the player frequently looks in directions their body is not facing.
 
     Args:
@@ -642,7 +642,7 @@ def run_match_awi(
         if checkpoint_path:
             combined = pd.concat(frames, ignore_index=True)
             combined.to_csv(checkpoint_path, index=False)
-            print(f"  [{match_id}] Phase {label} done — {len(phase_frame)} rows saved to checkpoint.")
+            print(f"  [{match_id}] Phase {label} done - {len(phase_frame)} rows saved to checkpoint.")
 
     return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
 
@@ -773,7 +773,10 @@ def run_match_unified(
     parquet_path = f"{bucket}/{challenge_prefix}/{match_config['parquet_key']}"
     xml_key      = f"{challenge_prefix}/{match_config['match_info_key']}"
 
-    # Load completed phases from checkpoint
+    # Load completed phases from checkpoint (this match only).
+    # NOTE: checkpoint file writing is handled by run_all_matches_unified.
+    # This function reads the checkpoint to skip already-completed phases
+    # and includes those rows in its return value for a complete match DataFrame.
     completed_phases: set[str] = set()
     frames: list[pd.DataFrame] = []
     if checkpoint_path and os.path.exists(checkpoint_path):
@@ -806,7 +809,7 @@ def run_match_unified(
     phases = _load_phases_from_parquet(s3fs, parquet_path)
     print(f"  [{match_id}] {len(players)} players, {len(phases)} phases")
 
-    # Load event data (optional — enables pre-pass AWI + scan direction + moments)
+    # Load event data (optional - enables pre-pass AWI + scan direction + moments)
     has_events = False
     pass_df = pd.DataFrame()
     if events_xml_key:
@@ -820,7 +823,7 @@ def run_match_unified(
             has_events = True
             print(f"  [{match_id}] Events XML loaded: {len(pass_df)} passes")
         else:
-            print(f"  [{match_id}] Events XML not found — skipping pre-pass AWI / moments.")
+            print(f"  [{match_id}] Events XML not found - skipping pre-pass AWI / moments.")
 
     all_moments: list[dict] = []
 
@@ -896,9 +899,6 @@ def run_match_unified(
         del angles_by_player
         print(f"{time.time() - t_phase:.0f}s")
 
-        if checkpoint_path:
-            pd.concat(frames, ignore_index=True).to_csv(checkpoint_path, index=False)
-
     # Save top-5 moments per match to moments CSV
     if all_moments and moments_path:
         match_moments = (
@@ -906,8 +906,14 @@ def run_match_unified(
             .nlargest(5, "pre_pass_scan_count")
             .assign(match_id=match_id)
         )
-        header = not os.path.exists(moments_path)
-        match_moments.to_csv(moments_path, mode="a", index=False, header=header)
+        # Remove existing rows for this match before appending (idempotent on re-run)
+        if os.path.exists(moments_path):
+            existing_moments = pd.read_csv(moments_path)
+            existing_moments = existing_moments[existing_moments["match_id"] != match_id]
+            existing_moments.to_csv(moments_path, index=False)
+            match_moments.to_csv(moments_path, mode="a", index=False, header=False)
+        else:
+            match_moments.to_csv(moments_path, index=False)
         print(f"  [{match_id}] Top-5 moments saved to {moments_path}")
 
     return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
@@ -951,14 +957,42 @@ def run_all_matches_unified(
     if events_xml_keys is None:
         events_xml_keys = {}
 
+    # Enrichment columns produced by the unified pipeline (run_match_unified).
+    # If the checkpoint was written by an older AWI-only run, these will be
+    # missing and the checkpoint must be treated as stale so that matches are
+    # re-processed with the full column set.
+    _ENRICHMENT_COLS = {"pre_pass_awi", "hbd_mean_deg", "scan_blindside_pct"}
+    _EXPECTED_PHASES_PER_MATCH = 2  # 1st half + 2nd half
+
     completed_ids: set[str] = set()
+    partial_ids: set[str] = set()
     frames: list[pd.DataFrame] = []
     if checkpoint_path and os.path.exists(checkpoint_path):
         existing = pd.read_csv(checkpoint_path)
         if not existing.empty and "match_id" in existing.columns:
-            completed_ids = set(existing["match_id"].unique())
-            frames.append(existing)
-            print(f"[checkpoint] Loaded {len(existing)} rows for: {sorted(completed_ids)}")
+            if _ENRICHMENT_COLS.issubset(existing.columns):
+                phase_counts = existing.groupby("match_id")["phase_label"].nunique()
+                for mid, n_phases in phase_counts.items():
+                    if n_phases >= _EXPECTED_PHASES_PER_MATCH:
+                        completed_ids.add(mid)
+                    else:
+                        partial_ids.add(mid)
+                # Only keep rows from fully completed matches in frames.
+                # Partial matches will be re-processed by run_match_unified
+                # which reads the checkpoint itself to skip completed phases.
+                complete_rows = existing[existing["match_id"].isin(completed_ids)]
+                if not complete_rows.empty:
+                    frames.append(complete_rows)
+                print(f"[checkpoint] Loaded {len(complete_rows)} rows for: {sorted(completed_ids)}")
+                if partial_ids:
+                    print(f"[checkpoint] Incomplete matches (will resume): {sorted(partial_ids)}")
+            else:
+                missing = sorted(_ENRICHMENT_COLS - set(existing.columns))
+                print(
+                    f"[checkpoint] Stale checkpoint detected (missing columns: {missing}). "
+                    f"Deleting {checkpoint_path} and re-running all matches."
+                )
+                os.remove(checkpoint_path)
 
     for mc in match_configs:
         if "TODO" in mc.get("parquet_key", ""):
@@ -973,13 +1007,18 @@ def run_all_matches_unified(
             df = run_match_unified(
                 s3_client, s3fs, bucket, challenge_prefix, mc,
                 events_xml_key=events_xml_keys.get(mc["match_id"]),
-                checkpoint_path=checkpoint_path,
+                checkpoint_path=checkpoint_path,  # read-only: skips completed phases
                 moments_path=moments_path,
             )
-            frames.append(df)
-            print(f"  Done: {len(df)} player-phase rows")
-            if checkpoint_path:
-                pd.concat(frames, ignore_index=True).to_csv(checkpoint_path, index=False)
+            if not df.empty:
+                frames.append(df)
+                completed_ids.add(mc["match_id"])
+                partial_ids.discard(mc["match_id"])
+                print(f"  Done: {len(df)} player-phase rows")
+                if checkpoint_path:
+                    pd.concat(frames, ignore_index=True).to_csv(checkpoint_path, index=False)
+            else:
+                print(f"  [WARN] {mc['match_id']}: returned 0 rows")
         except Exception as e:
             print(f"  [ERROR] {mc['match_id']}: {e}")
 

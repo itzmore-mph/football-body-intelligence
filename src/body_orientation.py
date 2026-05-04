@@ -7,7 +7,7 @@ Body yaw uses the same clockwise-90° rotation technique as the ear fallback in
 skeleton_parser.py, applied to the shoulder or hip lateral vector.
 
 Pre-orientation angle measures how well a player's body was already aligned
-toward the ball at the moment of ball receipt — 0° = facing ball, 90° = sideways,
+toward the ball at the moment of ball receipt - 0° = facing ball, 90° = sideways,
 180° = back to ball.
 
 TRACAB coordinate system:

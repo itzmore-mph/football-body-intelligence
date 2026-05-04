@@ -49,7 +49,7 @@ def extract_phases_from_metadata(metadata: dict) -> list[dict]:
     """Extract match phase frame boundaries from metadata.
 
     Primary source (per TF15 1.1 spec): Parquet key-value metadata header,
-    accessed via ``pq.ParquetFile(...).metadata.metadata`` — a dict with
+    accessed via ``pq.ParquetFile(...).metadata.metadata`` - a dict with
     bytes keys. Pass that dict directly to this function.
 
     Also accepts str-keyed dicts (e.g. from a parsed metadata JSON) and tries
@@ -319,7 +319,7 @@ def extract_pass_events(events_root: ET.Element) -> pd.DataFrame:
         if play_el is None:
             continue
         if play_el.find("Pass") is None:
-            continue  # Cross, Shot attempt, etc. — skip non-pass plays
+            continue  # Cross, Shot attempt, etc. - skip non-pass plays
 
         rows.append({
             "event_id": event_id,

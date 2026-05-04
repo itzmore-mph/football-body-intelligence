@@ -61,7 +61,7 @@ Cross-half Pearson correlation r = 0.660 (n = 79 active player-phases). Players 
 
 ### Why are the PQI weights 0.40 / 0.30 / 0.30?
 
-The weights reflect domain-informed priors: orientation is the dominant indicator of an effective press (a player facing the wrong direction cannot apply genuine pressure, regardless of proximity), while stance and proximity are necessary conditions but not sufficient on their own. This 40/30/30 split was set analytically, not fitted to labelled data — press-quality annotation at frame resolution does not yet exist for these five matches.
+The weights reflect domain-informed priors: orientation is the dominant indicator of an effective press (a player facing the wrong direction cannot apply genuine pressure, regardless of proximity), while stance and proximity are necessary conditions but not sufficient on their own. This 40/30/30 split was set analytically, not fitted to labelled data - press-quality annotation at frame resolution does not yet exist for these five matches.
 
 To validate that the choice is not decisive for the conclusions, we ran a full weight sensitivity analysis (`src/pqi_sensitivity.py`): all 231 combinations of (w_orientation, w_stance, w_proximity) at 0.05 resolution where weights sum to 1.0. The analysis reports Spearman rank-correlation against the baseline ranking and per-player rank-deltas for every combination. A high mean Spearman rho across the grid confirms that the player ranking is structurally stable and that the specific weight choice does not materially change who ranks high or low.
 
@@ -116,18 +116,18 @@ Note: AWI measures continuous full-phase rate across ~50 minutes; video-based st
 
 ### How are AWI and PQI validated against external reference systems?
 
-AWI and PQI are not isolated inventions — each sub-score maps to a validated measurement tradition from another sport or high-stakes industry. Six external reference systems are parameterised in `src/benchmark_reference.py` from published summary statistics:
+AWI and PQI are not isolated inventions - each sub-score maps to a validated measurement tradition from another sport or high-stakes industry. Six external reference systems are parameterised in `src/benchmark_reference.py` from published summary statistics:
 
 | Our metric | Reference system | Domain | Key finding |
 |---|---|---|---|
-| AWI (scan rate) | Cockpit visual-scanning research (Lounis et al., 2021, PLOS ONE) | Aviation | Population mean 12 scans/min, elite 19 — football active players (mean 11.6 scans/min) match the aviation population baseline; the pre-pass spike (~19.2 scans/min) reaches aviation elite level |
+| AWI (scan rate) | Cockpit visual-scanning research (Lounis et al., 2021, PLOS ONE) | Aviation | Population mean 12 scans/min, elite 19 - football active players (mean 11.6 scans/min) match the aviation population baseline; the pre-pass spike (~19.2 scans/min) reaches aviation elite level |
 | PQI orientation sub-score | NBA Second Spectrum EPV framework (Cervone et al., 2016, JASA) | Basketball | Comparable 0–100 defensive-positioning scoring; football defensive midfielders (54.7) align with the NBA population baseline (62 ± 18) |
 | PQI stance sub-score | Tennis ready-position biomechanics (Elliott, 2006, BJSM) | Tennis | Optimal defensive knee flexion (~100–120°) independently validates the 130° PQI stance optimum; both methods apply a deviation-from-optimal Gaussian penalty |
 | PQI proximity sub-score | NFL player-tracking metrics (Eager et al., 2023, MIT Sloan) | American Football | Distance-decay scoring between defender and ball carrier; positional gradient in proximity quality matches the pattern seen in football pressing data |
-| PQI composite | Rugby 3D tackle biomechanics (Hendricks et al., 2021, Sports Medicine Open) | Rugby | Systematic review covers orientation, stance, and proximity components — the same three sub-scores as PQI — confirming the three-factor composite structure |
+| PQI composite | Rugby 3D tackle biomechanics (Hendricks et al., 2021, Sports Medicine Open) | Rugby | Systematic review covers orientation, stance, and proximity components - the same three sub-scores as PQI - confirming the three-factor composite structure |
 | AWI/PQI stance (method) | Occupational biomechanics REBA (Hignett & McAtamney, 2000, Applied Ergonomics) | Biomechanics | REBA's Gaussian penalty for joint-angle deviation from a neutral reference is the direct conceptual precedent of the PQI stance formula |
 
-The Benchmark tab in the dashboard shows these comparisons visually — reference distributions, Bundesliga distributions, and percentile positions — using no runtime data fetches: all reference parameters are encoded from published statistics.
+The Benchmark tab in the dashboard shows these comparisons visually - reference distributions, Bundesliga distributions, and percentile positions - using no runtime data fetches: all reference parameters are encoded from published statistics.
 
 ### How does this differ from existing cognitive metrics in football?
 

@@ -11,7 +11,7 @@ import pandas as pd
 import pyarrow.fs as pafs
 import pyarrow.parquet as pq
 
-# Read from environment — set AWS_PROFILE before running (e.g. in .env or shell export).
+# Read from environment - set AWS_PROFILE before running (e.g. in .env or shell export).
 # boto3 also respects AWS_PROFILE natively, so this just makes the default explicit.
 SESSION_PROFILE = os.environ.get("AWS_PROFILE")
 REGION = os.environ.get("AWS_DEFAULT_REGION", "eu-central-1")
@@ -37,7 +37,7 @@ def create_session(
 
     s3_client = session.client("s3")
 
-    # SSO credentials are refreshable — resolve lazily via refresh()
+    # SSO credentials are refreshable - resolve lazily via refresh()
     # .resolve() is not available on DeferredRefreshableCredentials
     raw_creds = session.get_credentials()
     if raw_creds is None:

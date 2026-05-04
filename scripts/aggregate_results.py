@@ -1,6 +1,6 @@
 """
 scripts/aggregate_results.py
-SageMaker Processing entry point — aggregation step.
+SageMaker Processing entry point - aggregation step.
 
 Runs after all AWI and PQI match jobs complete (depends_on in Pipeline).
 Reads the per-match CSVs from the input directory, concatenates them,
@@ -26,7 +26,7 @@ AWI_INPUT_DIR  = os.environ.get("AWI_INPUT_DIR",  "/opt/ml/processing/input/awi"
 PQI_INPUT_DIR  = os.environ.get("PQI_INPUT_DIR",  "/opt/ml/processing/input/pqi")
 OUTPUT_DIR     = os.environ.get("SM_OUTPUT_DIR",   "/opt/ml/processing/output")
 
-# Expected matches — used for completeness validation
+# Expected matches - used for completeness validation
 EXPECTED_MATCH_IDS = {"FCB-HSV", "BVB-VFB", "SGE-FCB", "SGE-FCU", "FCU-FCB"}
 
 
@@ -67,7 +67,7 @@ def _validate(df: pd.DataFrame, name: str, expected_ids: set[str]) -> bool:
     missing   = expected_ids - found_ids
     if missing:
         print(f"[AGG] WARNING {name}: missing matches: {sorted(missing)}")
-        ok = False  # warning only — partial results are still saved
+        ok = False  # warning only - partial results are still saved
 
     # Check for NaN in key columns
     key_cols = {"jersey", "team", "match_id", "phase_label"} & set(df.columns)
