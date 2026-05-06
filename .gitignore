@@ -20,6 +20,7 @@ env/
 !.env.example
 project_start.sh
 !project_start.sh.template
+.streamlit/secrets.toml
 
 # ── Python cache ──────────────────────────────────────────────────────────────
 __pycache__/

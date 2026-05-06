@@ -15,6 +15,8 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
+
+from src.s3_data_loader import load_csv
 st.set_page_config(
     page_title="Football Body Intelligence",
     layout="wide",
@@ -642,12 +644,11 @@ def context_bar(items: list[tuple[str, str]]) -> None:
 # -- Data ------------------------------------------------------------------
 @st.cache_data
 def load_data() -> pd.DataFrame:
-    for p in ("results/awi_full.csv", "results/pqi_full.csv"):
-        if not os.path.exists(p):
-            st.error(f"`{p}` not found - run the pipeline first.")
-            st.stop()
-    awi = pd.read_csv("results/awi_full.csv")
-    pqi = pd.read_csv("results/pqi_full.csv")
+    awi = load_csv("awi_full.csv", "results/awi_full.csv")
+    pqi = load_csv("pqi_full.csv", "results/pqi_full.csv")
+    if awi is None or pqi is None:
+        st.error("Result CSVs not found. Configure S3 secrets or run the pipeline locally.")
+        st.stop()
     pqi_cols = ["jersey", "team", "match_id", "phase_label",
                 "mean_pqi", "median_pqi", "std_pqi",
                 "n_press_frames", "press_minutes",
@@ -677,10 +678,10 @@ def load_data() -> pd.DataFrame:
 
 @st.cache_data
 def load_narratives() -> pd.DataFrame:
-    path = "results/narratives.csv"
-    if not os.path.exists(path):
+    df = load_csv("narratives.csv", "results/narratives.csv")
+    if df is None:
         return pd.DataFrame(columns=["jersey", "team", "match_id", "phase_label", "narrative"])
-    return pd.read_csv(path)
+    return df
 
 
 df = load_data()
