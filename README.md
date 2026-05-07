@@ -40,7 +40,7 @@ AWI and PQI are statistically independent (Pearson r = -0.11, p = 0.12). A playe
 | Cross-half AWI stability | r = 0.660 (n = 79) | AWI is a stable trait, not match noise |
 | Pre-pass AWI spike | +59% above baseline | Confirms cognitive load measurement |
 | Elite quadrant | 10 unique players | Top 25% on both AWI and PQI |
-| Test coverage | 324 tests | Unit + property-based, all passing, no AWS required |
+| Test coverage | 334 tests | Unit + property-based, all passing, no AWS required |
 
 **Validation anchors:** Kimmich (FCB-HSV, 21.77 scans/min) matches coaching literature. Hojlund (SGE-FCB, 26.90 scans/min) cross-validates the 45-degree threshold. Positional hierarchy (DMZ > CB > FW > GK) replicates Jordet et al. (2020) EPL findings.
 
@@ -48,17 +48,23 @@ AWI and PQI are statistically independent (Pearson r = -0.11, p = 0.12). A playe
 
 ---
 
-## Quick Start: View the Dashboard (no AWS required)
+## Quick Start: View the Dashboard
 
-The dashboard runs entirely from pre-computed CSVs. If `results/awi_full.csv` and `results/pqi_full.csv` exist, three commands are enough:
+The dashboard loads data from S3 via `src/s3_data_loader.py`. Configure credentials, then launch:
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-bash dashboard/run_dashboard.sh          # http://localhost:8501
+cp .env.example .env                             # fill in HACKATHON_BUCKET + AWS credentials
+bash dashboard/run_dashboard.sh                  # http://localhost:8501
 ```
 
-> **Note:** Result CSVs are not committed to this repository (they are derived from hackathon S3 data and gitignored). If `results/` is empty, follow the full workflow below to generate them.
+The S3 data loader reads `awi_full.csv` and `pqi_full.csv` from the configured bucket. It supports:
+- **Streamlit secrets** (`st.secrets["aws"]`) for Streamlit Community Cloud deployment
+- **Environment variables** (`HACKATHON_BUCKET`, `AWS_ACCESS_KEY_ID`, etc.) for local use
+- **Local file fallback** if `results/` CSVs exist on disk (e.g. after running the pipeline)
+
+> **Note:** Result CSVs are not committed to this repository (hackathon data rules). They are either loaded from S3 at runtime or generated locally via the full pipeline below.
 
 ---
 
@@ -139,7 +145,7 @@ No S3 access required from here on. Runs from the CSVs produced in Step 3.
 ```bash
 # In Jupyter:
 notebooks/analysis_awi_results.ipynb           # AWI leaderboard, position breakdown
-notebooks/analysis_awi_pqi_combined.ipynb       # Combined analysis -> results/combined_full.csv + figures/
+notebooks/analysis_awi_pqi_combined.ipynb       # Combined analysis -> figures/
 notebooks/benchmark_cross_sport.ipynb           # Cross-domain benchmarking (Track 3) -> figures/
 ```
 
@@ -189,7 +195,7 @@ streamlit run dashboard/broadcast_demo.py
 pytest tests/ -v
 ```
 
-324 tests (unit + property-based), all passing. No AWS access required.
+334 tests (unit + property-based), all passing. No AWS access required.
 
 ---
 
@@ -270,8 +276,8 @@ dashboard/
   broadcast_demo.py                 Standalone broadcast overlay demo
   run_dashboard.sh                  Launch script
 
-tests/                            324 unit + property-based tests (no AWS required)
-results/                          Pipeline outputs (gitignored, reproduce via pipeline)
+tests/                            334 unit + property-based tests (no AWS required)
+results/                          Pipeline outputs (gitignored, loaded from S3 at runtime)
 figures/                          Analysis figures (4 tracked, rest gitignored)
 submission/                       PRFAQ, slides, HTML exports, video script
 
