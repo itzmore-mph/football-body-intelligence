@@ -58,9 +58,6 @@ submission/*.pdf
 submission/*.mp4
 submission/*.zip
 submission/*.pptx
-
-# ── Internal working documents — not for public repo ─────────────────────────
 submission/SUBMISSION_CHECKLIST.md
 submission/VIDEO_NARRATION_SCRIPT.md
-submission/streamlit-app-2026-04-25-22-06-18.webm
 submission/Screen Record ITZMORE.mov
