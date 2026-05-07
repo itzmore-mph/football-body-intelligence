@@ -179,7 +179,7 @@ The dashboard reads `results/awi_full.csv` and `results/pqi_full.csv` directly (
 | Leaderboard | Sortable table, position-adjusted PQI toggle, role heatmap | 1 |
 | Fan View | Top-3 awareness counter, 4-quadrant classification, Body Intelligence leaderboard | 2 |
 | Broadcast Demo | DFL-styled live overlay mockup with AWI/PQI gauges and ticker | 2 |
-| Benchmark | Cross-domain validation vs aviation, NBA, NFL, tennis, cricket | 3 |
+| Benchmark | Cross-domain validation: qualitative parallels with aviation, NBA, NFL, tennis, rugby | 3 |
 
 Sidebar filters: Match, Phase, Position (DFL codes), Min Coverage %. Collapsible expanders explain all metrics and DFL position codes.
 
@@ -245,7 +245,8 @@ src/                              Core metric computation
   pipeline_io.py                    Shared S3/Parquet IO with retry/backoff
   eda_helpers.py                    AWS session factory, S3 utilities
   bedrock_client.py                 Bedrock narrative generation
-  benchmark_reference.py            Cross-domain reference distributions (6 systems)
+  s3_data_loader.py                S3/local CSV loader (Streamlit Cloud + local fallback)
+  benchmark_reference.py            Cross-domain reference catalogue (6 systems)
   benchmark_report.py               Benchmark narrative entries + summary
   awi_calibration.py                AWI threshold validation (Kimmich + Hojlund)
   pqi_normalizer.py                 Position-adjusted PQI z-scores
@@ -353,6 +354,26 @@ Five Bundesliga matches provided by DFL via the hackathon S3 bucket. No match da
 | Eintracht Frankfurt vs FC Bayern | SGE-FCB | ~3.7 GB |
 | Eintracht Frankfurt vs Union Berlin | SGE-FCU | ~4.2 GB |
 | Union Berlin vs FC Bayern | FCU-FCB | ~3.6 GB |
+
+---
+
+## Deployment: Streamlit Community Cloud
+
+The dashboard can be hosted on [Streamlit Community Cloud](https://share.streamlit.io) without any local setup:
+
+1. Deploy from the GitHub repo, main file: `dashboard/app.py`
+2. In app settings, add secrets (`.streamlit/secrets.toml` format):
+
+```toml
+[aws]
+bucket = "hackathon-data-603974305500"
+results_prefix = "results"
+aws_access_key_id = "AKIA..."
+aws_secret_access_key = "..."
+region_name = "eu-central-1"
+```
+
+The S3 data loader (`src/s3_data_loader.py`) reads these secrets automatically. See `.streamlit/secrets.toml.example` for the template.
 
 ---
 

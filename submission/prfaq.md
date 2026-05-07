@@ -127,7 +127,7 @@ AWI and PQI are not isolated inventions - each sub-score maps to a validated mea
 | PQI composite | Rugby 3D tackle biomechanics (Hendricks et al., 2021, Sports Medicine Open) | Rugby | Systematic review covers orientation, stance, and proximity components - the same three sub-scores as PQI - confirming the three-factor composite structure |
 | AWI/PQI stance (method) | Occupational biomechanics REBA (Hignett & McAtamney, 2000, Applied Ergonomics) | Biomechanics | REBA's Gaussian penalty for joint-angle deviation from a neutral reference is the direct conceptual precedent of the PQI stance formula |
 
-The Benchmark tab in the dashboard shows these comparisons visually - reference distributions, Bundesliga distributions, and percentile positions - using no runtime data fetches: all reference parameters are encoded from published statistics.
+The Benchmark tab in the dashboard shows these cross-domain parallels with citations and qualitative analogies demonstrating that the constructs measured by AWI and PQI are well-established in sports science and biomechanics research.
 
 ### How does this differ from existing cognitive metrics in football?
 

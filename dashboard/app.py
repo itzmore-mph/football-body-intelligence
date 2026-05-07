@@ -1830,14 +1830,14 @@ def render_fan_view(fdf: pd.DataFrame) -> None:
 
 
 def render_benchmark_tab(fdf: pd.DataFrame) -> None:
-    """Render the cross-domain benchmark comparison tab."""
+    """Render the cross-domain benchmark comparison tab.
+
+    Shows qualitative analogies between AWI/PQI and validated constructs in
+    other sports and industries, with academic citations. No fabricated
+    percentile comparisons - only factual cross-domain parallels.
+    """
     try:
-        from src.benchmark_reference import (
-            get_all_references,
-            get_references_for_metric,
-            percentile_in_reference,
-            sample_reference_distribution,
-        )
+        from src.benchmark_reference import get_all_references
     except ImportError:
         st.error("benchmark_reference module not found.")
         return
@@ -1845,156 +1845,112 @@ def render_benchmark_tab(fdf: pd.DataFrame) -> None:
     if guard(fdf):
         return
 
-    st.markdown("## Cross-Domain Benchmark")
+    st.markdown("## Cross-Domain Validation")
     st.markdown(
-        "AWI and PQI are not isolated inventions. Each metric maps directly to a concept "
-        "validated at scale in another sport or domain. The Bundesliga data sits within the "
-        "expected ranges of all six reference systems."
+        "AWI and PQI are not isolated inventions. Each metric measures a construct "
+        "that is well-established and validated at scale in other sports and industries. "
+        "This section maps our football metrics to their cross-domain counterparts."
     )
 
-    # ── Block 1: Reference Catalogue ─────────────────────────────────────────
-    st.markdown("### Reference Systems")
-    refs = get_all_references()
-    cat_rows = [
+    # ── Block 1: AWI Cross-Domain Parallels ───────────────────────────────────
+    st.markdown("### AWI: Visual Scanning Across Domains")
+    st.markdown(
+        "Head-scanning frequency as a measure of situational awareness is studied "
+        "extensively in aviation, where pilot scan patterns predict performance and "
+        "safety outcomes. The core finding transfers directly to football:"
+    )
+    st.markdown(
+        "> **Aviation:** Expert pilots exhibit significantly more scan transitions "
+        "per unit time than novices during high-workload phases. Scan rate increases "
+        "before critical decisions (e.g. landing approach). "
+        "([Lounis, Peysakhovich & Causse, 2021](https://doi.org/10.1371/journal.pone.0247061))"
+    )
+    st.markdown(
+        "> **Football (our finding):** AWI spikes +59% in the 5 seconds before a "
+        "player releases the ball - the same pre-decision cognitive-load pattern "
+        "documented in cockpit research."
+    )
+
+    col_a, col_b = st.columns(2)
+    with col_a:
+        st.metric("Aviation parallel", "Pre-decision scan burst")
+        st.caption("Expert pilots increase scan rate before critical actions")
+    with col_b:
+        bundesliga_awi = fdf["awi_per_minute"].dropna()
+        bundesliga_awi = bundesliga_awi[bundesliga_awi > 0]
+        bl_mean = float(bundesliga_awi.mean()) if len(bundesliga_awi) > 0 else 0
+        st.metric("Bundesliga AWI mean", f"{bl_mean:.1f} scans/min")
+        st.caption("Pre-pass spike: +59% above baseline")
+
+    # ── Block 2: PQI Cross-Domain Parallels ───────────────────────────────────
+    st.markdown("---")
+    st.markdown("### PQI: Body Mechanics Across Domains")
+    st.markdown(
+        "Each PQI sub-score maps to a biomechanical construct validated in another field:"
+    )
+
+    sub_parallels = [
         {
-            "Sport":            r.sport,
-            "System":           r.system,
-            "Maps to":          r.metric_type.replace("_", " "),
-            "Pop. mean ± std":  f"{r.mean:.0f} ± {r.std:.0f}",
-            "Elite mean":       f"{r.elite_mean:.0f}",
-            "Unit":             r.unit,
-        }
-        for r in refs
+            "Sub-score": "Orientation (40%)",
+            "Construct": "Defensive body positioning toward ball carrier",
+            "Cross-domain parallel": "NBA defensive alignment analytics (Second Spectrum)",
+            "Key insight": "Facing the ball carrier directly is the dominant indicator of effective defense in both basketball and football pressing",
+            "Citation": "[Cervone et al., 2016 - JASA](https://doi.org/10.1080/01621459.2016.1141685)",
+        },
+        {
+            "Sub-score": "Stance (30%)",
+            "Construct": "Knee-flexion quality (optimal at 130 degrees)",
+            "Cross-domain parallel": "Tennis ready-position biomechanics / Occupational ergonomics (REBA)",
+            "Key insight": "Optimal knee flexion for athletic readiness is well-documented across racket sports and occupational biomechanics",
+            "Citation": "[Elliott, 2006 - BJSM](https://doi.org/10.1136/bjsm.2005.023150); [Hignett & McAtamney, 2000](https://doi.org/10.1016/S0003-6870(99)00039-3)",
+        },
+        {
+            "Sub-score": "Proximity (30%)",
+            "Construct": "Defender-to-carrier distance during press",
+            "Cross-domain parallel": "NFL Next Gen Stats separation metrics",
+            "Key insight": "Tracking-based proximity metrics are the standard for evaluating defensive pressure quality in American football",
+            "Citation": "[Eager et al., 2023 - MIT Sloan](https://www.sloansportsconference.com/research-papers/using-tracking-and-charting-data-to-better-evaluate-nfl-players-a-review)",
+        },
     ]
-    st.dataframe(pd.DataFrame(cat_rows), hide_index=True, width='stretch')
+    st.dataframe(pd.DataFrame(sub_parallels), hide_index=True, use_container_width=True)
 
-    # ── Block 2: AWI vs Aviation ──────────────────────────────────────────────
-    st.markdown("### AWI vs Aviation Cognitive Load")
-    awi_ref = get_references_for_metric("AWI")[0]
-    awi_samples = sample_reference_distribution(awi_ref, n=1000)
-    bundesliga_awi = fdf["awi_per_minute"].dropna()
-    bundesliga_awi = bundesliga_awi[bundesliga_awi > 0]
-
-    bl_mean = float(bundesliga_awi.mean()) if len(bundesliga_awi) > 0 else awi_ref.mean
-    bl_pct = percentile_in_reference(bl_mean, awi_ref)
-
-    fig_awi = go.Figure()
-    fig_awi.add_trace(go.Histogram(
-        x=awi_samples, nbinsx=40,
-        name=f"Aviation reference (μ={awi_ref.mean:.0f} scans/min)",
-        marker_color=C_MUTED, opacity=0.5,
-    ))
-    fig_awi.add_trace(go.Histogram(
-        x=bundesliga_awi, nbinsx=30,
-        name=f"Bundesliga AWI (μ={bl_mean:.1f} scans/min)",
-        marker_color=C_AWI, opacity=0.75,
-    ))
-    fig_awi.add_vline(
-        x=awi_ref.elite_mean, line_dash="dash", line_color=C_GOLD,
-        annotation_text=f"Aviation elite: {awi_ref.elite_mean:.0f}",
-        annotation_font_color=C_GOLD,
-    )
-    fig_awi.add_vline(
-        x=bl_mean, line_dash="solid", line_color=C_AWI,
-        annotation_text=f"Bundesliga mean: {bl_mean:.1f}",
-        annotation_font_color=C_AWI,
-    )
-    fig_awi.update_layout(
-        template=THEME, barmode="overlay",
-        paper_bgcolor=C_BG, plot_bgcolor=C_SURFACE,
-        title=f"Bundesliga mean AWI: {bl_pct:.0f}th percentile of aviation reference",
-        xaxis_title="Scans per minute", yaxis_title="Count",
-        legend=dict(bgcolor=LEGEND_BG),
-        height=350,
-    )
-    st.plotly_chart(fig_awi, width='stretch')
-
-    # ── Block 3: PQI Sub-Scores vs References ─────────────────────────────────
-    st.markdown("### PQI Sub-Scores vs Cross-Domain References")
-    sub_configs = [
-        ("orientation_mean", "PQI_orientation", "Orientation", C_PURPLE, "vs NBA Second Spectrum"),
-        ("stance_mean",      "PQI_stance",      "Stance",      C_GREEN,  "vs Tennis Hawk-Eye"),
-        ("proximity_mean",   "PQI_proximity",   "Proximity",   C_GOLD,   "vs NFL Next Gen Stats"),
-    ]
-    cols3 = st.columns(3)
-    for col, (data_col, metric_type, label, color, subtitle) in zip(cols3, sub_configs):
-        with col:
-            if data_col not in fdf.columns or fdf[data_col].dropna().empty:
-                st.info(f"Sub-score `{data_col}` not available")
-                continue
-            ref = get_references_for_metric(metric_type)[0]
-            ref_samples = sample_reference_distribution(ref, n=800)
-            bl_vals = fdf[data_col].dropna()
-            fig_sub = go.Figure()
-            fig_sub.add_trace(go.Histogram(
-                x=ref_samples, nbinsx=30,
-                name=ref.system, marker_color=C_MUTED, opacity=0.5,
-            ))
-            fig_sub.add_trace(go.Histogram(
-                x=bl_vals, nbinsx=25,
-                name=f"Bundesliga {label}", marker_color=color, opacity=0.75,
-            ))
-            fig_sub.add_vline(
-                x=ref.elite_mean, line_dash="dash", line_color=C_GOLD,
-                annotation_text=f"Elite: {ref.elite_mean:.0f}",
-                annotation_font_color=C_GOLD,
-            )
-            fig_sub.update_layout(
-                template=THEME, barmode="overlay",
-                paper_bgcolor=C_BG, plot_bgcolor=C_SURFACE,
-                title=f"PQI {label} {subtitle}",
-                xaxis_title="Score (0-100)", yaxis_title="Count",
-                showlegend=False, height=300,
-            )
-            st.plotly_chart(fig_sub, width='stretch')
-
-    # ── Block 4: Pre-Decision Scan Burst ──────────────────────────────────────
-    st.markdown("### Pre-Decision Scan Burst")
+    # ── Block 3: Composite Parallel ───────────────────────────────────────────
+    st.markdown("---")
+    st.markdown("### Composite Quality Scores in Contact Sports")
     st.markdown(
-        "The +59% AWI spike in the 5 seconds before a pass mirrors the pre-decision scan "
-        "burst documented in fighter-pilot studies (aviation: +40-65%). "
-        "The Bundesliga finding sits at the midpoint of this aviation range."
+        "The idea of a composite body-mechanics quality score during contact actions "
+        "is established in rugby, where 3D motion capture is used to assess tackle "
+        "technique across orientation, stance, and proximity components - the same "
+        "three dimensions as PQI."
     )
-    bl_pre_pass = bl_mean * 1.57
-    categories = [
-        "Aviation<br>(low workload)",
-        "Aviation<br>(high workload)",
-        "Aviation<br>(pre-decision)",
-        "Football<br>(baseline AWI)",
-        "Football<br>(pre-pass AWI)",
-    ]
-    values = [14.0, 24.0, 34.0, bl_mean, bl_pre_pass]
-    bar_colors = [C_MUTED, C_MUTED, C_GOLD, C_AWI, C_GREEN]
+    st.markdown(
+        "> **Rugby:** Hendricks et al. (2021) systematically review 3D motion-capture "
+        "studies of tackle biomechanics, covering body orientation, joint angles, and "
+        "proximity to the ball carrier as key quality indicators. "
+        "([Sports Medicine - Open](https://doi.org/10.1186/s40798-021-00322-w))"
+    )
 
-    fig_burst = go.Figure(go.Bar(
-        x=categories, y=values,
-        marker_color=bar_colors, opacity=0.85,
-        text=[f"{v:.0f}" for v in values],
-        textposition="outside",
-        textfont=dict(color=C_TEXT),
-    ))
-    fig_burst.add_annotation(
-        x="Football<br>(pre-pass AWI)", y=bl_pre_pass,
-        ax="Football<br>(baseline AWI)", ay=bl_mean,
-        xref="x", yref="y", axref="x", ayref="y",
-        text="+59%", showarrow=True, arrowhead=2,
-        arrowcolor=C_GREEN, font=dict(color=C_GREEN, size=13),
+    # ── Block 4: Summary Table ────────────────────────────────────────────────
+    st.markdown("---")
+    st.markdown("### Summary: Why These Metrics Are Not Novel Constructs")
+    summary_data = [
+        {"Our metric": "AWI", "Measures": "Head-scan frequency", "Validated in": "Aviation (cockpit scanning)", "Data type": "Eye/head tracking, 60+ Hz"},
+        {"Our metric": "PQI Orientation", "Measures": "Body facing toward target", "Validated in": "Basketball (defensive alignment)", "Data type": "Optical tracking, 25 Hz"},
+        {"Our metric": "PQI Stance", "Measures": "Knee-flexion optimality", "Validated in": "Tennis, Ergonomics (REBA)", "Data type": "3D motion capture"},
+        {"Our metric": "PQI Proximity", "Measures": "Distance to ball carrier", "Validated in": "American Football (Next Gen Stats)", "Data type": "GPS/RFID tracking, 10 Hz"},
+        {"Our metric": "PQI Composite", "Measures": "Multi-factor body quality", "Validated in": "Rugby (tackle technique)", "Data type": "3D motion capture"},
+    ]
+    st.dataframe(pd.DataFrame(summary_data), hide_index=True, use_container_width=True)
+
+    st.markdown(
+        '<div style="font-size:0.8rem;color:#888;margin-top:1.5rem">'
+        "All citations are peer-reviewed publications or conference proceedings. "
+        "Cross-domain parallels are qualitative analogies demonstrating that the "
+        "constructs measured by AWI and PQI are well-established in sports science "
+        "and biomechanics research."
+        "</div>",
+        unsafe_allow_html=True,
     )
-    fig_burst.add_annotation(
-        x="Aviation<br>(pre-decision)", y=34.0,
-        ax="Aviation<br>(high workload)", ay=24.0,
-        xref="x", yref="y", axref="x", ayref="y",
-        text="+42%", showarrow=True, arrowhead=2,
-        arrowcolor=C_GOLD, font=dict(color=C_GOLD, size=13),
-    )
-    fig_burst.update_layout(
-        template=THEME, paper_bgcolor=C_BG, plot_bgcolor=C_SURFACE,
-        title="Pre-Decision Scan Burst: Aviation vs Football",
-        yaxis_title="Scans per minute",
-        yaxis=dict(range=[0, max(values) * 1.25]),
-        height=420,
-    )
-    st.plotly_chart(fig_burst, width='stretch')
 
 
 def render_broadcast_demo_tab(fdf: pd.DataFrame) -> None:
