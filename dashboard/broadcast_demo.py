@@ -9,11 +9,16 @@ Usage:
 """
 import math
 import os
+import sys
 import time
 
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
+
+# Ensure src/ is importable when running standalone
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from src.s3_data_loader import load_csv  # noqa: E402
 
 # ── DFL Color System ──────────────────────────────────────────────────────────
 DFL_RED   = "#D10214"
@@ -51,46 +56,35 @@ POS_MAP: dict[str, str] = {
 
 # ── Data Loading ──────────────────────────────────────────────────────────────
 
-def load_broadcast_data(path: str = "results/combined_full.csv") -> pd.DataFrame:
+def load_broadcast_data() -> pd.DataFrame:
     """Load the merged AWI + PQI dataset for broadcast overlay.
 
+    Uses the S3 data loader (tries S3 first, falls back to local files).
     Merges ``awi_full.csv`` and ``pqi_full.csv`` on the fly so the broadcast
-    demo always reflects the latest pipeline output, even if the analysis
-    notebook has not been re-run.  Falls back to a pre-built
-    ``combined_full.csv`` only when the source CSVs are missing.
-
-    Parameters
-    ----------
-    path:
-        Legacy path kept for backward compatibility.  Ignored when the
-        source CSVs exist.
+    demo always reflects the latest pipeline output.
 
     Returns
     -------
     pd.DataFrame
         DataFrame with an added ``pos_group`` column.
     """
-    awi_path = "results/awi_full.csv"
-    pqi_path = "results/pqi_full.csv"
+    awi = load_csv("awi_full.csv", "results/awi_full.csv")
+    pqi = load_csv("pqi_full.csv", "results/pqi_full.csv")
 
-    if os.path.exists(awi_path) and os.path.exists(pqi_path):
-        awi = pd.read_csv(awi_path)
-        pqi = pd.read_csv(pqi_path)
-        pqi_cols = ["jersey", "team", "match_id", "phase_label",
-                    "mean_pqi", "median_pqi", "std_pqi",
-                    "n_press_frames", "press_minutes",
-                    "orientation_mean", "stance_mean", "proximity_mean"]
-        df = awi.merge(pqi[[c for c in pqi_cols if c in pqi.columns]],
-                       on=["jersey", "team", "match_id", "phase_label"],
-                       how="left")
-    elif os.path.exists(path):
-        df = pd.read_csv(path)
-    else:
+    if awi is None or pqi is None:
         st.error(
-            f"Neither `{awi_path}` + `{pqi_path}` nor `{path}` found. "
-            "Run the pipeline first to generate the data files."
+            "Result CSVs not found. Configure S3 credentials (via .env or "
+            "Streamlit secrets) or run the pipeline locally first."
         )
         st.stop()
+
+    pqi_cols = ["jersey", "team", "match_id", "phase_label",
+                "mean_pqi", "median_pqi", "std_pqi",
+                "n_press_frames", "press_minutes",
+                "orientation_mean", "stance_mean", "proximity_mean"]
+    df = awi.merge(pqi[[c for c in pqi_cols if c in pqi.columns]],
+                   on=["jersey", "team", "match_id", "phase_label"],
+                   how="left")
 
     df["pos_group"] = df["position"].map(POS_MAP)
     return df
