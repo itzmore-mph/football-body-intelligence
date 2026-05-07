@@ -46,7 +46,7 @@ TF15 Parquet (S3, ~4 GB/match)
 | Press frame filter: ≥10 consecutive frames within 5 m | Excludes incidental proximity; captures genuine pressing intent |
 | SageMaker Processing (10 parallel jobs) | 5 matches × 2 metrics in ~15 min vs ~2 hrs local; zero cold-start overhead |
 
-**Scale:** 5 Bundesliga matches · ~40 players × 2 halves = **400 player-phase rows** · 324 unit + property-based tests · production-containerised pipeline (Docker → ECR)
+**Scale:** 5 Bundesliga matches · ~40 players × 2 halves = **400 player-phase rows** · 334 unit + property-based tests · production-containerised pipeline (Docker → ECR)
 
 ---
 
@@ -107,7 +107,7 @@ Top performers: Oscar Höjlund (DMZ, 26.90 / 63.9), Joshua Kimmich (DMR, 21.77 /
 
 **PQI leaders among outfield players:** DMZ (62.9) and DMR (62.1) lead, confirming that defensive midfielders dominate both cognitive and physical pressing dimensions. Kimmich's proximity sub-score of 96.0 is the highest among all outfield players in the dataset.
 
-**Cross-domain validation:** AWI and PQI each map to a validated external reference system - no isolated inventions. AWI aligns with cockpit visual-scanning research (Lounis et al., 2021, PLOS ONE; population mean: 12 scans/min, elite: 19); football active players match the aviation population baseline, while the pre-pass spike (~19.2 scans/min) reaches aviation elite levels. PQI sub-scores map to NBA Second Spectrum EPV (Cervone et al., 2016; orientation), tennis ready-position biomechanics (Elliott, 2006, BJSM; stance), and NFL player-tracking (Eager et al., 2023, MIT Sloan; proximity). All six reference systems are parameterised from published, peer-reviewed sources and visualised in the **Benchmark tab**.
+**Cross-domain validation:** AWI and PQI each map to a validated construct in another sport or industry. AWI aligns with cockpit visual-scanning research (Lounis et al., 2021, PLOS ONE), where expert pilots exhibit higher scan-transition rates and pre-decision scan bursts - the same pattern as our +59% pre-pass AWI spike. PQI sub-scores map to NBA defensive alignment analytics (Cervone et al., 2016, JASA; orientation), tennis ready-position biomechanics (Elliott, 2006, BJSM; stance), and NFL player-tracking separation metrics (Eager et al., 2023, MIT Sloan; proximity). The composite structure mirrors rugby 3D tackle biomechanics (Hendricks et al., 2021). All citations are peer-reviewed; cross-domain parallels are qualitative analogies, not direct statistical comparisons.
 
 ---
 
