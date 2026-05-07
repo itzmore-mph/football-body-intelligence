@@ -52,6 +52,7 @@ def _get_s3_config() -> Optional[dict]:
             "prefix": aws_conf.get("results_prefix", _DEFAULT_S3_RESULTS_PREFIX),
             "aws_access_key_id": aws_conf["aws_access_key_id"],
             "aws_secret_access_key": aws_conf["aws_secret_access_key"],
+            "aws_session_token": aws_conf.get("aws_session_token"),
             "region_name": aws_conf.get("region_name", "eu-central-1"),
         }
 
@@ -63,6 +64,7 @@ def _get_s3_config() -> Optional[dict]:
             "prefix": os.environ.get("S3_RESULTS_PREFIX", _DEFAULT_S3_RESULTS_PREFIX),
             "aws_access_key_id": os.environ.get("AWS_ACCESS_KEY_ID"),
             "aws_secret_access_key": os.environ.get("AWS_SECRET_ACCESS_KEY"),
+            "aws_session_token": os.environ.get("AWS_SESSION_TOKEN"),
             "region_name": os.environ.get("AWS_DEFAULT_REGION", "eu-central-1"),
         }
 
@@ -75,6 +77,8 @@ def _create_s3_client(config: dict):
     if config.get("aws_access_key_id") and config.get("aws_secret_access_key"):
         kwargs["aws_access_key_id"] = config["aws_access_key_id"]
         kwargs["aws_secret_access_key"] = config["aws_secret_access_key"]
+        if config.get("aws_session_token"):
+            kwargs["aws_session_token"] = config["aws_session_token"]
     return boto3.client("s3", **kwargs)
 
 
