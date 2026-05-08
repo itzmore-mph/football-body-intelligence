@@ -10,7 +10,7 @@
 PROFILE="${AWS_PROFILE:-your-sso-profile-name}"
 REGION="${AWS_DEFAULT_REGION:-eu-central-1}"
 S3_BUCKET="${HACKATHON_BUCKET:-your-s3-bucket-name}"
-CHALLENGE_PREFIX="${CHALLENGE_PREFIX:-Challenge 2 – Unlock the Power of 3D Football Data/Match_Data}"
+CHALLENGE_PREFIX="${CHALLENGE_PREFIX:-your-s3-bucket-name}"
 SM_ROLE_ARN="${SM_ROLE_ARN:-arn:aws:iam::YOUR_ACCOUNT_ID:role/SageMakerExecutionRole}"
 SM_IMAGE_URI="${SM_IMAGE_URI:-YOUR_ACCOUNT_ID.dkr.ecr.eu-central-1.amazonaws.com/football-bi-processing:latest}"
 # ─────────────────────────────────────────────────────────────────────────────
@@ -40,7 +40,7 @@ export S3_BUCKET="$S3_BUCKET"
 export CHALLENGE_PREFIX="$CHALLENGE_PREFIX"
 export SM_ROLE_ARN="$SM_ROLE_ARN"
 export SM_IMAGE_URI="$SM_IMAGE_URI"
-export BEDROCK_REGION="${BEDROCK_REGION:-eu-central-1}"
+export BEDROCK_REGION="${BEDROCK_REGION:-your-time-zone}"
 
 echo ""
 echo "==> Ready. SSO token valid for ~60 minutes."
