@@ -45,8 +45,8 @@ LEGEND_BG       = "rgba(17,24,39,0.92)"
 MARKER_OUTLINE  = "#334155"
 
 POS_COLORS: dict[str, str] = {
-    "GK": "#94A3B8", "CB": "#38BDF8", "FB": "#818CF8",
-    "DM": "#FB923C", "CM": "#FBBF24", "WM": "#4ADE80", "FW": "#F472B6",
+    "GK": "#64748B", "CB": "#60A5FA", "FB": "#818CF8",
+    "DM": "#F59E0B", "CM": "#A78BFA", "WM": "#34D399", "FW": "#F472B6",
 }
 
 POS_MAP: dict[str, str] = {
@@ -1228,21 +1228,21 @@ def render_match_overview(fdf: pd.DataFrame) -> None:
         fig_stack.add_trace(go.Bar(
             name="Orientation (40%)", x=sub_data["pos_group"],
             y=sub_data["orientation_mean"] * 0.4,
-            marker_color=C_AWI, opacity=0.9,
+            marker_color="#60A5FA", opacity=0.9,
             hovertemplate="<b>%{x}</b><br>Orientation: %{customdata:.1f}<extra></extra>",
             customdata=sub_data["orientation_mean"],
         ))
         fig_stack.add_trace(go.Bar(
             name="Stance (30%)", x=sub_data["pos_group"],
             y=sub_data["stance_mean"] * 0.3,
-            marker_color=C_PURPLE, opacity=0.9,
+            marker_color="#A78BFA", opacity=0.9,
             hovertemplate="<b>%{x}</b><br>Stance: %{customdata:.1f}<extra></extra>",
             customdata=sub_data["stance_mean"],
         ))
         fig_stack.add_trace(go.Bar(
             name="Proximity (30%)", x=sub_data["pos_group"],
             y=sub_data["proximity_mean"] * 0.3,
-            marker_color=C_PQI, opacity=0.9,
+            marker_color="#F59E0B", opacity=0.85,
             hovertemplate="<b>%{x}</b><br>Proximity: %{customdata:.1f}<extra></extra>",
             customdata=sub_data["proximity_mean"],
         ))
@@ -1271,7 +1271,7 @@ def render_match_overview(fdf: pd.DataFrame) -> None:
         halves["awi_delta"]  = halves["awi_h2"] - halves["awi_h1"]
         halves["pqi_delta"]  = halves["pqi_h2"] - halves["pqi_h1"]
         halves["short"]      = halves["name"].apply(lambda n: n.split()[-1])
-        halves["bar_color"]  = halves["awi_delta"].apply(lambda d: C_GREEN if d >= 0 else C_RED)
+        halves["bar_color"]  = halves["awi_delta"].apply(lambda d: "#6EE7B7" if d >= 0 else "#FDA4AF")
         top_h = halves.nlargest(16, "awi_h1")
 
         d1, d2 = st.columns([2, 1], gap="medium")
@@ -1339,7 +1339,8 @@ def render_match_overview(fdf: pd.DataFrame) -> None:
                   .sort_values("awi_mean", ascending=False))
 
     all_teams    = sorted(team_stats["team_name"].unique())
-    team_palette = [C_AWI, C_PQI, C_GREEN, C_GOLD, C_PURPLE, C_RED, "#A8DADC", "#F472B6"]
+    # Use a single cohesive blue-slate palette for teams (professional, not rainbow)
+    team_palette = ["#60A5FA", "#7DD3FC", "#93C5FD", "#A5B4FC", "#6EE7B7", "#5EEAD4", "#94A3B8", "#CBD5E1"]
     team_colors  = {t: team_palette[i % len(team_palette)] for i, t in enumerate(all_teams)}
 
     fig_team = go.Figure()
