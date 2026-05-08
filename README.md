@@ -259,6 +259,7 @@ scripts/                          SageMaker container entry points
   aggregate_results.py              Concatenates per-match CSVs
   _sagemaker_helpers.py             Shared scaffolding for container jobs
   broadcast_screenshot.py           Captures broadcast demo screenshot
+  refresh_streamlit_secrets.sh      Outputs SSO credentials in Streamlit TOML format
 
 pipelines/
   sagemaker_pipeline.py             Submits 10 parallel jobs, aggregates results
