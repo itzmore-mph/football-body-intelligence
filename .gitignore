@@ -54,10 +54,13 @@ figures/*
 docs/
 
 # ── Submission package (generated locally) ────────────────────────────────────
-submission/*.pdf
 submission/*.mp4
 submission/*.zip
 submission/*.pptx
+submission/executive_summary_slides.md
+submission/executive_summary_slides.html
+submission/prfaq.md
+submission/prfaq.html
 submission/SUBMISSION_CHECKLIST.md
 submission/VIDEO_NARRATION_SCRIPT.md
 submission/Screen Record ITZMORE.mov
