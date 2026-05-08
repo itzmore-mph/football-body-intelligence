@@ -378,9 +378,9 @@ The S3 data loader (`src/s3_data_loader.py`) reads these secrets automatically. 
 
 > **Note:** The hackathon account uses SSO with temporary credentials (no long-lived IAM keys). The `aws_session_token` field is required and expires after ~60 minutes. Refresh before a demo session with:
 > ```bash
-> aws configure export-credentials --profile slalom_IsbUsersPS-603974305500 --format env
+> bash scripts/refresh_streamlit_secrets.sh
 > ```
-> Then update the secrets in Streamlit Cloud settings.
+> This logs in via SSO and prints the secrets in ready-to-paste TOML format. Copy the output into Streamlit Cloud settings.
 
 ---
 
