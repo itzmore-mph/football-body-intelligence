@@ -1834,122 +1834,133 @@ def render_benchmark_tab(fdf: pd.DataFrame) -> None:
     """Render the cross-domain benchmark comparison tab.
 
     Shows qualitative analogies between AWI/PQI and validated constructs in
-    other sports and industries, with academic citations. No fabricated
-    percentile comparisons - only factual cross-domain parallels.
+    other sports and industries, with academic citations.
     """
-    try:
-        from src.benchmark_reference import get_all_references
-    except ImportError:
-        st.error("benchmark_reference module not found.")
-        return
-
     if guard(fdf):
         return
 
     st.markdown("## Cross-Domain Validation")
     st.markdown(
-        "AWI and PQI are not isolated inventions. Each metric measures a construct "
-        "that is well-established and validated at scale in other sports and industries. "
-        "This section maps our football metrics to their cross-domain counterparts."
+        "AWI and PQI measure constructs that are well-established in other sports "
+        "and industries. This section maps each metric to its cross-domain counterpart "
+        "with peer-reviewed citations."
     )
 
-    # ── Block 1: AWI Cross-Domain Parallels ───────────────────────────────────
-    st.markdown("### AWI: Visual Scanning Across Domains")
-    st.markdown(
-        "Head-scanning frequency as a measure of situational awareness is studied "
-        "extensively in aviation, where pilot scan patterns predict performance and "
-        "safety outcomes. The core finding transfers directly to football:"
-    )
-    st.markdown(
-        "> **Aviation:** Expert pilots exhibit significantly more scan transitions "
-        "per unit time than novices during high-workload phases. Scan rate increases "
-        "before critical decisions (e.g. landing approach). "
-        "([Lounis, Peysakhovich & Causse, 2021](https://doi.org/10.1371/journal.pone.0247061))"
-    )
-    st.markdown(
-        "> **Football (our finding):** AWI spikes +59% in the 5 seconds before a "
-        "player releases the ball - the same pre-decision cognitive-load pattern "
-        "documented in cockpit research."
-    )
+    # ── Block 1: AWI - Aviation Parallel ──────────────────────────────────────
+    st.markdown("### AWI: Cognitive Scanning")
 
-    col_a, col_b = st.columns(2)
-    with col_a:
-        st.metric("Aviation parallel", "Pre-decision scan burst")
-        st.caption("Expert pilots increase scan rate before critical actions")
-    with col_b:
+    col_awi_l, col_awi_r = st.columns([3, 2])
+    with col_awi_l:
+        st.markdown(
+            "Head-scanning frequency predicts performance in aviation. Expert pilots "
+            "exhibit significantly more scan transitions than novices, and scan rate "
+            "increases before critical decisions."
+        )
+        st.markdown(
+            "**Our finding mirrors this exactly:** AWI spikes +59% in the 5 seconds "
+            "before a player releases the ball - the same pre-decision cognitive-load "
+            "pattern documented in cockpit research."
+        )
+        st.caption(
+            "Lounis, C., Peysakhovich, V., & Causse, M. (2021). Visual scanning strategies "
+            "in the cockpit are modulated by pilots' expertise. *PLOS ONE*, 16(2). "
+            "[doi:10.1371/journal.pone.0247061](https://doi.org/10.1371/journal.pone.0247061)"
+        )
+    with col_awi_r:
         bundesliga_awi = fdf["awi_per_minute"].dropna()
         bundesliga_awi = bundesliga_awi[bundesliga_awi > 0]
         bl_mean = float(bundesliga_awi.mean()) if len(bundesliga_awi) > 0 else 0
         st.metric("Bundesliga AWI mean", f"{bl_mean:.1f} scans/min")
-        st.caption("Pre-pass spike: +59% above baseline")
+        st.metric("Pre-pass spike", "+59%", delta="above baseline")
+        st.markdown(
+            f'<div style="background:{C_SURFACE2};border-radius:8px;padding:12px;'
+            f'margin-top:8px;border-left:3px solid {C_AWI}">'
+            f'<span style="font-size:0.8rem;color:{C_MUTED}">Aviation parallel</span><br>'
+            f'<span style="color:{C_TEXT}">Expert pilots increase scan rate before '
+            f'critical actions - identical to pre-pass AWI behaviour</span></div>',
+            unsafe_allow_html=True,
+        )
 
-    # ── Block 2: PQI Cross-Domain Parallels ───────────────────────────────────
     st.markdown("---")
-    st.markdown("### PQI: Body Mechanics Across Domains")
-    st.markdown(
-        "Each PQI sub-score maps to a biomechanical construct validated in another field:"
-    )
 
-    sub_parallels = [
-        {
-            "Sub-score": "Orientation (40%)",
-            "Construct": "Defensive body positioning toward ball carrier",
-            "Cross-domain parallel": "NBA defensive alignment analytics (Second Spectrum)",
-            "Key insight": "Facing the ball carrier directly is the dominant indicator of effective defense in both basketball and football pressing",
-            "Citation": "[Cervone et al., 2016 - JASA](https://doi.org/10.1080/01621459.2016.1141685)",
-        },
-        {
-            "Sub-score": "Stance (30%)",
-            "Construct": "Knee-flexion quality (optimal at 130 degrees)",
-            "Cross-domain parallel": "Tennis ready-position biomechanics / Occupational ergonomics (REBA)",
-            "Key insight": "Optimal knee flexion for athletic readiness is well-documented across racket sports and occupational biomechanics",
-            "Citation": "[Elliott, 2006 - BJSM](https://doi.org/10.1136/bjsm.2005.023150); [Hignett & McAtamney, 2000](https://doi.org/10.1016/S0003-6870(99)00039-3)",
-        },
-        {
-            "Sub-score": "Proximity (30%)",
-            "Construct": "Defender-to-carrier distance during press",
-            "Cross-domain parallel": "NFL Next Gen Stats separation metrics",
-            "Key insight": "Tracking-based proximity metrics are the standard for evaluating defensive pressure quality in American football",
-            "Citation": "[Eager et al., 2023 - MIT Sloan](https://www.sloansportsconference.com/research-papers/using-tracking-and-charting-data-to-better-evaluate-nfl-players-a-review)",
-        },
-    ]
-    st.dataframe(pd.DataFrame(sub_parallels), hide_index=True, use_container_width=True)
+    # ── Block 2: PQI Sub-Scores as Cards ──────────────────────────────────────
+    st.markdown("### PQI: Body Mechanics")
+    st.markdown("Each sub-score maps to a validated biomechanical construct:")
+
+    c1, c2, c3 = st.columns(3)
+
+    with c1:
+        st.markdown(
+            f'<div style="background:{C_SURFACE2};border-radius:8px;padding:16px;'
+            f'border-top:3px solid #60A5FA;height:100%">'
+            f'<span style="font-size:0.75rem;color:{C_MUTED}">ORIENTATION (40%)</span><br>'
+            f'<span style="font-size:1rem;color:{C_TEXT};font-weight:600">'
+            f'Body facing toward ball carrier</span><br><br>'
+            f'<span style="font-size:0.85rem;color:{C_MUTED}">'
+            f'Parallel: NBA defensive alignment (Second Spectrum EPV framework). '
+            f'Facing the ball handler directly is the dominant indicator of effective '
+            f'defense in both basketball and football.</span><br><br>'
+            f'<span style="font-size:0.75rem;color:#60A5FA">'
+            f'Cervone et al., 2016 - JASA</span></div>',
+            unsafe_allow_html=True,
+        )
+
+    with c2:
+        st.markdown(
+            f'<div style="background:{C_SURFACE2};border-radius:8px;padding:16px;'
+            f'border-top:3px solid #A78BFA;height:100%">'
+            f'<span style="font-size:0.75rem;color:{C_MUTED}">STANCE (30%)</span><br>'
+            f'<span style="font-size:1rem;color:{C_TEXT};font-weight:600">'
+            f'Knee-flexion quality (optimal 130 deg)</span><br><br>'
+            f'<span style="font-size:0.85rem;color:{C_MUTED}">'
+            f'Parallel: Tennis ready-position biomechanics and occupational '
+            f'ergonomics (REBA). Optimal knee flexion for athletic readiness is '
+            f'well-documented across racket sports.</span><br><br>'
+            f'<span style="font-size:0.75rem;color:#A78BFA">'
+            f'Elliott, 2006 - BJSM; Hignett & McAtamney, 2000</span></div>',
+            unsafe_allow_html=True,
+        )
+
+    with c3:
+        st.markdown(
+            f'<div style="background:{C_SURFACE2};border-radius:8px;padding:16px;'
+            f'border-top:3px solid #F59E0B;height:100%">'
+            f'<span style="font-size:0.75rem;color:{C_MUTED}">PROXIMITY (30%)</span><br>'
+            f'<span style="font-size:1rem;color:{C_TEXT};font-weight:600">'
+            f'Distance to ball carrier during press</span><br><br>'
+            f'<span style="font-size:0.85rem;color:{C_MUTED}">'
+            f'Parallel: NFL Next Gen Stats separation metrics. Tracking-based '
+            f'proximity is the standard for evaluating defensive pressure quality '
+            f'in American football.</span><br><br>'
+            f'<span style="font-size:0.75rem;color:#F59E0B">'
+            f'Eager et al., 2023 - MIT Sloan</span></div>',
+            unsafe_allow_html=True,
+        )
+
+    st.markdown("")  # spacing
 
     # ── Block 3: Composite Parallel ───────────────────────────────────────────
     st.markdown("---")
-    st.markdown("### Composite Quality Scores in Contact Sports")
+    st.markdown("### Composite: Multi-Factor Quality Scores")
     st.markdown(
-        "The idea of a composite body-mechanics quality score during contact actions "
-        "is established in rugby, where 3D motion capture is used to assess tackle "
-        "technique across orientation, stance, and proximity components - the same "
-        "three dimensions as PQI."
+        "The three-factor composite structure (orientation + stance + proximity) "
+        "mirrors rugby tackle biomechanics research, where 3D motion capture assesses "
+        "technique quality across the same three dimensions."
     )
-    st.markdown(
-        "> **Rugby:** Hendricks et al. (2021) systematically review 3D motion-capture "
-        "studies of tackle biomechanics, covering body orientation, joint angles, and "
-        "proximity to the ball carrier as key quality indicators. "
-        "([Sports Medicine - Open](https://doi.org/10.1186/s40798-021-00322-w))"
+    st.caption(
+        "Hendricks, S., den Hollander, S., Lombard, W., & Lambert, M. (2021). "
+        "3D biomechanics of rugby tackle techniques: a systematic review. "
+        "*Sports Medicine - Open*, 7(1), 39. "
+        "[doi:10.1186/s40798-021-00322-w](https://doi.org/10.1186/s40798-021-00322-w)"
     )
 
-    # ── Block 4: Summary Table ────────────────────────────────────────────────
-    st.markdown("---")
-    st.markdown("### Summary: Why These Metrics Are Not Novel Constructs")
-    summary_data = [
-        {"Our metric": "AWI", "Measures": "Head-scan frequency", "Validated in": "Aviation (cockpit scanning)", "Data type": "Eye/head tracking, 60+ Hz"},
-        {"Our metric": "PQI Orientation", "Measures": "Body facing toward target", "Validated in": "Basketball (defensive alignment)", "Data type": "Optical tracking, 25 Hz"},
-        {"Our metric": "PQI Stance", "Measures": "Knee-flexion optimality", "Validated in": "Tennis, Ergonomics (REBA)", "Data type": "3D motion capture"},
-        {"Our metric": "PQI Proximity", "Measures": "Distance to ball carrier", "Validated in": "American Football (Next Gen Stats)", "Data type": "GPS/RFID tracking, 10 Hz"},
-        {"Our metric": "PQI Composite", "Measures": "Multi-factor body quality", "Validated in": "Rugby (tackle technique)", "Data type": "3D motion capture"},
-    ]
-    st.dataframe(pd.DataFrame(summary_data), hide_index=True, use_container_width=True)
-
+    # ── Footer ────────────────────────────────────────────────────────────────
     st.markdown(
-        '<div style="font-size:0.8rem;color:#888;margin-top:1.5rem">'
-        "All citations are peer-reviewed publications or conference proceedings. "
-        "Cross-domain parallels are qualitative analogies demonstrating that the "
-        "constructs measured by AWI and PQI are well-established in sports science "
-        "and biomechanics research."
-        "</div>",
+        f'<div style="font-size:0.75rem;color:{C_MUTED};margin-top:2rem;'
+        f'padding-top:1rem;border-top:1px solid {C_BORDER}">'
+        f'All citations are peer-reviewed publications or conference proceedings. '
+        f'Cross-domain parallels are qualitative analogies - not direct statistical '
+        f'comparisons.</div>',
         unsafe_allow_html=True,
     )
 
