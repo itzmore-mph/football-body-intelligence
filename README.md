@@ -367,12 +367,12 @@ The dashboard can be hosted on [Streamlit Community Cloud](https://share.streaml
 
 ```toml
 [aws]
-bucket = "hackathon-data-603974305500"
+bucket = "-your-s3-bucket-name"
 results_prefix = "results"
-aws_access_key_id = "AKIA..."
-aws_secret_access_key = "..."
+aws_access_key_id = "-your-aws-access-key-id"
+aws_secret_access_key = "-your-aws-secret-access-key"
 aws_session_token = "..."
-region_name = "eu-central-1"
+region_name = "-your-aws-default-region"
 ```
 
 The S3 data loader (`src/s3_data_loader.py`) reads these secrets automatically. See `.streamlit/secrets.toml.example` for the template.
