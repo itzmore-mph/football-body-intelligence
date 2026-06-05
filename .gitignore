@@ -53,6 +53,14 @@ figures/*
 # ── DFL proprietary documentation — do not redistribute ───────────────────────
 docs/
 
+# ── Presentation build (pptxgenjs) ────────────────────────────────────────────
+build_presentation.js
+package.json
+package-lock.json
+node_modules/
+assets/
+notebooks/regenerate_scatter.py
+
 # ── Submission package (generated locally) ────────────────────────────────────
 submission/*.mp4
 submission/*.zip
