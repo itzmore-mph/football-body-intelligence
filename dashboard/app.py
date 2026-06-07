@@ -1989,13 +1989,13 @@ def render_broadcast_demo_tab(fdf: pd.DataFrame) -> None:
 
 
 # -- Tabs ------------------------------------------------------------------
-tab_profile, tab_match, tab_board, tab_fan, tab_broadcast, tab_benchmark = st.tabs([
+tab_profile, tab_match, tab_board, tab_fan, tab_broadcast = st.tabs([
     "Player Profile",
     "Match Overview",
     "Leaderboard",
     "Fan View",
     "Broadcast Demo",
-    "Benchmark",
+    # "Benchmark",  # hidden for final presentation
 ])
 
 with tab_profile:
@@ -2013,5 +2013,5 @@ with tab_fan:
 with tab_broadcast:
     render_broadcast_demo_tab(fdf)
 
-with tab_benchmark:
-    render_benchmark_tab(fdf)
+# with tab_benchmark:
+#     render_benchmark_tab(fdf)
