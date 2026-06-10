@@ -6,6 +6,24 @@
 
 ---
 
+## Press Release
+
+**Football Body Intelligence Platform makes player awareness and press quality measurable from skeleton data**
+
+*Two matchday-grade metrics — AWI and PQI — turn TRACAB TF15 3D skeleton tracking into scout-ready intelligence for clubs, broadcasters, and league data teams.*
+
+**Frankfurt, June 16, 2026** — Team itzmore today released the Football Body Intelligence Platform, a system that derives two complementary player metrics directly from TRACAB TF15 3D skeleton data: the Awareness Index (AWI), which counts discrete head-scanning events per minute, and the Pressure Quality Index (PQI), which scores body mechanics during pressing actions on a 0–100 scale.
+
+Until now, matchday tracking told clubs where players moved, not where they looked or how well they pressed. Scanning frequency and press quality were assessed by hand-coded video — slow, subjective, and impossible to run across a full season. The platform closes that gap by reading the anatomical signal directly: head yaw from the nose, neck, and ear keypoints at 50 fps, and body orientation, knee-flexion stance, and proximity during genuine press frames.
+
+The two metrics measure genuinely different things. Across five Bundesliga matches, AWI and PQI are statistically independent (Pearson r = −0.11, p = 0.12, n = 198 valid player-phases). A player who scans frequently does not automatically press well, so both dimensions are needed to characterise a player fully. AWI is also stable rather than noisy — cross-half correlation r = 0.660 — and rises +59% in the five seconds before a player releases the ball, confirming it captures pre-decision cognitive load. The platform surfaces all of this through an interactive Streamlit dashboard and AI-generated scouting narratives via Amazon Bedrock.
+
+"We already track every position on the pitch. What we couldn't see was the player's head — whether he scanned before receiving, or pressed with his body in the right shape," said a Bundesliga club head of scouting [fictional quote]. "Two numbers that move independently, validated across matches, is exactly the kind of signal we can act on in recruitment and coaching."
+
+The platform runs on AWS — S3 for TF15 storage, SageMaker for parallel per-match computation, and Bedrock for narrative generation. To explore the metrics, launch the dashboard with `bash dashboard/run_dashboard.sh`.
+
+---
+
 ## Overview
 
 ### Football Body Intelligence Platform: AWI + PQI
@@ -16,28 +34,42 @@ The Football Body Intelligence Platform transforms TRACAB TF15 3D skeleton data 
 
 **PQI (Pressure Quality Index)** measures the quality of a player's body mechanics during pressing actions. It is a composite score [0, 100] combining three sub-scores: body orientation toward the ball carrier (40% weight), knee-flexion stance quality relative to the biomechanical optimum of 130° (30% weight), and proximity to the ball carrier (30% weight). PQI is computed only during genuine press frames - windows where a player's pelvis is within 5 metres of the ball carrier for at least 10 consecutive frames (0.2 s at 50 fps).
 
-**The central analytical finding: AWI and PQI are statistically independent** (Pearson r = −0.11, p = 0.12). Knowing a player's scan rate tells you almost nothing about their pressing mechanics. Body Intelligence has two genuinely orthogonal dimensions - and a player must be measured on both to be fully understood.
+**The central analytical finding: AWI and PQI are statistically independent** (Pearson r = −0.11, p = 0.12, n = 198 valid player-phases). Knowing a player's scan rate tells you almost nothing about their pressing mechanics. Body Intelligence has two genuinely orthogonal dimensions - and a player must be measured on both to be fully understood.
 
-Computed across 5 Bundesliga matches and 400 player-phase observations, the platform identifies 10 unique players who score above the 75th percentile on both dimensions simultaneously - the elite quadrant - including Oscar Winther Höjlund (DMZ, 26.90 scans/min, PQI 63.9), Joshua Kimmich (DMR, 21.77 scans/min, PQI 64.7), and Luka Vušković (IVZ, 18.33 scans/min, PQI 63.7) - a centre-back whose scanning profile matches a defensive midfielder.
+Computed across 5 Bundesliga matches and 400 player-phase rows (198 with valid AWI and PQI for the independence test), the platform identifies 10 unique players who score above the 75th percentile on both dimensions simultaneously - the elite quadrant - including Oscar Winther Höjlund (DMZ, 26.90 scans/min, PQI 63.9), Joshua Kimmich (DMR, 21.77 scans/min, PQI 64.7), and Luka Vušković (IVZ, 18.33 scans/min, PQI 63.7) - a centre-back whose scanning profile matches a defensive midfielder.
+
+---
+
+## AWS Architecture
+
+The platform runs end-to-end on AWS, processing ~4 GB of TF15 Parquet per match at 50 fps.
+
+1. **Storage — Amazon S3.** TRACAB TF15 Parquet (one file per match) plus MatchInformation XML live in the challenge S3 bucket (`HACKATHON_BUCKET`, region `eu-central-1`). No match data is stored in the repo.
+2. **Compute — Amazon SageMaker.** `pipelines/sagemaker_pipeline.py` submits 10 parallel processing jobs (one AWI + one PQI job per match) via boto3. Each job (`scripts/run_awi_job.py`, `scripts/run_pqi_job.py`) processes one match end-to-end and writes a per-match CSV back to S3.
+3. **Extract.** `skeleton_parser.py` reads head yaw (nose→neck primary, ear fallback); `pressure_pipeline.py` reads body yaw plus pelvis, knee, hip, and ankle joints, using pyarrow row-group pushdown to stream only the frames in each phase.
+4. **Compute metrics.** `awi_calculator.py` (circular smoothing → leading-edge scan count) and `pqi_calculator.py` (vectorized orientation/stance/proximity → weighted composite).
+5. **Serve — Streamlit.** `dashboard/app.py` reads the aggregated `awi_full.csv` and `pqi_full.csv` and serves five interactive views on port 8501.
+6. **Narratives — Amazon Bedrock.** `bedrock_client.py` calls `eu.amazon.nova-lite-v1:0` in `eu-central-1` (Claude Sonnet selectable via `BEDROCK_MODEL_ID`), with 3-retry exponential backoff, to convert metrics into scouting narratives.
 
 ---
 
 ## Dashboard
 
-The interactive Streamlit dashboard (`dashboard/app.py`) loads the merged AWI + PQI dataset and provides three tabs for exploring body intelligence data at different levels of granularity.
+The interactive Streamlit dashboard (`dashboard/app.py`) loads the merged AWI + PQI dataset and provides five tabs for exploring body intelligence data at different levels of granularity.
 
 ![AWI vs PQI Scatter - all players, coloured by position](../figures/fig1_awi_vs_pqi_scatter.png)
 
 *Figure 1: AWI vs PQI scatter plot for all player-phases across 5 Bundesliga matches, coloured by position. The near-zero correlation (r = −0.11) confirms that scanning awareness and pressing quality are independent skills - both metrics are needed to characterise a player fully. The elite quadrant (top-right) contains 10 unique players across 15 player-phases.*
 
-The dashboard provides six views:
+The dashboard provides five views:
 
 - **Player Profile** - AWI/PQI gauges vs selection median, 5-metric KPI row with percentile ranks and inline tooltips, scatter in context (colored by role group), PQI radar vs role average, PQI component breakdown (Orientation/Stance/Proximity with explanations), per-phase trend cards
 - **Match Overview** - summary KPIs, quadrant scatter with 4-quadrant classification and elite player labels, role lollipop chart, PQI decomposition stacked bar by role, half-time fatigue bar + 1st vs 2nd half AWI scatter, team AWI comparison (color per club)
 - **Leaderboard** - sortable table with DFL position codes, role averages heatmap, AWI bar chart (mean ± std per role), PQI box distribution by role
 - **Fan View** - broadcast-style top-3 awareness counter, 4-quadrant classification, Body Intelligence leaderboard, scan-frequency callout
 - **Broadcast Demo** - DFL-styled live overlay: player selector, AWI and PQI circular gauges, quadrant badge, DFL red ticker with validated findings
-- **Benchmark** - cross-domain validation: AWI vs aviation head-scan research, PQI sub-scores vs NBA Second Spectrum / Tennis Hawk-Eye / NFL Next Gen Stats, pre-decision scan burst comparison showing the +59% spike in football context against aviation reference data
+
+A sixth **Benchmark** view (cross-domain validation: AWI vs aviation head-scan research, PQI sub-scores vs NBA Second Spectrum / Tennis Hawk-Eye / NFL Next Gen Stats, pre-decision scan burst comparison against aviation reference data) is implemented (`render_benchmark_tab` in `dashboard/app.py`, backed by `src/benchmark_reference.py`) but hidden in the final presentation build. It re-enables by uncommenting the tab in `app.py`.
 
 Sidebar: Match, Phase, Position (DFL codes), Min Coverage % (default 50%). Collapsible **Metric Definitions** expander explains AWI, PQI, and all three sub-scores. **Position Code Reference** expander maps all DFL codes to English names.
 
@@ -47,23 +79,15 @@ To launch: `bash dashboard/run_dashboard.sh` (runs on port 8501).
 
 ## Frequently Asked Questions
 
+The FAQ is split into **External** questions (metric interpretation, use cases, real-time capability, benchmarking - for jury, DFL product team, clubs, broadcasters) and **Internal** questions (threshold choice, weighting, scaling, limitations, roadmap - for technical deep-dives and method critique).
+
+---
+
+## External FAQ
+
 ### What exactly is a "scan event"?
 
 A scan event is a discrete head rotation of ≥45° completed within a 0.5-second window (25 frames at 50 fps), detected from the smoothed head yaw time series. "Discrete" means one sustained rotation counts as one event, not one per frame: a player turning their head 90° over 0.3 seconds registers as one scan, not 15. This matches how coaches and sports scientists define the term - a deliberate shoulder-check, not a continuous slow turn.
-
-### Why 45°? The literature uses 30°.
-
-The 30° threshold in sports-science literature is measured from direct video, where head angles are observed at full 3D resolution. The TF15 XY-plane projection compresses apparent rotation: a 3D head turn of 45° projects to approximately 30° in the XY plane depending on pitch-facing direction. The 45° threshold was empirically tuned on Kimmich (FCB-HSV, 1st half), where the resulting AWI of 21.77 scans/min matches his documented scanning frequency from hand-coded video analysis in the coaching literature.
-
-### Why is AWI a "stable trait"? Could it just reflect match context?
-
-Cross-half Pearson correlation r = 0.660 (n = 79 active player-phases). Players who rank high in AWI in the first half rank high in the second half, independently of match context. Kimmich across two full matches: 21.77 / 21.15 (FCB-HSV) and 23.38 / 11.29 (FCU-FCB). The second-match second-half drop to 11.29 is itself informative - a 52% decline that no GPS or positional metric would detect, potentially indicating late-match fatigue or a tactical instruction to hold position.
-
-### Why are the PQI weights 0.40 / 0.30 / 0.30?
-
-The weights reflect domain-informed priors: orientation is the dominant indicator of an effective press (a player facing the wrong direction cannot apply genuine pressure, regardless of proximity), while stance and proximity are necessary conditions but not sufficient on their own. This 40/30/30 split was set analytically, not fitted to labelled data - press-quality annotation at frame resolution does not yet exist for these five matches.
-
-To validate that the choice is not decisive for the conclusions, we ran a full weight sensitivity analysis (`src/pqi_sensitivity.py`): all 231 combinations of (w_orientation, w_stance, w_proximity) at 0.05 resolution where weights sum to 1.0. The analysis reports Spearman rank-correlation against the baseline ranking and per-player rank-deltas for every combination. A high mean Spearman rho across the grid confirms that the player ranking is structurally stable and that the specific weight choice does not materially change who ranks high or low.
 
 ### What does the pre-pass AWI finding mean?
 
@@ -81,21 +105,13 @@ PQI combines three sub-scores:
 
 The composite: `PQI = 0.40 × orientation + 0.30 × stance + 0.30 × proximity`.
 
-### Why do goalkeepers lead PQI?
-
-Goalkeepers (TW) post the highest mean PQI at 66.6, driven primarily by their **orientation sub-score** (70.4 vs 54.7 outfield average). When closing down in their penalty area, goalkeepers approach the ball carrier square-on by necessity - they are defending their goal and must stay central - which maximises the orientation component. Their proximity sub-scores (91.5) are actually slightly below the outfield average (95.2), so proximity is not the driver. This is a structural role effect: the PQI formula rewards direct body-facing, and goalkeepers are structurally constrained to face the ball carrier directly. Position-specific benchmarking is recommended for outfield comparisons. Among outfield players, DMZ (62.9) and DMR (62.1) lead, confirming that defensive midfielders dominate both cognitive and physical pressing dimensions.
-
 ### What does the AWI vs PQI independence finding mean in practice?
 
-The near-zero correlation (r = −0.11, p = 0.12) is the most analytically significant result in the dataset. It means:
+The near-zero correlation (r = −0.11, p = 0.12, n = 198 valid player-phases) is the most analytically significant result in the dataset. It means:
 
 1. **They measure genuinely different things.** A player who scans frequently does not automatically press well, and vice versa. The two skills are independently distributed across the population.
 2. **Both metrics are necessary.** Using only AWI or only PQI gives an incomplete picture. A player in the elite quadrant (top 25% on both) is rare - only 10 unique players across 400 observations qualify.
 3. **Development pathways are separable.** AWI can be targeted through scanning drills and cognitive training independently of PQI, which responds to pressing mechanics coaching. The two dimensions don't trade off against each other.
-
-### What about goalkeepers and substitutes?
-
-Goalkeepers are included in the data. Their AWI is low (mean 3.5 scans/min) because they primarily track the ball rather than scanning for opponents - a valid positional difference, not a data quality issue. Their PQI is high for structural reasons explained above. Players with coverage < 50% (less than ~25 minutes of skeleton data in a phase) are flagged in the output CSV; late substitutes naturally fall below this threshold.
 
 ### Can AWI and PQI be used in real time?
 
@@ -114,9 +130,25 @@ The positional hierarchy in our data matches the academic literature. Jordet et 
 
 Note: AWI measures continuous full-phase rate across ~50 minutes; video-based studies capture short pre-reception bursts. These are complementary, not interchangeable. The +59% pre-pass spike in our data bridges the two approaches.
 
+### How does this differ from existing cognitive metrics in football?
+
+Existing approaches (SportVU off-ball tracking, GPS-based positioning metrics) are proxies: they measure movement patterns correlated with awareness. AWI is a direct measure - it reads where the head is pointing at 50 fps from anatomical joint data. PQI similarly reads actual joint angles and positions rather than inferring pressing quality from GPS proximity alone. No coaching staff survey, no subjective coding, no GPS proxy. These are the first matchday-grade body intelligence metrics derived from the actual anatomical signal.
+
+### What do the AI-generated scouting reports look like?
+
+The platform uses Amazon Bedrock (Amazon Nova Lite, `eu.amazon.nova-lite-v1:0`, deployed in `eu-central-1`) to convert raw AWI and PQI numbers into natural-language scouting narratives. Below is the actual generated narrative for the top-ranked player:
+
+> **Oscar Winther Höjlund | DMZ | SGE-FCB | 1st Half**
+>
+> Oscar Winther Höjlund's AWI of 26.9 scans per minute ranks #1 of 400 players - 72% above the league mean of 15.6. This exceptional cognitive awareness allows him to quickly assess and react to dynamic game situations, making him a formidable presence in defensive midfield. His superior scanning ability indicates a proactive approach in identifying and intercepting threats.
+>
+> His PQI of 63.9 reflects a generally effective pressing strategy, particularly strong in proximity (96.0), indicating he is adept at closing down opponents efficiently. However, his orientation (59.0) and stance (38.1) scores suggest room for improvement in positioning and body posture during pressures. Focusing on these aspects can help Höjlund become more disruptive in the opponent's build-up play.
+
+Full narratives for all top-10 players are saved to `results/narratives.csv` and generated via `notebooks/bedrock_reports.ipynb`.
+
 ### How are AWI and PQI validated against external reference systems?
 
-AWI and PQI are not isolated inventions - each sub-score maps to a validated measurement tradition from another sport or high-stakes industry. Six external reference systems are parameterised in `src/benchmark_reference.py` from published summary statistics:
+AWI and PQI are not isolated inventions - each sub-score maps to a validated measurement tradition from another sport or high-stakes industry. Six external reference systems are parameterised in `src/benchmark_reference.py`. Each entry cites a peer-reviewed source studying an analogous construct; the mean/std/elite values are calibrated estimates on our unit scale, derived from the reported ranges in each paper, not statistics quoted directly from their tables. The comparisons are therefore illustrative cross-domain analogies, not direct statistical tests:
 
 | Our metric | Reference system | Domain | Key finding |
 |---|---|---|---|
@@ -145,9 +177,43 @@ The platform uses Amazon Bedrock (Amazon Nova Lite, `eu.amazon.nova-lite-v1:0`, 
 
 Full narratives for all top-10 players are saved to `results/narratives.csv` and generated via `notebooks/bedrock_reports.ipynb`.
 
+---
+
+## Internal FAQ
+
+### Why 45°? The literature uses 30°.
+
+The 30° threshold in sports-science literature is measured from direct video, where head angles are observed at full 3D resolution. The TF15 XY-plane projection compresses apparent rotation: a 3D head turn of 45° projects to approximately 30° in the XY plane depending on pitch-facing direction. The 45° threshold was empirically tuned on Kimmich (FCB-HSV, 1st half), where the resulting AWI of 21.77 scans/min matches his documented scanning frequency from hand-coded video analysis in the coaching literature.
+
+### Why is AWI a "stable trait"? Could it just reflect match context?
+
+Cross-half Pearson correlation r = 0.660 (n = 79 active player-phases). Players who rank high in AWI in the first half rank high in the second half, independently of match context. Kimmich across two full matches: 21.77 / 21.15 (FCB-HSV) and 23.38 / 11.29 (FCU-FCB). The second-match second-half drop to 11.29 is itself informative - a 52% decline that no GPS or positional metric would detect, potentially indicating late-match fatigue or a tactical instruction to hold position.
+
+### Why are the PQI weights 0.40 / 0.30 / 0.30?
+
+The weights reflect domain-informed priors: orientation is the dominant indicator of an effective press (a player facing the wrong direction cannot apply genuine pressure, regardless of proximity), while stance and proximity are necessary conditions but not sufficient on their own. This 40/30/30 split was set analytically, not fitted to labelled data - press-quality annotation at frame resolution does not yet exist for these five matches.
+
+To validate that the choice is not decisive for the conclusions, we ran a full weight sensitivity analysis (`src/pqi_sensitivity.py`): all 231 combinations of (w_orientation, w_stance, w_proximity) at 0.05 resolution where weights sum to 1.0. The analysis reports Spearman rank-correlation against the baseline ranking and per-player rank-deltas for every combination. A high mean Spearman rho across the grid confirms that the player ranking is structurally stable and that the specific weight choice does not materially change who ranks high or low.
+
+### Why do goalkeepers lead PQI?
+
+Goalkeepers (TW) post the highest mean PQI at 66.6, driven primarily by their **orientation sub-score** (70.4 vs 54.7 outfield average). When closing down in their penalty area, goalkeepers approach the ball carrier square-on by necessity - they are defending their goal and must stay central - which maximises the orientation component. Their proximity sub-scores (91.5) are actually slightly below the outfield average (95.2), so proximity is not the driver. This is a structural role effect: the PQI formula rewards direct body-facing, and goalkeepers are structurally constrained to face the ball carrier directly. Position-specific benchmarking is recommended for outfield comparisons. Among outfield players, DMZ (62.9) and DMR (62.1) lead, confirming that defensive midfielders dominate both cognitive and physical pressing dimensions.
+
+### What about goalkeepers and substitutes?
+
+Goalkeepers are included in the data. Their AWI is low (mean 3.5 scans/min) because they primarily track the ball rather than scanning for opponents - a valid positional difference, not a data quality issue. Their PQI is high for structural reasons explained above. Players with coverage < 50% (less than ~25 minutes of skeleton data in a phase) are flagged in the output CSV; late substitutes naturally fall below this threshold.
+
 ### How are the AI narratives generated?
 
 The `BedrockClient` (`src/bedrock_client.py`) constructs a structured prompt containing the player's name, position, match label, phase label, AWI score, league rank, position average, PQI mean, and all three PQI sub-scores. The prompt is sent to `eu.amazon.nova-lite-v1:0` in `eu-central-1`. The client retries up to 3 times with exponential backoff on throttling errors. To use Claude Sonnet instead, set `BEDROCK_MODEL_ID=eu.anthropic.claude-sonnet-4-6` in `.env` - requires the inference profile to route within your account's permitted regions.
+
+### How does the pipeline scale to all 306 Bundesliga matches per season?
+
+The architecture is already per-match parallel. `pipelines/sagemaker_pipeline.py` submits independent SageMaker jobs (one AWI + one PQI per match) and aggregates the per-match CSVs afterward, so the five-match demo and a 306-match season differ only in job count, not code. Each match is ~4 GB of TF15 Parquet read with pyarrow row-group pushdown, so memory stays per-phase, not per-match. The realistic constraints at season scale are SageMaker concurrency limits and S3 read throughput, not algorithmic - both are quota and cost questions, not redesigns. [ASSUMPTION — not verified against code: per-job runtime and instance sizing; confirm against a timed run before quoting a season-level cost.]
+
+### Why SageMaker rather than a simpler Lambda-based job?
+
+Each match exceeds Lambda's practical envelope: ~4 GB Parquet, multi-minute phase processing, and pyarrow/numpy/pandas memory well above what a 15-minute, 10 GB Lambda comfortably handles. SageMaker processing jobs give right-sized instances, longer runtimes, and a single boto3 orchestration surface for fan-out across matches. Lambda would fit a lightweight final step (triggering aggregation or Bedrock narrative generation), which is a reasonable future optimisation - but the core extract-and-compute stage is CPU- and memory-bound batch work that SageMaker is built for.
 
 ### What are the limitations?
 
@@ -160,10 +226,19 @@ The `BedrockClient` (`src/bedrock_client.py`) constructs a structured prompt con
 
 ### What comes next?
 
-- **Pre-pass AWI → pass quality correlation**: correlate with progressive pass rate and turnover rate - the cognitive→decision quality link; data is already computed
-- **Full-season AWI/PQI**: track development arcs, fatigue profiles, and load management signals across a complete Bundesliga season
-- **Live broadcast overlay**: integrate with DFL's matchday data product for real-time AWI and PQI visualization (<15 s latency, already validated)
-- **Body Intelligence scouting filter**: expose the quadrant chart as an interactive filter in the dashboard - search for players above any AWI/PQI threshold across all available data
-- **Extended Bedrock narratives**: generate reports for all players (not just top-10) and surface them directly in the dashboard's Player Profile tab
+**Pre-pass AWI → pass-quality link — Clubs**
+Correlating the pre-pass scan burst with progressive-pass and turnover rates turns AWI from a behavioural metric into a decision-quality predictor for recruitment. The pre-pass windows are already computed in `src/pre_pass_awi.py`; only the event-outcome join remains.
+
+**Full-season AWI/PQI tracking — Clubs & DFL**
+Running the existing per-match SageMaker pipeline across a full season exposes development arcs, fatigue profiles, and load-management signals no GPS metric detects - e.g. the observed 52% second-half AWI drop. The pipeline scales by job count, not by code change.
+
+**Live broadcast overlay — Broadcasters & DFL**
+AWI and PQI compute with sub-15-second latency (25-frame detection window plus smoothing), so the validated `dashboard/broadcast_demo.py` DFL lower-third can run on the live stream, giving broadcasters a "playing with the head up" graphic backed by a real metric, not a caption.
+
+**Body Intelligence scouting filter — Clubs**
+Exposing the elite-quadrant chart as an interactive AWI×PQI threshold filter turns the dashboard into a recruitment screen: find every player above a target on both dimensions across all available data. The quadrant logic already exists in `src/quadrant_analysis.py`.
+
+**Per-player Bedrock narratives — Clubs & Broadcasters**
+Extending narrative generation from top-10 to all players (the batch path in `src/bedrock_client.py` already supports arbitrary `top_n`) gives every Player Profile a plain-language scouting summary, lowering the analytics barrier for non-technical coaching and editorial staff.
 
 ---
