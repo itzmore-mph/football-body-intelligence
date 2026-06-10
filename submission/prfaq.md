@@ -6,8 +6,6 @@
 
 ---
 
-## Press Release
-
 **Football Body Intelligence Platform makes player awareness and press quality measurable from skeleton data**
 
 *Two matchday-grade metrics — AWI and PQI — turn TRACAB TF15 3D skeleton tracking into scout-ready intelligence for clubs, broadcasters, and league data teams.*
