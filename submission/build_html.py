@@ -1,5 +1,47 @@
 """Build submission HTML files with embedded figures."""
-import base64, pathlib, markdown as md
+import base64, os, pathlib, shutil, subprocess, sys, markdown as md
+
+
+def _find_chromium():
+    """Locate a Chrome/Edge binary for headless PDF printing.
+
+    Returns the executable path, or None if no supported browser is found.
+    Checks PATH first, then the standard Windows install locations.
+    """
+    for name in ('chrome', 'google-chrome', 'chromium', 'msedge'):
+        found = shutil.which(name)
+        if found:
+            return found
+    candidates = [
+        r'C:\Program Files\Google\Chrome\Application\chrome.exe',
+        r'C:\Program Files (x86)\Google\Chrome\Application\chrome.exe',
+        r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe',
+        r'C:\Program Files\Microsoft\Edge\Application\msedge.exe',
+    ]
+    return next((c for c in candidates if pathlib.Path(c).exists()), None)
+
+
+def html_to_pdf(html_path, pdf_path):
+    """Render an HTML file to PDF via headless Chrome/Edge --print-to-pdf.
+
+    Honors @page and @media print CSS (page breaks, footers). No third-party
+    Python dependency required. Skips with a warning if no browser is found.
+    """
+    browser = _find_chromium()
+    if not browser:
+        print('WARNING: no Chrome/Edge found; skipping PDF render. '
+              'Open the HTML and Print to PDF manually.', file=sys.stderr)
+        return False
+    html_uri = pathlib.Path(html_path).resolve().as_uri()
+    out = pathlib.Path(pdf_path).resolve()
+    subprocess.run(
+        [browser, '--headless', '--disable-gpu', '--no-pdf-header-footer',
+         f'--print-to-pdf={out}', '--print-to-pdf-no-header',
+         '--virtual-time-budget=10000', html_uri],
+        check=True, timeout=120,
+    )
+    print(f'{out.name} written: {out.stat().st_size // 1024} KB')
+    return True
 
 def b64img(path):
     p = pathlib.Path(path)
@@ -269,45 +311,81 @@ print(f'executive_summary_slides.html written: {size} KB')
 
 def build_prfaq():
     PRFAQ_CSS = """
+/* ── DFL brand system ──────────────────────────────────────────────
+   DFL_RED #D10214 · black · white · grey #8A8A8A · Inter typeface
+   Mirrors dashboard/broadcast_demo.py for a consistent visual identity. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 * { box-sizing: border-box; }
-body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 10.5pt; color: #1a1a1a;
-       background: #ffffff; max-width: 860px; margin: 40px auto; padding: 0 40px; line-height: 1.6; }
-h1 { font-size: 22pt; color: #e30613; border-bottom: 3px solid #e30613; padding-bottom: 10px; margin-bottom: 6px; }
-h2 { font-size: 14pt; color: #e30613; margin-top: 32px; border-bottom: 1px solid #f5c0c3; padding-bottom: 6px; }
-h3 { font-size: 11pt; font-weight: 700; margin-top: 20px; color: #1a1a1a; }
+body { font-family: 'Inter', 'Segoe UI', Arial, sans-serif; font-size: 10.5pt; color: #111111;
+       background: #ffffff; max-width: 860px; margin: 0 auto 40px; padding: 0 40px; line-height: 1.6; }
+
+/* Branded masthead band around the title */
+h1 { font-family: 'Inter', sans-serif; font-size: 22pt; font-weight: 700; color: #ffffff;
+     background: #000000; border-left: 8px solid #D10214; padding: 18px 24px; margin: 0 -40px 6px;
+     letter-spacing: -0.01em; }
+h2 { font-size: 14pt; font-weight: 700; color: #111111; margin-top: 32px;
+     border-bottom: 2px solid #D10214; padding-bottom: 6px; letter-spacing: -0.005em; }
+h3 { font-size: 11pt; font-weight: 600; margin-top: 20px; color: #D10214; }
 p { margin: 8px 0; }
 ul, ol { padding-left: 22px; margin: 8px 0; }
 li { margin-bottom: 5px; }
+li::marker { color: #D10214; }
 table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: 10pt; }
-th { background: #e30613; color: #fff; padding: 7px 11px; text-align: left; }
-td { border: 1px solid #ddd; padding: 6px 11px; color: #1a1a1a; }
-tr:nth-child(even) td { background: #fdf5f5; }
-blockquote { border-left: 4px solid #e30613; margin: 14px 0; padding: 8px 16px;
-             color: #444; font-style: italic; background: #fff5f5; border-radius: 0 4px 4px 0; }
-code { background: #f5f5f5; color: #c0000a; padding: 2px 5px; font-size: 9pt; font-family: Consolas, monospace; border-radius: 2px; }
-hr { border: none; border-top: 2px solid #e30613; margin: 28px 0; opacity: 0.3; }
-a { color: #e30613; }
+th { background: #000000; color: #ffffff; padding: 7px 11px; text-align: left; font-weight: 600;
+     border-bottom: 2px solid #D10214; }
+td { border: 1px solid #e2e2e2; padding: 6px 11px; color: #111111; }
+tr:nth-child(even) td { background: #f6f6f6; }
+strong { color: #000000; }
+blockquote { border-left: 4px solid #D10214; margin: 14px 0; padding: 10px 16px;
+             color: #333333; background: #fafafa; }
+code { background: #f2f2f2; color: #D10214; padding: 2px 5px; font-size: 9pt;
+       font-family: Consolas, monospace; border-radius: 2px; }
+hr { border: none; border-top: 1px solid #d6d6d6; margin: 28px 0; }
+a { color: #D10214; }
 .fig { text-align: center; margin: 20px 0; }
-.fig img { width: 100%; max-width: 100%; border: 1px solid #e0e0e0; border-radius: 4px; display: block; margin: 0 auto; }
-.fig-caption { font-size: 8.5pt; color: #777; margin-top: 5px; }
-img { width: 100%; max-width: 100%; height: auto; border: 1px solid #e0e0e0; border-radius: 4px; display: block; margin: 12px auto; }
+.fig img { width: 100%; max-width: 100%; border: 1px solid #e2e2e2; border-radius: 4px; display: block; margin: 0 auto; }
+.fig-caption { font-size: 8.5pt; color: #8A8A8A; margin-top: 5px; }
+img { width: 100%; max-width: 100%; height: auto; border: 1px solid #e2e2e2; border-radius: 4px; display: block; margin: 12px auto; }
 @media print {
   body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 20px; }
   .screen-footer { display: none; }
+
+  /* Keep headings with the content that follows them */
+  h1, h2, h3 { break-after: avoid; page-break-after: avoid; }
+  h2, h3 { break-inside: avoid; page-break-inside: avoid; }
+
+  /* Never split a heading away from its first paragraph */
+  h2 + p, h3 + p, h2 + ul, h3 + ul, h2 + ol, h3 + ol { break-before: avoid; page-break-before: avoid; }
+
+  /* Keep tables, figures, blockquotes, and code blocks intact on one page */
+  table, blockquote, pre, .fig, figure { break-inside: avoid; page-break-inside: avoid; }
+  tr, img { break-inside: avoid; page-break-inside: avoid; }
+  thead { display: table-header-group; }
+
+  /* Avoid orphans/widows in body text */
+  p, li { orphans: 3; widows: 3; }
+
+  /* Start each top-level FAQ section on a fresh page */
+  h2.page-break-before { break-before: page; page-break-before: always; }
 }
 @page {
   margin: 15mm 20mm 20mm 20mm;
   @bottom-center {
     content: "Football Body Intelligence Platform  ·  Page " counter(page) " of " counter(pages);
     font-size: 8pt;
-    color: #777;
-    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #8A8A8A;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
   }
 }
 """
 
     raw = pathlib.Path('submission/prfaq.md').read_text(encoding='utf-8')
     body = md.markdown(raw, extensions=['tables', 'fenced_code'])
+    # Force a page break before each major section so it starts on a fresh page
+    for section in ('AWS Architecture', 'Dashboard', 'Frequently Asked Questions',
+                    'External FAQ', 'Internal FAQ'):
+        body = body.replace(f'<h2>{section}</h2>',
+                            f'<h2 class="page-break-before">{section}</h2>')
     # Embed scatter figure as base64 so prfaq.html is self-contained (no relative path dependency)
     body = body.replace(
         'src="../figures/fig1_awi_vs_pqi_scatter.png"',
@@ -318,21 +396,21 @@ img { width: 100%; max-width: 100%; height: auto; border: 1px solid #e0e0e0; bor
     consistency_tag = (
         '\n<div class="fig">'
         f'<img src="{imgs["half_compare"]}" alt="Cross-half AWI consistency">'
-        '<p class="fig-caption">1st half vs 2nd half AWI &ndash; r = 0.660, p &lt; 0.001 across all 5 matches</p>'
+        '<p class="fig-caption">1st half vs 2nd half AWI &ndash; cross-half r = 0.660 (n = 79 active player-phases)</p>'
         '</div>\n'
     )
-    # Insert after the sentence containing "r = 0.660"
-    body = body.replace(
-        'We also observe cross-match stability for players who appear in multiple games (Kimmich, Goretzka, Kimmich). The metric captures individual cognitive style, not just tactical instructions.</p>',
-        'We also observe cross-match stability for players who appear in multiple games (Kimmich, Goretzka, Kimmich). The metric captures individual cognitive style, not just tactical instructions.</p>'
-        + consistency_tag
-    )
+    # Insert after the "stable trait" paragraph (ends with "tactical instruction to hold position.")
+    anchor = 'tactical instruction to hold position.</p>'
+    if anchor not in body:
+        raise RuntimeError('Consistency-figure anchor not found in rendered PRFAQ HTML; '
+                           'update the anchor in build_prfaq().')
+    body = body.replace(anchor, anchor + consistency_tag)
 
     html = f"""<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><title>AWI PRFAQ</title><style>{PRFAQ_CSS}</style></head>
 <body>{body}
-<footer class="screen-footer" style="margin-top:48px; padding:12px 0; border-top:2px solid #e30613;
-  text-align:center; font-size:8.5pt; color:#888; font-family:'Segoe UI',Arial,sans-serif;">
+<footer class="screen-footer" style="margin-top:48px; padding:12px 0; border-top:2px solid #D10214;
+  text-align:center; font-size:8.5pt; color:#8A8A8A; font-family:'Inter','Segoe UI',Arial,sans-serif;">
   Football Body Intelligence Platform &nbsp;&middot;&nbsp; AWS World Sports Innovation Cup 2026 &nbsp;&middot;&nbsp; Team: itzmore
 </footer>
 </body></html>"""
@@ -340,5 +418,7 @@ img { width: 100%; max-width: 100%; height: auto; border: 1px solid #e0e0e0; bor
     pathlib.Path('submission/prfaq.html').write_text(html, encoding='utf-8')
     size = pathlib.Path('submission/prfaq.html').stat().st_size // 1024
     print(f'prfaq.html written: {size} KB')
+
+    html_to_pdf('submission/prfaq.html', 'submission/prfaq.pdf')
 
 build_prfaq()
