@@ -13,7 +13,10 @@ toward the ball at the moment of ball receipt - 0° = facing ball, 90° = sidewa
 TRACAB coordinate system:
   X = along pitch length (positive toward right goal)
   Y = along pitch width  (positive toward top touchline)
-  Units = meters, origin = center of pitch
+  Units = centimetres (TF15 spec: position_x/y/z are "cm from the center point");
+          origin = center of pitch. Body yaw and pre-orientation angle here use
+          atan2 of coordinate differences, which is scale-invariant, so this
+          module does no cm->m conversion itself.
 """
 
 from math import atan2, degrees
@@ -89,8 +92,9 @@ def pre_orientation_angle(
 
     Args:
         body_yaw_deg:   Player's body yaw in degrees (from body_yaw_from_skeleton).
-        ball_x, ball_y: Ball position in TRACAB meters coordinates.
-        player_x, player_y: Player position (e.g. pelvis keypoint) in meters.
+        ball_x, ball_y: Ball position in TRACAB coordinates (cm). Any consistent
+                        unit works here since only the direction (atan2) is used.
+        player_x, player_y: Player position (e.g. pelvis keypoint), same unit as ball.
 
     Returns:
         Angle in degrees, range [0°, 180°].

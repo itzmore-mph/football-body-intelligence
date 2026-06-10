@@ -9,7 +9,9 @@ Coordinate system (TRACAB):
   Y  = along pitch width, positive toward top touchline
   Z  = vertical, positive upward
   Origin = center of pitch
-  Units = meters
+  Units = centimetres (TF15 Parquet position_x/y/z; divide by 100 for metres).
+          Head yaw here is computed from atan2 of coordinate differences, which
+          is scale-invariant, so this module does no cm->m conversion itself.
 
 Part ID mapping (TF15 v1.1):
   1  = Left ear      2  = Nose          3  = Right ear

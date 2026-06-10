@@ -87,10 +87,14 @@ def build_player_prompt(
         f"- Orientation score: {pqi_context['orientation_mean']:.1f}/100\n"
         f"- Stance score: {pqi_context['stance_mean']:.1f}/100\n"
         f"- Proximity score: {pqi_context['proximity_mean']:.1f}/100\n\n"
-        f"Write a 2-paragraph coaching report (max 150 words) covering:\n"
-        f"1. What the AWI score reveals about this player's cognitive awareness style\n"
-        f"2. What the PQI score reveals about their pressing mechanics and improvement areas\n"
-        f"Be specific, data-driven, and actionable for a coaching staff."
+        f"Write a 2-paragraph scouting report (max 130 words). Rules:\n"
+        f"- Open each claim with a specific number from the data above, not an adjective.\n"
+        f"- Tie AWI to this player's POSITION and the PHASE shown "
+        f"(e.g. a deep midfielder scanning before progression, a drop in the 2nd half).\n"
+        f"- Name the single weakest PQI sub-score and the mechanical reason it lowers the press.\n"
+        f"- End with one concrete recommendation a club can act on in recruitment OR training.\n"
+        f"- Banned: 'formidable', 'exceptional', 'world-class', 'presence', and any praise "
+        f"not backed by a number. No generic intros."
     )
 
 
