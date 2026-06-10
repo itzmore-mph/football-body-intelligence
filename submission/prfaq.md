@@ -1,24 +1,16 @@
 # PRFAQ: Football Body Intelligence Platform
 
-**AWS World Sports Innovation Cup 2026 · Challenge 2**
+**AWS World Sports Innovation Cup 2026 · Challenge 2: Unlock the Power of 3D Football Data**
 
 **Team:** itzmore
 
 ---
 
-**Football Body Intelligence Platform makes player awareness and press quality measurable from skeleton data**
+**Football Body Intelligence Platform - measuring awareness and press quality from skeleton data**
 
-*Two matchday-grade metrics — AWI and PQI — turn TRACAB TF15 3D skeleton tracking into scout-ready intelligence for clubs, broadcasters, and league data teams.*
+*Two matchday-grade metrics - AWI and PQI - turn TRACAB TF15 3D skeleton tracking into scout-ready intelligence for clubs, broadcasters, and league data teams.*
 
-**Frankfurt, June 16, 2026** — Team itzmore today released the Football Body Intelligence Platform, a system that derives two complementary player metrics directly from TRACAB TF15 3D skeleton data: the Awareness Index (AWI), which counts discrete head-scanning events per minute, and the Pressure Quality Index (PQI), which scores body mechanics during pressing actions on a 0–100 scale.
-
-Until now, matchday tracking told clubs where players moved, not where they looked or how well they pressed. Scanning frequency and press quality were assessed by hand-coded video — slow, subjective, and impossible to run across a full season. The platform closes that gap by reading the anatomical signal directly: head yaw from the nose, neck, and ear keypoints at 50 fps, and body orientation, knee-flexion stance, and proximity during genuine press frames.
-
-The two metrics measure genuinely different things. Across five Bundesliga matches, AWI and PQI are statistically independent (Pearson r = −0.11, p = 0.12, n = 198 valid player-phases). A player who scans frequently does not automatically press well, so both dimensions are needed to characterise a player fully. AWI is also stable rather than noisy — cross-half correlation r = 0.660 — and rises +59% in the five seconds before a player releases the ball, confirming it captures pre-decision cognitive load. The platform surfaces all of this through an interactive Streamlit dashboard and AI-generated scouting narratives via Amazon Bedrock.
-
-"We already track every position on the pitch. What we couldn't see was the player's head — whether he scanned before receiving, or pressed with his body in the right shape," said a Bundesliga club head of scouting [fictional quote]. "Two numbers that move independently, validated across matches, is exactly the kind of signal we can act on in recruitment and coaching."
-
-The platform runs on AWS — S3 for TF15 storage, SageMaker for parallel per-match computation, and Bedrock for narrative generation. To explore the metrics, launch the dashboard with `bash dashboard/run_dashboard.sh`.
+Two matchday-grade metrics derived directly from TRACAB TF15 3D skeleton tracking: the Awareness Index (AWI), counting discrete head-scanning events per minute, and the Pressure Quality Index (PQI), scoring body mechanics during pressing actions on a 0–100 scale. Across five Bundesliga matches the two metrics are statistically independent (Pearson r = −0.11, p = 0.12, n = 198), so they characterise different player qualities. AWI is stable across halves (r = 0.66) and rises +59% in the five seconds before ball release, confirming it captures pre-decision scanning.
 
 ---
 
@@ -158,22 +150,6 @@ AWI and PQI are not isolated inventions - each sub-score maps to a validated mea
 | AWI/PQI stance (method) | Occupational biomechanics REBA (Hignett & McAtamney, 2000, Applied Ergonomics) | Biomechanics | REBA's Gaussian penalty for joint-angle deviation from a neutral reference is the direct conceptual precedent of the PQI stance formula |
 
 The Benchmark tab in the dashboard shows these cross-domain parallels with citations and qualitative analogies demonstrating that the constructs measured by AWI and PQI are well-established in sports science and biomechanics research.
-
-### How does this differ from existing cognitive metrics in football?
-
-Existing approaches (SportVU off-ball tracking, GPS-based positioning metrics) are proxies: they measure movement patterns correlated with awareness. AWI is a direct measure - it reads where the head is pointing at 50 fps from anatomical joint data. PQI similarly reads actual joint angles and positions rather than inferring pressing quality from GPS proximity alone. No coaching staff survey, no subjective coding, no GPS proxy. These are the first matchday-grade body intelligence metrics derived from the actual anatomical signal.
-
-### What do the AI-generated scouting reports look like?
-
-The platform uses Amazon Bedrock (Amazon Nova Lite, `eu.amazon.nova-lite-v1:0`, deployed in `eu-central-1`) to convert raw AWI and PQI numbers into natural-language scouting narratives. Below is the actual generated narrative for the top-ranked player:
-
-> **Oscar Winther Höjlund | DMZ | SGE-FCB | 1st Half**
->
-> Oscar Winther Höjlund's AWI of 26.9 scans per minute ranks #1 of 400 players - 72% above the league mean of 15.6. This exceptional cognitive awareness allows him to quickly assess and react to dynamic game situations, making him a formidable presence in defensive midfield. His superior scanning ability indicates a proactive approach in identifying and intercepting threats.
->
-> His PQI of 63.9 reflects a generally effective pressing strategy, particularly strong in proximity (96.0), indicating he is adept at closing down opponents efficiently. However, his orientation (59.0) and stance (38.1) scores suggest room for improvement in positioning and body posture during pressures. Focusing on these aspects can help Höjlund become more disruptive in the opponent's build-up play.
-
-Full narratives for all top-10 players are saved to `results/narratives.csv` and generated via `notebooks/bedrock_reports.ipynb`.
 
 ---
 
