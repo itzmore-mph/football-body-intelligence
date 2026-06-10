@@ -1,8 +1,8 @@
 # Football Body Intelligence Platform
 
-**AWS World Sports Innovation Cup 2026 - Challenge 2: Unlock the Power of 3D Football Data**
+**AWS World Sports Innovation Cup 2026, Challenge 2: Unlock the Power of 3D Football Data**
 
-**Team:** _itzmore_ - [GitHub](https://github.com/itzmore-mph/football-body-intelligence)
+**Team:** _itzmore_ ([GitHub](https://github.com/itzmore-mph/football-body-intelligence))
 
 ---
 
@@ -12,8 +12,8 @@ Two matchday-grade player intelligence metrics derived entirely from TRACAB TF15
 
 | Metric | What it measures | Range |
 |--------|-----------------|-------|
-| **AWI** (Awareness Index) | Cognitive scanning: discrete head-rotation events per minute, from 3D nose/neck/ear keypoints | 3.3 - 26.9 scans/min |
-| **PQI** (Pressure Quality Index) | Pressing mechanics: body orientation, knee-flexion stance, and proximity during genuine press actions | 0 - 100 |
+| **AWI** (Awareness Index) | Cognitive scanning: discrete head-rotation events per minute, from 3D nose/neck/ear keypoints | 3.3 to 26.9 scans/min |
+| **PQI** (Pressure Quality Index) | Pressing mechanics: body orientation, knee-joint-angle stance, and proximity during genuine press actions | 0 to 100 |
 
 AWI and PQI are statistically independent (Pearson r = -0.11, p = 0.12). A player can scan brilliantly but press with poor mechanics, or vice versa. Elite players score high on both, and the data identifies exactly who they are.
 
@@ -42,7 +42,7 @@ AWI and PQI are statistically independent (Pearson r = -0.11, p = 0.12). A playe
 | Elite quadrant | 10 unique players | Top 25% on both AWI and PQI |
 | Test coverage | 334 tests | Unit + property-based, all passing, no AWS required |
 
-**Validation anchors:** Kimmich (FCB-HSV, 21.77 scans/min) matches coaching literature. Hojlund (SGE-FCB, 26.90 scans/min) cross-validates the 45-degree threshold. Positional hierarchy (DMZ > CB > FW > GK) replicates Jordet et al. (2020) EPL findings.
+**Validation:** the 45-degree threshold is calibrated on a single anchor, Kimmich (FCB-HSV, 21.77 scans/min), which matches his documented scanning frequency in the coaching literature. Cross-half stability (r = 0.660), the +59% pre-pass spike, and cross-domain analogies provide additional support; the positional hierarchy (DMZ > CB > FW > GK) replicates Jordet et al. (2020) EPL findings. Single-player calibration is a known limitation (see below).
 
 **Known limitations:** Single-player threshold calibration (Kimmich as primary anchor), XY-plane projection compresses 3D angles, occlusion artifacts in high-movement phases, no ball-possession context for AWI. Full details in the [PRFAQ](submission/prfaq.md).
 
@@ -118,7 +118,7 @@ Builds a Python 3.11-slim image and pushes it to ECR. Only needed once, or after
 python pipelines/sagemaker_pipeline.py --action run
 ```
 
-Submits 10 parallel jobs (5 matches x AWI + PQI), waits for completion, downloads and concatenates results.
+Submits 10 parallel jobs (5 matches x AWI + PQI), waits for completion, downloads and concatenates results. Measured end-to-end wall-clock time for the 5-match run is ~15-20 minutes. (Per-job runtime and instance sizing for a full-season cost projection are a separate question and not yet instrumented.)
 
 **Option B: Local notebooks (fallback, ~90-120 min)**
 
@@ -328,7 +328,7 @@ PQI = 0.40 x orientation + 0.30 x stance + 0.30 x proximity
 | Sub-score | Weight | Formula | Peak |
 |-----------|--------|---------|------|
 | Orientation | 40% | `max(0, 100 - (angle_to_carrier / 90) x 100)` | 100 when facing carrier directly |
-| Stance | 30% | `100 x exp(-0.5 x ((knee_flex - 130) / 25)^2)` | 100 at 130 degree knee flexion |
+| Stance | 30% | `100 x exp(-0.5 x ((knee_flex - 130) / 25)^2)` | 100 at 130 degree knee joint angle |
 | Proximity | 30% | `max(0, 100 x (1 - distance_m / 5.0))` | 100 at 0 m, 0 at >= 5 m |
 
 ---
