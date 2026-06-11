@@ -49,6 +49,10 @@ figures/*
 !figures/fig2_position_heatmap.png
 !figures/fig3_half_comparison.png
 !figures/fig4_pqi_decomposition.png
+!figures/awi_analysis.png
+!figures/awi_consistency.png
+!figures/awi_team_comparison.png
+!figures/awi_position_relative.png
 
 # ── DFL proprietary documentation — do not redistribute ───────────────────────
 docs/
