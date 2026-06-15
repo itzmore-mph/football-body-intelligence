@@ -42,7 +42,7 @@ TF15 Parquet (S3, ~4 GB/match)
 |----------|---------------|
 | Circular smoothing (sin/cos decomposition) | Standard rolling mean breaks at ±180°; this doesn't |
 | Leading-edge counting `(is_scan & ~is_scan.shift(1)).sum()` | 1 sustained rotation = 1 event, not N frames |
-| 45° threshold (not 30°) | XY-plane projection compresses 3D angles; empirically tuned on Kimmich as validation anchor |
+| 45° threshold (not 30°) | XY-plane projection compresses 3D angles; fixed constant validated against Kimmich anchor (not fit by a sweep) |
 | Press frame filter: ≥10 consecutive frames within 5 m | Excludes incidental proximity; captures genuine pressing intent |
 | SageMaker Processing (10 parallel jobs) | 5 matches × 2 metrics in ~15 min vs ~2 hrs local; zero cold-start overhead |
 
@@ -59,7 +59,7 @@ This slide is replaced by a live walkthrough of the hosted dashboard (2-3 min), 
 **Key findings surfaced in the demo:**
 
 - **Höjlund leads AWI at 26.9 scans/min** - a defensive midfielder scanning nearly once every 2 seconds
-- **Kimmich's consistency:** 21.77 → 21.15 across a full half - AWI is a stable trait (cross-half r = 0.660)
+- **Kimmich's consistency:** 21.77 → 21.15 across a full half - AWI is a stable trait (cross-half r = 0.854)
 - **Position hierarchy:** DMZ (15.6) > CB (10.6) > FW (6.2) > GK (3.5) - matches coaching literature
 - **Pre-pass spike: +59%** - players ramp scanning in the 5 seconds before releasing the ball
 - **Fan View + Broadcast Demo:** broadcast-ready overlays with real-time AWI/PQI gauges

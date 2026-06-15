@@ -178,7 +178,7 @@ SLIDES = f"""<!DOCTYPE html>
     <tbody>
       <tr><td>Circular smoothing (sin/cos decomposition)</td><td>Standard rolling mean breaks at &plusmn;180&deg;</td></tr>
       <tr><td>Leading-edge counting</td><td>1 sustained rotation = 1 event, not N frames</td></tr>
-      <tr><td>45&deg; threshold (not 30&deg;)</td><td>XY-plane projection compresses 3D angles; tuned on Kimmich</td></tr>
+      <tr><td>45&deg; threshold (not 30&deg;)</td><td>XY-plane projection compresses 3D angles; fixed constant validated against Kimmich anchor</td></tr>
       <tr><td>Press frame filter: &ge;10 consecutive frames within 5 m</td><td>Excludes incidental proximity; captures genuine pressing intent</td></tr>
     </tbody>
   </table>
@@ -210,7 +210,7 @@ SLIDES = f"""<!DOCTYPE html>
         </tbody>
       </table>
       <p style="margin-top:10px;"><strong>Kimmich validation:</strong> 21.77 (FCB-HSV H1) &rarr; 21.15 (H2) &rarr; 23.38 (FCU-FCB H1) &rarr; 11.29 (H2). The H2 drop of 52% is a fatigue signal no GPS metric would catch.</p>
-      <p style="margin-top:6px;">Cross-half r = <strong>0.660</strong> (n = 79): AWI is a stable player trait.</p>
+      <p style="margin-top:6px;">Cross-half r = <strong>0.854</strong> (n = 69): AWI is a stable player trait.</p>
     </div>
     <div>
       <div class="fig">
@@ -396,7 +396,7 @@ img { width: 100%; max-width: 100%; height: auto; border: 1px solid #e2e2e2; bor
     consistency_tag = (
         '\n<div class="fig">'
         f'<img src="{imgs["half_compare"]}" alt="Cross-half AWI consistency">'
-        '<p class="fig-caption">1st half vs 2nd half AWI &ndash; cross-half r = 0.660 (n = 79 active player-phases)</p>'
+        '<p class="fig-caption">1st half vs 2nd half AWI &ndash; cross-half r = 0.854 (n = 69 active player-phases)</p>'
         '</div>\n'
     )
     # Insert after the "stable trait" paragraph (ends with "tactical instruction to hold position.")
