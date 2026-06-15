@@ -37,14 +37,16 @@ AWI and PQI are statistically independent (Pearson r = -0.11, p = 0.12). A playe
 | AWI median | 12.59 scans/min | DMZ highest (15.6), TW lowest (3.5) |
 | PQI outfield leaders | DMZ 62.9, DMR 62.1 | Position-specific benchmarking recommended |
 | AWI-PQI independence | r = -0.11 (p = 0.12) | Both dimensions needed to characterise a player |
-| Cross-half AWI stability | r = 0.660 (n = 79) | AWI is a stable trait, not match noise |
+| Cross-half AWI stability | r = 0.854 (n = 69) | AWI is a stable trait, not match noise |
 | Pre-pass AWI spike | +59% above baseline | Confirms cognitive load measurement |
 | Elite quadrant | 10 unique players | Top 25% on both AWI and PQI |
 | Test coverage | 334 tests | Unit + property-based, all passing, no AWS required |
 
-**Validation:** the 45-degree threshold is calibrated on a single anchor, Kimmich (FCB-HSV, 21.77 scans/min), which matches his documented scanning frequency in the coaching literature. Cross-half stability (r = 0.660), the +59% pre-pass spike, and cross-domain analogies provide additional support; the positional hierarchy (DMZ > CB > FW > GK) replicates Jordet et al. (2020) EPL findings. Single-player calibration is a known limitation (see below).
+> **Filter note:** the independence stat (r = -0.11, n = 198) uses all player-phases where both metrics are defined; cross-half stability (r = 0.854, n = 69) restricts to coverage >= 50%, where per-phase AWI is reliable. Under the same >= 50% filter, independence is r = -0.254 (p = 0.001), still weak.
 
-**Known limitations:** Single-player threshold calibration (Kimmich as primary anchor), XY-plane projection compresses 3D angles, occlusion artifacts in high-movement phases, no ball-possession context for AWI. Full details in the [PRFAQ](submission/prfaq.md).
+**Validation:** the 45-degree threshold is a fixed constant validated against a single anchor, Kimmich (FCB-HSV, 21.77 scans/min), whose resulting AWI matches his documented scanning frequency in the coaching literature. It was not fit by an optimisation sweep. Cross-half stability (r = 0.854), the +59% pre-pass spike, and cross-domain analogies provide additional support; the positional hierarchy (DMZ > CB > FW > GK) replicates Jordet et al. (2020) EPL findings. Single-anchor validation is a known limitation (see below).
+
+**Known limitations:** Single-anchor threshold validation (Kimmich as primary anchor), XY-plane projection compresses 3D angles, occlusion artifacts in high-movement phases, no ball-possession context for AWI. Full details in the [PRFAQ](submission/prfaq.md).
 
 ---
 
@@ -305,7 +307,7 @@ TF15 Parquet -> pyarrow row-group pushdown (stream, never full download)
   -> detect_scans()
        11-frame circular rolling mean (handles +/-180 wrap via sin/cos)
        25-frame delta (0.5s window)
-       >= 45 degree threshold (XY-projection corrected, tuned on Kimmich)
+       >= 45 degree threshold (XY-projection corrected, validated against Kimmich)
        leading-edge count (1 sustained rotation = 1 event)
   -> compute_awi() = scan_count / phase_minutes
 ```
@@ -314,7 +316,7 @@ TF15 Parquet -> pyarrow row-group pushdown (stream, never full download)
 |-----------|-------|-----------|
 | Frame rate | 50 fps | TF15 spec |
 | Scan window | 25 frames (0.5 s) | Sports-science literature |
-| Threshold | 45 degrees | XY-projection compresses 3D angles; tuned on Kimmich |
+| Threshold | 45 degrees | XY-projection compresses 3D angles; validated against Kimmich anchor |
 | Smooth window | 11 frames (0.22 s) | Suppresses single-frame tracking artefacts |
 
 ### PQI (Pressure Quality Index)

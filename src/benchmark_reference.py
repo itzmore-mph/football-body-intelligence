@@ -16,8 +16,9 @@ IMPORTANT - interpretation of benchmark values:
 from __future__ import annotations
 
 import math
-import random
 from dataclasses import dataclass, field
+
+import numpy as np
 
 
 @dataclass

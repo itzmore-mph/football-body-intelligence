@@ -37,7 +37,7 @@ LIGHT_TEXT    = "#F1F5F9"
 TICKER_MESSAGES: list[str] = [
     "+59% pre-pass scan spike",
     "r=-0.11 AWI/PQI independence",
-    "r=0.660 cross-half stability",
+    "r=0.854 cross-half stability",
 ]
 
 TICKER_INTERVAL_SECONDS: int = 3

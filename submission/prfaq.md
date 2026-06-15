@@ -10,7 +10,7 @@
 
 *Two matchday-grade metrics, AWI and PQI, turn TRACAB TF15 3D skeleton tracking into scout-ready intelligence for clubs, broadcasters, and league data teams.*
 
-Two matchday-grade metrics derived directly from TRACAB TF15 3D skeleton tracking: the Awareness Index (AWI), counting discrete head-scanning events per minute, and the Pressure Quality Index (PQI), scoring body mechanics during pressing actions on a 0–100 scale. Across five Bundesliga matches the two metrics are statistically independent (Pearson r = −0.11, p = 0.12, n = 198), so they characterise different player qualities. AWI is stable across halves (r = 0.66) and rises +59% in the five seconds before ball release, confirming it captures pre-decision scanning.
+Two matchday-grade metrics derived directly from TRACAB TF15 3D skeleton tracking: the Awareness Index (AWI), counting discrete head-scanning events per minute, and the Pressure Quality Index (PQI), scoring body mechanics during pressing actions on a 0–100 scale. Across five Bundesliga matches the two metrics are statistically independent (Pearson r = −0.11, p = 0.12, n = 198), so they characterise different player qualities. AWI is stable across halves (r = 0.85) and rises +59% in the five seconds before ball release, confirming it captures pre-decision scanning.
 
 ---
 
@@ -103,6 +103,8 @@ The near-zero correlation (r = −0.11, p = 0.12, n = 198 valid player-phases) i
 2. **Both metrics are necessary.** Using only AWI or only PQI gives an incomplete picture. A player in the elite quadrant (top 25% on both) is rare: only 10 unique players across 400 observations qualify.
 3. **Development pathways are separable.** AWI can be targeted through scanning drills and cognitive training independently of PQI, which responds to pressing mechanics coaching. The two dimensions don't trade off against each other.
 
+*Population note: this independence test uses all 198 player-phases where both metrics are defined (PQI requires at least one press frame); it is intentionally unfiltered for tracking coverage, to maximise sample size. The cross-half stability stat (r = 0.854, n = 69) instead restricts to high-coverage phases (coverage ≥ 50%), where per-phase AWI estimates are reliable. The two stats therefore use deliberately different populations. Applying the same ≥ 50% coverage filter to the independence test yields r = −0.254 (p = 0.001, n = 168) — still a weak relationship, confirming the two metrics remain largely non-redundant.*
+
 ### Can AWI and PQI be used in real time?
 
 Yes. AWI is computed as a rolling count over a sliding window and can be produced with approximately 12 seconds of lag (25-frame detection window plus smoothing buffer). PQI can similarly be computed in near-real-time once press frame detection is applied to the live stream. Both metrics are suitable for broadcast overlays with sub-15-second latency.
@@ -157,11 +159,11 @@ The Benchmark tab in the dashboard shows these cross-domain parallels with citat
 
 ### Why 45°? The literature uses 30°.
 
-The 30° threshold in sports-science literature is measured from direct video, where head angles are observed at full 3D resolution. The TF15 XY-plane projection compresses apparent rotation: a 3D head turn of 45° projects to approximately 30° in the XY plane depending on pitch-facing direction. The 45° threshold was empirically tuned on Kimmich (FCB-HSV, 1st half), where the resulting AWI of 21.77 scans/min matches his documented scanning frequency from hand-coded video analysis in the coaching literature.
+The 30° threshold in sports-science literature is measured from direct video, where head angles are observed at full 3D resolution. The TF15 XY-plane projection compresses apparent rotation: a 3D head turn of 45° projects to approximately 30° in the XY plane depending on pitch-facing direction. The 45° threshold is a fixed constant, set to align with the Kimmich anchor (FCB-HSV, 1st half): at 45°, his AWI of 21.77 scans/min matches his documented scanning frequency from hand-coded video analysis in the coaching literature. It was validated against this single anchor as a sanity check, not fit by an optimisation sweep across players.
 
 ### Why is AWI a "stable trait"? Could it just reflect match context?
 
-Cross-half Pearson correlation r = 0.660 (n = 79 active player-phases). Players who rank high in AWI in the first half rank high in the second half, independently of match context. Kimmich across two full matches: 21.77 / 21.15 (FCB-HSV) and 23.38 / 11.29 (FCU-FCB). The second-match second-half drop to 11.29 is itself informative: a 52% decline that no GPS or positional metric would detect, potentially indicating late-match fatigue or a tactical instruction to hold position.
+Cross-half Pearson correlation r = 0.854 (n = 69 active player-phases). Players who rank high in AWI in the first half rank high in the second half, independently of match context. Kimmich across two full matches: 21.77 / 21.15 (FCB-HSV) and 23.38 / 11.29 (FCU-FCB). The second-match second-half drop to 11.29 is itself informative: a 52% decline that no GPS or positional metric would detect, potentially indicating late-match fatigue or a tactical instruction to hold position.
 
 ### Why are the PQI weights 0.40 / 0.30 / 0.30?
 
@@ -193,7 +195,7 @@ Each match exceeds Lambda's practical envelope: ~4 GB Parquet, multi-minute phas
 
 1. **XY-plane projection**: head turns are quantified by angular magnitude, not gaze direction: a scan toward the goalkeeper and a scan toward a nearby defender look identical in the signal.
 2. **Occlusion artifacts**: if the skeleton tracker loses nose/neck joints, the pipeline falls back to the ear vector; if that fails, the frame is excluded. High-movement phases (headers, sprints) have higher NA rates.
-3. **Single-player threshold calibration**: Kimmich is the primary validation anchor; additional hand-coded video comparisons across positions would further strengthen threshold confidence.
+3. **Single-anchor threshold validation**: Kimmich is the primary validation anchor; the 45° threshold is a fixed constant sanity-checked against him, not fit by a sweep. Additional hand-coded video comparisons across positions would further strengthen threshold confidence.
 4. **No ball-possession context for AWI**: AWI counts all head turns equally whether or not the player is in possession. Pre-pass AWI partially addresses this: the +59% spike demonstrates the signal is decision-related.
 5. **PQI press frame minimum**: the 10-consecutive-frame filter (0.2 s) may under-count players who press in very short bursts.
 6. **PQI stance sub-score**: the 130° knee-joint-angle optimum is from biomechanics literature for athletic pressing stance; individual variation in the optimal joint angle is not accounted for.
