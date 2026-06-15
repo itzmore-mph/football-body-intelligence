@@ -60,7 +60,7 @@ This slide is replaced by a live walkthrough of the hosted dashboard (2-3 min), 
 
 - **Höjlund leads AWI at 26.9 scans/min** - a defensive midfielder scanning nearly once every 2 seconds
 - **Kimmich's consistency:** 21.77 → 21.15 across a full half - AWI is a stable trait (cross-half r = 0.854)
-- **Position hierarchy:** DMZ (15.6) > CB (10.6) > FW (6.2) > GK (3.5) - matches coaching literature
+- **Position hierarchy:** DMZ (15.6) > CB (10.6) > FW (6.2) > GK (3.5) - matches Jordet et al. (2020) EPL gradient
 - **Pre-pass spike: +59%** - players ramp scanning in the 5 seconds before releasing the ball
 - **Fan View + Broadcast Demo:** broadcast-ready overlays with real-time AWI/PQI gauges
 

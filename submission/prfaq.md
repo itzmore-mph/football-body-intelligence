@@ -111,14 +111,14 @@ Yes. AWI is computed as a rolling count over a sliding window and can be produce
 
 ### How does AWI compare to scanning rates in football research?
 
-The positional hierarchy in our data matches the academic literature. Jordet et al. (2020) measured pre-reception scanning frequency in the English Premier League, finding elite central midfielders substantially outscanning forwards, the same gradient AWI produces from continuous 3D skeleton data.
+The positional hierarchy in our data matches the academic literature. Jordet et al. (2020, *Frontiers in Psychology* 11:553813, [doi:10.3389/fpsyg.2020.553813](https://doi.org/10.3389/fpsyg.2020.553813)) measured pre-reception scanning frequency in the English Premier League (27 players, 21 matches, 9,574 possessions), finding a sample mean of 0.44 scans/s (~26 scans/min) with elite central midfielders substantially outscanning forwards, the same gradient AWI produces from continuous 3D skeleton data.
 
 | Measure | Rate | Method |
 |---|---|---|
 | AWI: DMZ (this study) | 15.6 scans/min | Full-phase mean, TF15 3D skeleton, 50 fps |
 | AWI: DMR (this study) | 10.4 scans/min | Full-phase mean, TF15 3D skeleton, 50 fps |
 | AWI: STZ (this study) | 6.2 scans/min | Full-phase mean, TF15 3D skeleton, 50 fps |
-| Pre-reception scanning, EPL (Jordet et al., 2020) | ~26 scans/min | Video-coded, last 10 s before receiving |
+| Pre-reception scanning, EPL (Jordet et al., 2020) | 0.44 scans/s (~26 scans/min) | Video-coded, last 10 s before receiving |
 
 Note: AWI measures continuous full-phase rate across ~50 minutes; video-based studies capture short pre-reception bursts. These are complementary, not interchangeable. The +59% pre-pass spike in our data bridges the two approaches.
 
@@ -159,7 +159,7 @@ The Benchmark tab in the dashboard shows these cross-domain parallels with citat
 
 ### Why 45°? The literature uses 30°.
 
-The 30° threshold in sports-science literature is measured from direct video, where head angles are observed at full 3D resolution. The TF15 XY-plane projection compresses apparent rotation: a 3D head turn of 45° projects to approximately 30° in the XY plane depending on pitch-facing direction. The 45° threshold is a fixed constant, set to align with the Kimmich anchor (FCB-HSV, 1st half): at 45°, his AWI of 21.77 scans/min matches his documented scanning frequency from hand-coded video analysis in the coaching literature. It was validated against this single anchor as a sanity check, not fit by an optimisation sweep across players.
+The 30° threshold in sports-science literature is measured from direct video, where head angles are observed at full 3D resolution. The TF15 XY-plane projection compresses apparent rotation: a 3D head turn of 45° projects to approximately 30° in the XY plane depending on pitch-facing direction. The 45° threshold is a fixed constant, set so resulting AWI rates fall in the range Jordet et al. (2020) report for elite EPL players (sample mean 0.44 scans/s, ~26 scans/min). Höjlund (26.90 scans/min) matches that mean; Kimmich (21.77, FCB-HSV 1st half) sits just below it. The match is approximate: Jordet counts scans in a 10-second pre-reception window while AWI is a continuous per-minute rate. The threshold was validated against these anchors as a sanity check, not fit by an optimisation sweep across players. No published source documents an individual scan rate for Kimmich specifically; Jordet's figure is a 27-player sample mean.
 
 ### Why is AWI a "stable trait"? Could it just reflect match context?
 
