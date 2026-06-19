@@ -15,7 +15,7 @@ Two matchday-grade player intelligence metrics derived entirely from TRACAB TF15
 | **AWI** (Awareness Index) | Cognitive scanning: discrete head-rotation events per minute, from 3D nose/neck/ear keypoints | 3.3 to 26.9 scans/min |
 | **PQI** (Pressure Quality Index) | Pressing mechanics: body orientation, knee-joint-angle stance, and proximity during genuine press actions | 0 to 100 |
 
-AWI and PQI are statistically independent (Pearson r = -0.11, p = 0.12). A player can scan brilliantly but press with poor mechanics, or vice versa. Elite players score high on both, and the data identifies exactly who they are.
+AWI and PQI are only weakly correlated (Pearson r between -0.11 and -0.25 depending on the reliability filter; on the high-coverage subset the relationship is significant, p = 0.001, but the effect stays small). They capture largely distinct dimensions: a player can scan brilliantly but press with poor mechanics, or vice versa. Elite players score high on both, and the data identifies exactly who they are.
 
 ---
 
@@ -36,13 +36,13 @@ AWI and PQI are statistically independent (Pearson r = -0.11, p = 0.12). A playe
 | Player-phase observations | 400 | ~40 players x 2 halves x 5 matches |
 | AWI median | 12.59 scans/min | DMZ highest (15.6), TW lowest (3.5) |
 | PQI outfield leaders | DMZ 62.9, DMR 62.1 | Position-specific benchmarking recommended |
-| AWI-PQI independence | r = -0.11 (p = 0.12) | Both dimensions needed to characterise a player |
+| AWI-PQI overlap | r = -0.11 to -0.25 | Weak correlation; both dimensions needed to characterise a player |
 | Cross-half AWI stability | r = 0.854 (n = 69) | AWI is a stable trait, not match noise |
 | Pre-pass AWI spike | +59% above baseline | Confirms cognitive load measurement |
 | Elite quadrant | 10 unique players | Top 25% on both AWI and PQI |
 | Test coverage | 334 tests | Unit + property-based, all passing, no AWS required |
 
-> **Filter note:** the independence stat (r = -0.11, n = 198) uses all player-phases where both metrics are defined; cross-half stability (r = 0.854, n = 69) restricts to coverage >= 50%, where per-phase AWI is reliable. Under the same >= 50% filter, independence is r = -0.254 (p = 0.001), still weak.
+> **Filter note:** the AWI-PQI correlation stat (r = -0.11, p = 0.12, n = 198) uses all player-phases where both metrics are defined; cross-half stability (r = 0.854, n = 69) restricts to coverage >= 50%, where per-phase AWI is reliable. Under the same >= 50% filter the correlation is r = -0.254 (p = 0.001): statistically significant but still weak. The non-significant p on the full sample reflects an underpowered test, not proven independence.
 
 **Validation:** the 45-degree threshold is a fixed constant set so resulting AWI rates fall in the range reported by Jordet et al. (2020) for elite EPL players (sample mean ~26 scans/min, central-midfielder-led hierarchy). Höjlund (26.90 scans/min) matches that mean; Kimmich (21.77) sits just below it. The comparison is approximate: Jordet counts scans in a 10-second pre-reception window, whereas AWI is a continuous per-minute rate. The threshold was not fit by an optimisation sweep. Cross-half stability (r = 0.854), the +59% pre-pass spike, and cross-domain analogies provide additional support; the positional hierarchy (DMZ > CB > FW > GK) replicates the Jordet et al. (2020) EPL gradient. Single-anchor validation is a known limitation (see below).
 
